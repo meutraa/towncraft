@@ -51,7 +51,7 @@ int main(int argc, char** argv)
     }
     
     /* Get the renderer associated with the SDL_Window. */
-    int flags = (1 ? SDL_RENDERER_PRESENTVSYNC : 0)|SDL_RENDERER_ACCELERATED;
+    int flags = (vsync ? SDL_RENDERER_PRESENTVSYNC : 0)|SDL_RENDERER_ACCELERATED;
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, flags);
     
     if(NULL == renderer)
