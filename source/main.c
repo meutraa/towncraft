@@ -80,6 +80,31 @@ int main(int argc, char** argv)
     /* Draw the rectangle to the renderer attached to window. */
     SDL_RenderDrawRect(renderer, &rect);
     
+    SDL_Surface* cat_surf = SDL_LoadBMP("resources/cat.bmp");
+    SDL_Texture* cat_tex = SDL_CreateTextureFromSurface(renderer, cat_surf);
+    
+    SDL_Rect src_rect;
+    rect.x = 0;
+    rect.y = 0;
+    rect.w = cat_surf->w;
+    rect.h = cat_surf->h;
+    
+    SDL_Rect dest_rect;
+    rect.x = 125;
+    rect.y = 25;
+    rect.w = cat_surf->w;
+    rect.h = cat_surf->h;
+    
+    printf("%d\n", cat_surf->w);
+    printf("%d\n", cat_surf->h);
+    
+    SDL_RenderCopy(
+        renderer,
+        cat_tex,
+        &src_rect,
+        &dest_rect
+    );
+    
     // Render the rect to the screen
     SDL_RenderPresent(renderer);
     
