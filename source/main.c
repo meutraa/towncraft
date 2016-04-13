@@ -108,23 +108,37 @@ int main(int argc, char** argv)
     // Render the rect to the screen
     SDL_RenderPresent(renderer);
     
-    SDL_Delay(5000);  // Pause execution for 3000 milliseconds, for example
-    
-    /* Wait for the first event. */
-    SDL_Event *event = NULL; 
-    int ret_Event = SDL_WaitEvent(&event);
-    
-    while(0 != event && NULL != event)
+    /* Start the main loop. */
+    SDL_Event event; 
+    while(1)
     {
-         switch (test_event.type)
-         {
-             case SDL_KEYDOWN:
-                 SDL_Keysym *keysym = event.keysym;
-                 break;
-             default:
-         }
-        /* Wait for the next event. */
-        ret_Event = SDL_WaitEvent(&event);
+        /* If there are events in the event queue, process them. */
+        while(SDL_PollEvent(&event))
+        {
+            switch(event.type)
+            {
+                case SDL_KEYDOWN:
+                    switch(event.key.keysym.scancode)
+                    {
+                        case 41: // ESC - Close the program.
+                            return 0;
+                            break;
+                        default:
+                            break;
+                    }
+                    // printf("%d\n", event.key.keysym.scancode); // Use to determine scancodes
+                    return 1;
+                    break;
+                default:
+                    break;
+            }
+        }
+        
+        /* Finished dealing with events; render stuff now. */
+        
+        
+        /* Wait for next frame */
+        SDL_Delay(300);
     }
    
     /* Clean up stuff. */
