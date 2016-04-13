@@ -82,28 +82,34 @@ int main(int argc, char** argv)
     
     SDL_Surface* cat_surf = SDL_LoadBMP("resources/cat.bmp");
     SDL_Texture* cat_tex = SDL_CreateTextureFromSurface(renderer, cat_surf);
+    int width = cat_surf->w;
+    int height = cat_surf->h;
+    SDL_FreeSurface(cat_surf);
     
     SDL_Rect src_rect;
     rect.x = 0;
     rect.y = 0;
-    rect.w = cat_surf->w;
-    rect.h = cat_surf->h;
+    rect.w = width;
+    rect.h = height;
     
     SDL_Rect dest_rect;
-    rect.x = 125;
-    rect.y = 25;
-    rect.w = cat_surf->w;
-    rect.h = cat_surf->h;
+    rect.x = 0;
+    rect.y = 0;
+    rect.w = 150;
+    rect.h = 25;
     
     printf("%d\n", cat_surf->w);
     printf("%d\n", cat_surf->h);
     
-    SDL_RenderCopy(
+        
+    int render_error = SDL_RenderCopy(
         renderer,
         cat_tex,
-        &src_rect,
+        NULL,
         &dest_rect
     );
+    
+    printf("%d\n", render_error);
     
     // Render the rect to the screen
     SDL_RenderPresent(renderer);
