@@ -13,23 +13,15 @@ int main(int argc, char** argv)
     /* Ensures any return will call SDL_Quit first. */
     atexit(SDL_Quit);
     
-    /* Initialise the video subsystem. */
-    int iret = SDL_Init(SDL_INIT_VIDEO);
+    /* Initialise the video and timer subsystem. */
+    int iret = SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER);
     if(iret != 0)
     {
-        fprintf(stderr, "\nUnable to initialize SDL Video Subsystem:  %s\n", SDL_GetError());
+        fprintf(stderr, "\nUnable to initialize SDL Subsystem:  %s\n", SDL_GetError());
         return 1;
     }
     
-    /* Initialise the timer subsystem. */
-    iret = SDL_InitSubSystem(SDL_INIT_TIMER);
-    if(iret != 0)
-    {
-        fprintf(stderr, "\nUnable to initialize SDL Timer Subsystem:  %s\n", SDL_GetError());
-        return 1;
-    }
-    
-    /* Initialise the audio subsystem. */
+    /* Initialise the (optional) audio subsystem. */
     iret = SDL_InitSubSystem(SDL_INIT_AUDIO);
     if(iret != 0)
     {
