@@ -2,8 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+const char* GAME_NAME = "Towncraft";
+
 int main(int argc, char** argv)
 {
+    int vsync = 1;
+    
     /* Ensures any return will call SDL_Quit first. */
     atexit(SDL_Quit);
     
@@ -33,22 +37,33 @@ int main(int argc, char** argv)
     
     /* Create window */
     SDL_Window* window = SDL_CreateWindow(
-        "A Window",                 // Window title
+        GAME_NAME,                 // Window title
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, // Position (x,y)
         640, 480,                   // Size (x,y)
         SDL_WINDOW_RESIZABLE
         // Window flags http://wiki.libsdl.org/SDL_WindowFlags
     );
     
-    if(window == NULL)
+    if(NULL == window)
     {
         fprintf(stderr, "\nCould not create window: %s\n", SDL_GetError());
+        return 1;
+    }
+    
+    /* Get the renderer associated with the SDL_Window. */
+    int flags = (1 ? SDL_RENDERER_PRESENTVSYNC : 0)|SDL_RENDERER_ACCELERATED;
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, flags);
+    
+    if(NULL == renderer)
+    {
+        fprintf(stderr, "\nCould not create renderer: %s\n", SDL_GetError());
         return 1;
     }
     
     SDL_Delay(3000);  // Pause execution for 3000 milliseconds, for example
    
     /* Clean up stuff. */
+    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     
     return 0;
