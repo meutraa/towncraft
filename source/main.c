@@ -7,8 +7,8 @@ const char* GAME_NAME = "Towncraft";
 int main(int argc, char** argv)
 {
     int vsync = 1;
-    int initial_width = 640;
-    int initial_height = 480;
+    int initial_width = 1600;
+    int initial_height = 800;
     
     /* Ensures any return will call SDL_Quit first. */
     atexit(SDL_Quit);
@@ -66,26 +66,21 @@ int main(int argc, char** argv)
     /* Set renderer colour to black and clear window. */
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-        
-    /* Create a rectangle structure. */
-    SDL_Rect rect;
-    rect.x = 25;
-    rect.y = 25;
-    rect.w = 100;
-    rect.h = 100;
     
     /* Create bitmap texture. */
     SDL_Surface* cat_surf = SDL_LoadBMP("resources/cat.bmp");
     SDL_Texture* cat_tex = SDL_CreateTextureFromSurface(renderer, cat_surf);
     SDL_FreeSurface(cat_surf);
     
-    SDL_Rect dest_rect;
-    rect.x = 0;
-    rect.y = 0;
-    rect.w = 150;
-    rect.h = 25;
+    /* Rectangle to draw the cat. */
+    SDL_Rect cat_rect;
+    cat_rect.x = 150;
+    cat_rect.y = 25;
+    cat_rect.w = 640;
+    cat_rect.h = 480;
     
-    int a = 0, b = 0, c = 0;
+    /* Colors for background rainbow. */
+    int r = 0, g = 0, b = 0;
     
     /* Start the main loop. */
     SDL_Event event; 
@@ -111,16 +106,17 @@ int main(int argc, char** argv)
                     break;
             }
         }
-        
         /* Finished dealing with events; render stuff now. */
-        SDL_SetRenderDrawColor(renderer, (a+=1)%255, (b+=2)%255, (c+=3)%255, 255);
-    
-        /* Draw the rectangle to the renderer attached to window. */
-        //SDL_RenderDrawRect(renderer, &rect);
+       
+        /* Set the draw color and fill the screen with it. */
+        SDL_SetRenderDrawColor(renderer, (r+=1)%255, (g+=2)%255, (b+=3)%255, 255);
+        SDL_RenderClear(renderer);
         
-        SDL_RenderClear   (renderer);
-        //SDL_RenderCopy    (renderer, cat_tex, NULL, &dest_rect);
-        SDL_RenderPresent (renderer);
+        /* Copy the cat to the destintaion rectangle on the renderer. */
+        SDL_RenderCopy(renderer, cat_tex, NULL, &cat_rect);
+        
+        /* Draw the renderer. */
+        SDL_RenderPresent(renderer);
         
         /* Wait for next frame */
         SDL_Delay(16);
