@@ -36,7 +36,7 @@ int main(int argc, char** argv)
         "A Window",                 // Window title
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, // Position (x,y)
         640, 480,                   // Size (x,y)
-        SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE
+        SDL_WINDOW_RESIZABLE
         // Window flags http://wiki.libsdl.org/SDL_WindowFlags
     );
     
