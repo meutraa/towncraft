@@ -84,6 +84,23 @@ int main(int argc, char** argv)
     SDL_RenderPresent(renderer);
     
     SDL_Delay(5000);  // Pause execution for 3000 milliseconds, for example
+    
+    /* Wait for the first event. */
+    SDL_Event *event = NULL; 
+    int ret_Event = SDL_WaitEvent(&event);
+    
+    while(0 != event && NULL != event)
+    {
+         switch (test_event.type)
+         {
+             case SDL_KEYDOWN:
+                 SDL_Keysym *keysym = event.keysym;
+                 break;
+             default:
+         }
+        /* Wait for the next event. */
+        ret_Event = SDL_WaitEvent(&event);
+    }
    
     /* Clean up stuff. */
     SDL_DestroyRenderer(renderer);
