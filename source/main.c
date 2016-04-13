@@ -7,6 +7,8 @@ const char* GAME_NAME = "Towncraft";
 int main(int argc, char** argv)
 {
     int vsync = 1;
+    int initial_width = 640;
+    int initial_height = 480;
     
     /* Ensures any return will call SDL_Quit first. */
     atexit(SDL_Quit);
@@ -39,7 +41,7 @@ int main(int argc, char** argv)
     SDL_Window* window = SDL_CreateWindow(
         GAME_NAME,                 // Window title
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, // Position (x,y)
-        640, 480,                   // Size (x,y)
+        initial_width, initial_height,                   // Size (x,y)
         SDL_WINDOW_RESIZABLE
         // Window flags http://wiki.libsdl.org/SDL_WindowFlags
     );
