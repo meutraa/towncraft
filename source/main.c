@@ -74,23 +74,10 @@ int main(int argc, char** argv)
     rect.w = 100;
     rect.h = 100;
     
-    /* Set the renderer color to red. */
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    
-    /* Draw the rectangle to the renderer attached to window. */
-    SDL_RenderDrawRect(renderer, &rect);
-    
+    /* Create bitmap texture. */
     SDL_Surface* cat_surf = SDL_LoadBMP("resources/cat.bmp");
     SDL_Texture* cat_tex = SDL_CreateTextureFromSurface(renderer, cat_surf);
-    int width = cat_surf->w;
-    int height = cat_surf->h;
     SDL_FreeSurface(cat_surf);
-    
-    SDL_Rect src_rect;
-    rect.x = 0;
-    rect.y = 0;
-    rect.w = width;
-    rect.h = height;
     
     SDL_Rect dest_rect;
     rect.x = 0;
@@ -98,21 +85,7 @@ int main(int argc, char** argv)
     rect.w = 150;
     rect.h = 25;
     
-    printf("%d\n", cat_surf->w);
-    printf("%d\n", cat_surf->h);
-    
-        
-    int render_error = SDL_RenderCopy(
-        renderer,
-        cat_tex,
-        NULL,
-        &dest_rect
-    );
-    
-    printf("%d\n", render_error);
-    
-    // Render the rect to the screen
-    SDL_RenderPresent(renderer);
+    int a = 0, b = 0, c = 0;
     
     /* Start the main loop. */
     SDL_Event event; 
@@ -133,7 +106,6 @@ int main(int argc, char** argv)
                             break;
                     }
                     // printf("%d\n", event.key.keysym.scancode); // Use to determine scancodes
-                    return 1;
                     break;
                 default:
                     break;
@@ -141,13 +113,21 @@ int main(int argc, char** argv)
         }
         
         /* Finished dealing with events; render stuff now. */
+        SDL_SetRenderDrawColor(renderer, (a+=1)%255, (b+=2)%255, (c+=3)%255, 255);
+    
+        /* Draw the rectangle to the renderer attached to window. */
+        //SDL_RenderDrawRect(renderer, &rect);
         
+        SDL_RenderClear   (renderer);
+        //SDL_RenderCopy    (renderer, cat_tex, NULL, &dest_rect);
+        SDL_RenderPresent (renderer);
         
         /* Wait for next frame */
-        SDL_Delay(300);
+        SDL_Delay(16);
     }
    
     /* Clean up stuff. */
+    SDL_DestroyTexture(cat_tex);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     
