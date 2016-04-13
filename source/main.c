@@ -63,7 +63,27 @@ int main(int argc, char** argv)
         return 1;
     }
     
-    SDL_Delay(3000);  // Pause execution for 3000 milliseconds, for example
+    /* Set renderer colour to black and clear window. */
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+        
+    /* Create a rectangle structure. */
+    SDL_Rect rect;
+    rect.x = 25;
+    rect.y = 25;
+    rect.w = 100;
+    rect.h = 100;
+    
+    /* Set the renderer color to red. */
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    
+    /* Draw the rectangle to the renderer attached to window. */
+    SDL_RenderDrawRect(renderer, &rect);
+    
+    // Render the rect to the screen
+    SDL_RenderPresent(renderer);
+    
+    SDL_Delay(5000);  // Pause execution for 3000 milliseconds, for example
    
     /* Clean up stuff. */
     SDL_DestroyRenderer(renderer);
