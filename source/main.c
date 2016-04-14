@@ -93,11 +93,16 @@ int main(int argc, char** argv)
                     switch(event.key.keysym.scancode)
                     {
                         case 41: // ESC - Close the program.
-                        {
                             return 0;
                             break;
-                        }
+                        case 80:    // LEFT - shrink ui scale
+                            win_scale -= 0.1f;
+                            break;
+                        case 79:    // RIGHT - grow ui scale
+                            win_scale += 0.1f;
+                            break;
                         default:
+                            printf("Key %d pressed\n", event.key.keysym.scancode);
                             break;
                     }
                     // printf("%d\n", event.key.keysym.scancode); // Use to determine scancodes
