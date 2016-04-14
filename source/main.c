@@ -6,6 +6,7 @@
 const char* GAME_NAME = "Towncraft";
 int win_width = 1600;
 int win_height = 800;
+float win_scale = 1.0f;
 
 int main(int argc, char** argv)
 {
@@ -76,9 +77,26 @@ int main(int argc, char** argv)
     int r = 0, g = 0, b = 0;
     
     /* Load button to texture. */
-    SDL_RWops *rwop = SDL_RWFromFile("resources/button.pnm", "rb");
-    SDL_Surface *button_surf = IMG_LoadPNM_RW(rwop);;
+    SDL_RWops* rwop = SDL_RWFromFile("resources/button.pnm", "rb");
+    SDL_Surface* button_surf = IMG_LoadPNM_RW(rwop);
     SDL_Texture* button_tex = SDL_CreateTextureFromSurface(renderer, button_surf);
+    printf("loading w+h\n");
+    int button_w = button_surf->w;
+    int button_h = button_surf->h;
+    SDL_FreeSurface(button_surf);
+    printf("done\n");
+    
+    SDL_Rect button_opt_rect;
+    button_opt_rect.x = win_width - win_width/10;
+    button_opt_rect.y = win_height - win_height/5;
+    button_opt_rect.w = button_w;
+    button_opt_rect.h = button_h;
+    
+    SDL_Rect button_exit_rect;
+    button_exit_rect.x = win_width - win_width/10;
+    button_exit_rect.y = win_height - win_height/10;
+    button_exit_rect.w = button_w;
+    button_exit_rect.h = button_h;
     
     /* Start the main loop. */
     SDL_Event event; 
@@ -128,7 +146,10 @@ int main(int argc, char** argv)
                         {
                             win_width  = event.window.data1;
                             win_height = event.window.data2;
-                            printf("%d,%d\n", win_width, win_height);
+                            button_opt_rect.x = win_width - win_width/10;
+                            button_opt_rect.y = win_height - win_height/20;
+                            button_exit_rect.x = win_width - win_width/10;
+                            button_exit_rect.y = win_height - win_height/10;
                         }
                         default:
                             break;
@@ -143,8 +164,11 @@ int main(int argc, char** argv)
         SDL_SetRenderDrawColor(renderer, (r+=1)%255, (g+=2)%255, (b+=3)%255, 255);
         SDL_RenderClear(renderer);
         
-        /* Copy the cat to the destintaion rectangle on the renderer. */
+        /* Copy the cat to the destination rectangle on the renderer. */
+        printf("rendering\n");
         SDL_RenderCopy(renderer, cat_tex, NULL, &cat_rect);
+        SDL_RenderCopy(renderer, button_tex, NULL, &button_opt_rect);
+        SDL_RenderCopy(renderer, button_tex, NULL, &button_exit_rect);
         
         /* Draw the renderer. */
         SDL_RenderPresent(renderer);
