@@ -4,37 +4,40 @@
 #include <stdlib.h>
 
 const char* GAME_NAME = "Towncraft";
-const int initial_width = 1600;
-const int initial_height = 800;
+
+/* Current window dimensions. */
 int win_width = 1600;
 int win_height = 800;
+
+/* User option to scale ui elements. */
 float win_scale = 1.0f;
-float win_stretch = 1.0f;
-SDL_Renderer* renderer;
 
+/* Number of textures we are loading. */
 #define TEX_COUNT  1
-
 char* texture_paths[TEX_COUNT] = {
     "resources/button.pnm"    // 0
 };
 
+/* A structure that stores the initial texture with width and height. */
 struct Texture 
 {
     SDL_Texture *texture;
     int width;
     int height;
-};
+} textures[TEX_COUNT];  // Create an array of these structs
 
-struct Texture textures[TEX_COUNT];
-
+/* Number of Scalables required in code. */
+/* Contains the initial position of the scalable in terms of a percentage. */
+#define SCA_COUNT 2
 struct Scalable 
 {
     int texture_id;
     SDL_Rect rect;
     float initial_width_percentage;
     float initial_height_percentage;
-};
+} scalables[SCA_COUNT]; // Create an array of these structs
 
+/* Create a new Scalable struct. */
 struct Scalable CreateScalable(float x, float y, int texture_id)
 {
     struct Scalable scalable;
@@ -50,10 +53,7 @@ struct Scalable CreateScalable(float x, float y, int texture_id)
     return scalable;
 }
 
-
-#define SCA_COUNT 2
-struct Scalable scalables[2];
-
+/* Checks whether a co-ordinate is inside an SDL_Rect boundry. */
 int inside(int x, int y, SDL_Rect r)
 {
     if((x > r.x && x < r.x + r.w) && (y > r.y && y < r.y + r.h))
@@ -86,9 +86,9 @@ int main(int argc, char** argv)
     
     /* Create window */
     SDL_Window* window = SDL_CreateWindow(
-        GAME_NAME,                 // Window title
+        GAME_NAME,                                       // Window title
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,  // Position (x,y)
-        win_width, win_height,     // Size (x,y)
+        win_width, win_height,                           // Size (x,y)
         SDL_WINDOW_RESIZABLE
         // Window flags http://wiki.libsdl.org/SDL_WindowFlags
     );
@@ -128,8 +128,8 @@ int main(int argc, char** argv)
     /* Colors for background rainbow. */
     int r = 0, g = 0, b = 0;
     
-    scalables[0] = CreateScalable(0.8, 0.9, 0);
-    scalables[1] = CreateScalable(0.9, 0.9, 0);
+    scalables[0] = CreateScalable(0.8, 0.9, 0); // Button for options
+    scalables[1] = CreateScalable(0.9, 0.9, 0); // Button for exit
     
     /* Start the main loop. */
     SDL_Event event; 
@@ -144,7 +144,7 @@ int main(int argc, char** argv)
                     switch(event.key.keysym.scancode)
                     {
                         case 41: // ESC - Close the program.
-                            return 0;
+                            quit();
                             break;
                         case 80:    // LEFT - shrink ui scale
                             win_scale -= 0.1f;
@@ -170,10 +170,7 @@ int main(int argc, char** argv)
                             printf("Button %d pressed at %d,%d at %d\n", event.button.button, x, y, time);
                             
                             /* If the click is within the exit button boundry. */
-                            /*if(inside(x, y, button_exit_rect))
-                            {
-                                return 0;
-                            }*/
+                            if(inside(x, y, scalables[1].rect)) quit();
                             break;
                         }
                     }
@@ -204,7 +201,7 @@ int main(int argc, char** argv)
         SDL_SetRenderDrawColor(renderer, (r+=1)%255, (g+=2)%255, (b+=3)%255, 255);
         SDL_RenderClear(renderer);
         
-        /* Copy the cat to the destination rectangle on the renderer. */
+        /* Copy all the scalables to the window. */
         for(i = 0; i < SCA_COUNT; i++)
         {
             SDL_RenderCopy(renderer, textures[scalables[i].texture_id].texture, NULL, &scalables[i].rect);
