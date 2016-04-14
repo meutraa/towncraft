@@ -79,6 +79,15 @@ int main(int argc, char** argv)
     SDL_RWops *rwop = SDL_RWFromFile("resources/button.pnm", "rb");
     SDL_Surface *button_surf = IMG_LoadPNM_RW(rwop);;
     SDL_Texture* button_tex = SDL_CreateTextureFromSurface(renderer, button_surf);
+    int button_w = button_surf->w;
+    int button_h = button_surf->h;
+    SDL_FreeSurface(button_surf);
+    
+    SDL_Rect button_opt_rect;
+    button_rect.x = win_width/10;
+    button_rect.y = win_height - win_height/10;
+    button_rect.w = button_w;
+    button_rect.h = button_h;
     
     /* Start the main loop. */
     SDL_Event event; 
@@ -128,6 +137,7 @@ int main(int argc, char** argv)
         
         /* Copy the cat to the destintaion rectangle on the renderer. */
         SDL_RenderCopy(renderer, cat_tex, NULL, &cat_rect);
+        SDL_RenderCopy(renderer, button_tex, NULL, &button_rect);
         
         /* Draw the renderer. */
         SDL_RenderPresent(renderer);
