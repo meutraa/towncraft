@@ -4,12 +4,12 @@
 #include <stdlib.h>
 
 const char* GAME_NAME = "Towncraft";
+int win_width = 1600;
+int win_height = 800;
 
 int main(int argc, char** argv)
 {
     int vsync = 1;
-    int initial_width = 1600;
-    int initial_height = 800;
     
     /* Ensures any return will call SDL_Quit first. */
     atexit(SDL_Quit);
@@ -34,7 +34,7 @@ int main(int argc, char** argv)
     SDL_Window* window = SDL_CreateWindow(
         GAME_NAME,                 // Window title
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,  // Position (x,y)
-        initial_width, initial_height,                   // Size (x,y)
+        win_width, win_height,     // Size (x,y)
         SDL_WINDOW_RESIZABLE
         // Window flags http://wiki.libsdl.org/SDL_WindowFlags
     );
@@ -125,6 +125,18 @@ int main(int argc, char** argv)
                         }
                     }
                     break;
+                case SDL_WINDOWEVENT:
+                    switch(event.window.event)
+                    {
+                        case SDL_WINDOWEVENT_SIZE_CHANGED:
+                        {
+                            win_width  = event.window.data1;
+                            win_height = event.window.data2;
+                            printf("%d,%d\n", win_width, win_height);
+                        }
+                        default:
+                            break;
+                    }
                 default:
                     break;
             }
