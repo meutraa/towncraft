@@ -91,10 +91,9 @@ int main(int argc, char** argv)
     int r = 0, g = 0, b = 0;
     
     /* Load button to texture. */
-    SDL_Surface *button_surf;
-    SDL_RWops *rwop;
-    rwop = SDL_RWFromFile("resources/button.pnm", "rb");
-    button_surf = IMG_LoadPNM_RW(rwop);
+    SDL_RWops *rwop = SDL_RWFromFile("resources/button.pnm", "rb");
+    SDL_Surface *button_surf = IMG_LoadPNM_RW(rwop);;
+    SDL_Texture* button_tex = SDL_CreateTextureFromSurface(renderer, button_surf);
     
     /* Start the main loop. */
     SDL_Event event; 
