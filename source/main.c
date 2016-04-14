@@ -18,9 +18,12 @@ void quit();
 #define SCA_COUNT 2     // Number of Scalables
 #define TEX_COUNT 1     // Number of Textures
 
+#define FALLBACK_RES_WIDTH 640
+#define FALLBACK_RES_HEIGHT 480
+
 /* Current window dimensions. */
-int win_width = 1600;
-int win_height = 800;
+int win_width;
+int win_height;
 
 /* User option to scale ui elements. */
 float win_scale = 1.0f;
@@ -71,6 +74,14 @@ int main(int argc, char** argv)
 {
     int vsync = 1;
     
+    /* fullscreen = 0, use fallback/window res,
+     * fullscreen = 1, use fullscreen at fallback/window res,
+     * fullscreen = 2, user fullscreen at current desktop res
+     */
+    int fullscreen = 0;
+    win_width = FALLBACK_RES_WIDTH;
+    win_height = FALLBACK_RES_HEIGHT;
+    
     /* Ensures any return will call SDL_Quit first. */
     atexit(quit);
     
@@ -85,7 +96,6 @@ int main(int argc, char** argv)
     if(SDL_InitSubSystem(SDL_INIT_AUDIO))
     {
         fprintf(stderr, "\nUnable to initialize SDL Audio Subsystem:  %s\n", SDL_GetError());
-        // Do not quit if audio fails
     }
     
     /* Create window */
@@ -93,7 +103,9 @@ int main(int argc, char** argv)
         GAME_NAME,                                       // Window title
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,  // Position (x,y)
         win_width, win_height,                           // Size (x,y)
-        SDL_WINDOW_RESIZABLE
+        SDL_WINDOW_RESIZABLE|
+        ((fullscreen == 1) ? SDL_WINDOW_FULLSCREEN : 0)|        // If custom_resolution is set use size x,y fullscreen
+        ((fullscreen == 2) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) // If fullscreen is set use desktop resolution
         // Window flags http://wiki.libsdl.org/SDL_WindowFlags
     );
     
@@ -118,10 +130,17 @@ int main(int argc, char** argv)
     for(int i = 0; i < TEX_COUNT; i++)
     {
         SDL_Surface* surface = IMG_Load(texture_paths[i]);
-        textures[i].texture = SDL_CreateTextureFromSurface(renderer, surface);
-        textures[i].width   = surface->w;
-        textures[i].height  = surface->h;
-        SDL_FreeSurface(surface);
+        if(NULL == surface)
+        {
+            fprintf(stderr, "\nIMG_Load failed to load \"%s\" to surface\n", texture_paths[i]);
+        }
+        else
+        {
+            textures[i].texture = SDL_CreateTextureFromSurface(renderer, surface);
+            textures[i].width   = surface->w;
+            textures[i].height  = surface->h;
+            SDL_FreeSurface(surface);
+        }
     }
     
     /* Set renderer colour to black and clear window. */
