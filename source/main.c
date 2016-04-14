@@ -133,6 +133,9 @@ int main(int argc, char** argv)
     button_exit_rect.w = button_w;
     button_exit_rect.h = button_h;*/
     
+    scalabe button_opt = CreateScalable(win_width * 0.8, win_height * 0.9, textures[0]);
+    scalabe button_exit = CreateScalable(win_width * 0.9, win_height * 0.9, textures[0]);
+    
     /* Start the main loop. */
     SDL_Event event; 
     while(1)
