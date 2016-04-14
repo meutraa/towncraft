@@ -33,7 +33,7 @@ int main(int argc, char** argv)
     /* Create window */
     SDL_Window* window = SDL_CreateWindow(
         GAME_NAME,                 // Window title
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, // Position (x,y)
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,  // Position (x,y)
         initial_width, initial_height,                   // Size (x,y)
         SDL_WINDOW_RESIZABLE
         // Window flags http://wiki.libsdl.org/SDL_WindowFlags
@@ -89,6 +89,12 @@ int main(int argc, char** argv)
     
     /* Colors for background rainbow. */
     int r = 0, g = 0, b = 0;
+    
+    /* Load button to texture. */
+    SDL_Surface *button_surf;
+    SDL_RWops *rwop;
+    rwop = SDL_RWFromFile("resources/button.pnm", "rb");
+    button_surf = IMG_LoadPNM_RW(rwop);
     
     /* Start the main loop. */
     SDL_Event event; 
