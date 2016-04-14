@@ -3,12 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define SIZE(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
-
 const char* GAME_NAME = "Towncraft";
+const int initial_width = 1600;
+const int initial_height = 800;
 int win_width = 1600;
 int win_height = 800;
 float win_scale = 1.0f;
+float win_stretch = 1.0f;
 SDL_Renderer* renderer;
 
 #define TEX_COUNT  1
@@ -30,21 +31,27 @@ struct Scalable
 {
     int texture_id;
     SDL_Rect rect;
+    float initial_width_percentage;
+    float initial_height_percentage;
 };
 
-struct Scalable CreateScalable(int x, int y, int texture_id)
+struct Scalable CreateScalable(float x, float y, int texture_id)
 {
     struct Scalable scalable;
     SDL_Rect rect;
-    rect.x = x;
-    rect.y = y;
+    rect.x = x * win_width;
+    rect.y = y * win_height;
     rect.w = textures[texture_id].width;
     rect.h = textures[texture_id].height;
     scalable.texture_id = texture_id;
     scalable.rect = rect;
+    scalable.initial_width_percentage = x;
+    scalable.initial_height_percentage = y;
     return scalable;
 }
 
+
+#define SCA_COUNT 2
 struct Scalable scalables[2];
 
 int inside(int x, int y, SDL_Rect r)
@@ -120,21 +127,9 @@ int main(int argc, char** argv)
 
     /* Colors for background rainbow. */
     int r = 0, g = 0, b = 0;
-     
-    /*SDL_Rect button_opt_rect;
-    button_opt_rect.x = win_width - win_width/10;
-    button_opt_rect.y = win_height - win_height/5;
-    button_opt_rect.w = button_w;
-    button_opt_rect.h = button_h;
     
-    SDL_Rect button_exit_rect;
-    button_exit_rect.x = win_width - win_width/10;
-    button_exit_rect.y = win_height - win_height/10;
-    button_exit_rect.w = button_w;
-    button_exit_rect.h = button_h;*/
-    
-    scalabe button_opt = CreateScalable(win_width * 0.8, win_height * 0.9, textures[0]);
-    scalabe button_exit = CreateScalable(win_width * 0.9, win_height * 0.9, textures[0]);
+    scalables[0] = CreateScalable(0.8, 0.9, 0);
+    scalables[1] = CreateScalable(0.9, 0.9, 0);
     
     /* Start the main loop. */
     SDL_Event event; 
@@ -190,10 +185,11 @@ int main(int argc, char** argv)
                         {
                             win_width  = event.window.data1;
                             win_height = event.window.data2;
-                           /* button_opt_rect.x = win_width - win_width/10;
-                            button_opt_rect.y = win_height - win_height/20;
-                            button_exit_rect.x = win_width - win_width/10;
-                            button_exit_rect.y = win_height - win_height/10;*/
+                            for(i = 0; i < SCA_COUNT; i++)
+                            {
+                                scalables[i].rect.x = scalables[i].initial_width_percentage  * win_width;
+                                scalables[i].rect.y = scalables[i].initial_height_percentage * win_height;
+                            }
                         }
                         default:
                             break;
@@ -209,8 +205,10 @@ int main(int argc, char** argv)
         SDL_RenderClear(renderer);
         
         /* Copy the cat to the destination rectangle on the renderer. */
-        //SDL_RenderCopy(renderer, button_tex, NULL, &button_opt_rect);
-        //SDL_RenderCopy(renderer, button_tex, NULL, &button_exit_rect);
+        for(i = 0; i < SCA_COUNT; i++)
+        {
+            SDL_RenderCopy(renderer, textures[scalables[i].texture_id].texture, NULL, &scalables[i].rect);
+        }
         
         /* Draw the renderer. */
         SDL_RenderPresent(renderer);
