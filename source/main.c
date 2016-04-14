@@ -11,6 +11,7 @@ int win_height = 800;
 float win_scale = 1.0f;
 float win_stretch = 1.0f;
 SDL_Renderer* renderer;
+SDL_Window* window;
 
 #define TEX_COUNT  1
 
@@ -61,12 +62,25 @@ int inside(int x, int y, SDL_Rect r)
     return 0;
 }
 
+void quit(void)
+{
+    /* Clean up stuff. */
+    for(int i = 0; i < TEX_COUNT; i++)
+    {
+        SDL_DestroyTexture(textures[i].texture);
+    }
+    if(NULL != renderer) SDL_DestroyRenderer(renderer);
+    if(NULL != window) SDL_DestroyWindow(window);
+    SDL_Quit();
+    printf("shutdown complete\n");
+}
+
 int main(int argc, char** argv)
 {
     int vsync = 1;
     
     /* Ensures any return will call SDL_Quit first. */
-    atexit(SDL_Quit);
+    atexit(quit);
     
     /* Initialise the video and timer subsystem. */
     int iret = SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER);
@@ -85,7 +99,7 @@ int main(int argc, char** argv)
     }
     
     /* Create window */
-    SDL_Window* window = SDL_CreateWindow(
+    window = SDL_CreateWindow(
         GAME_NAME,                 // Window title
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,  // Position (x,y)
         win_width, win_height,     // Size (x,y)
@@ -213,14 +227,6 @@ int main(int argc, char** argv)
         /* Draw the renderer. */
         SDL_RenderPresent(renderer);
     }
-   
-    /* Clean up stuff. */
-    for(i = 0; i < TEX_COUNT; i++)
-    {
-        SDL_DestroyTexture(textures[i].texture);
-    }
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    
+       
     return 0;
 }
