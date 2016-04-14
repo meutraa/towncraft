@@ -87,12 +87,28 @@ int main(int argc, char** argv)
                     switch(event.key.keysym.scancode)
                     {
                         case 41: // ESC - Close the program.
+                        {
                             return 0;
                             break;
+                        }
                         default:
                             break;
                     }
                     // printf("%d\n", event.key.keysym.scancode); // Use to determine scancodes
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    switch(event.button.button)
+                    {
+                        default:    // For now, fall through and do the same as button left.
+                        case SDL_BUTTON_LEFT:
+                        {
+                            int x = event.button.x;
+                            int y = event.button.y;
+                            int time = event.button.timestamp;
+                            printf("Button %d pressed at %d,%d at %d\n", event.button.button, x, y, time);
+                            break;
+                        }
+                    }
                     break;
                 default:
                     break;
