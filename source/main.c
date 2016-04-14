@@ -125,9 +125,6 @@ int main(int argc, char** argv)
         
         /* Draw the renderer. */
         SDL_RenderPresent(renderer);
-        
-        /* Wait for next frame */
-        SDL_Delay(16);
     }
    
     /* Clean up stuff. */
