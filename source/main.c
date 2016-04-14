@@ -68,14 +68,15 @@ int inside(int x, int y, SDL_Rect r)
 void quit(void)
 {
     /* Clean up stuff. */
-    for(int i = 0; i < TEX_COUNT; i++)
+    int i;
+    for(i = 0; i < TEX_COUNT; i++)
     {
         SDL_DestroyTexture(textures[i].texture);
     }
     if(NULL != renderer) SDL_DestroyRenderer(renderer);
     if(NULL != window) SDL_DestroyWindow(window);
-    SDL_Quit();
     printf("shutdown complete\n");
+    SDL_Quit();
 }
 
 int main(int argc, char** argv)
@@ -161,7 +162,7 @@ int main(int argc, char** argv)
                     switch(event.key.keysym.scancode)
                     {
                         case 41: // ESC - Close the program.
-                            quit();
+                            return 0;
                             break;
                         case 80:    // LEFT - shrink ui scale
                             win_scale -= 0.1f;
@@ -187,7 +188,7 @@ int main(int argc, char** argv)
                             printf("Button %d pressed at %d,%d at %d\n", event.button.button, x, y, time);
                             
                             /* If the click is within the exit button boundry. */
-                            if(inside(x, y, scalables[1].rect)) quit();
+                            if(inside(x, y, scalables[1].rect)) return 0;
                             break;
                         }
                     }
