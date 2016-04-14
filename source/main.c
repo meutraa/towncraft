@@ -3,13 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define SIZE(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
+
 const char* GAME_NAME = "Towncraft";
 int win_width = 1600;
 int win_height = 800;
 float win_scale = 1.0f;
 SDL_Renderer* renderer;
 
-char* texture_paths[] = {
+#define TEX_COUNT  1
+
+char* texture_paths[TEX_COUNT] = {
     "resources/button.pnm"    // 0
 };
 
@@ -20,7 +24,7 @@ struct Texture
     int height;
 };
 
-struct Texture textures[1];
+struct Texture textures[TEX_COUNT];
 
 struct Scalable 
 {
@@ -99,9 +103,9 @@ int main(int argc, char** argv)
     
     /* Load all textures to arrays. */
     int i;
-    for(i = 0; i < sizeof(texture_paths)/sizeof(texture_paths[0]); i++)
+    for(i = 0; i < TEX_COUNT; i++)
     {
-        SDL_Surface* surface = SDL_LoadBMP(texture_paths[i]);
+        SDL_Surface* surface = IMG_Load(texture_paths[i]);
         textures[i].texture = SDL_CreateTextureFromSurface(renderer, surface);
         textures[i].width   = surface->w;
         textures[i].height  = surface->h;
@@ -208,7 +212,7 @@ int main(int argc, char** argv)
     }
    
     /* Clean up stuff. */
-    for(i = 0; i < sizeof(texture_paths)/sizeof(texture_paths[0]); i++)
+    for(i = 0; i < TEX_COUNT; i++)
     {
         SDL_DestroyTexture(textures[i].texture);
     }
