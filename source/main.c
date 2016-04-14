@@ -77,14 +77,11 @@ int main(int argc, char** argv)
     int r = 0, g = 0, b = 0;
     
     /* Load button to texture. */
-    SDL_RWops* rwop = SDL_RWFromFile("resources/button.pnm", "rb");
-    SDL_Surface* button_surf = IMG_LoadPNM_RW(rwop);
+    SDL_Surface* button_surf = IMG_Load("resources/button.pnm");
     SDL_Texture* button_tex = SDL_CreateTextureFromSurface(renderer, button_surf);
-    printf("loading w+h\n");
     int button_w = button_surf->w;
     int button_h = button_surf->h;
     SDL_FreeSurface(button_surf);
-    printf("done\n");
     
     SDL_Rect button_opt_rect;
     button_opt_rect.x = win_width - win_width/10;
@@ -165,7 +162,6 @@ int main(int argc, char** argv)
         SDL_RenderClear(renderer);
         
         /* Copy the cat to the destination rectangle on the renderer. */
-        printf("rendering\n");
         SDL_RenderCopy(renderer, cat_tex, NULL, &cat_rect);
         SDL_RenderCopy(renderer, button_tex, NULL, &button_opt_rect);
         SDL_RenderCopy(renderer, button_tex, NULL, &button_exit_rect);
