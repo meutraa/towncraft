@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void main_menu_event_loop();
+
 const char* GAME_NAME = "Towncraft";
 
 /* Current window dimensions. */
@@ -150,71 +152,11 @@ int main(int argc, char** argv)
     scalables[1] = CreateScalable(0.9, 0.9, 0); // Button for exit
     
     /* Start the main loop. */
-    SDL_Event event; 
     while(1)
     {
         /* If there are events in the event queue, process them. */
-        while(SDL_PollEvent(&event))
-        {
-            switch(event.type)
-            {
-                case SDL_KEYDOWN:
-                    switch(event.key.keysym.scancode)
-                    {
-                        case 41: // ESC - Close the program.
-                            return 0;
-                            break;
-                        case 80:    // LEFT - shrink ui scale
-                            win_scale -= 0.1f;
-                            break;
-                        case 79:    // RIGHT - grow ui scale
-                            win_scale += 0.1f;
-                            break;
-                        default:
-                            printf("Key %d pressed\n", event.key.keysym.scancode);
-                            break;
-                    }
-                    // printf("%d\n", event.key.keysym.scancode); // Use to determine scancodes
-                    break;
-                case SDL_MOUSEBUTTONDOWN:
-                    switch(event.button.button)
-                    {
-                        default:    // For now, fall through and do the same as button left.
-                        case SDL_BUTTON_LEFT:
-                        {
-                            int x = event.button.x;
-                            int y = event.button.y;
-                            int time = event.button.timestamp;
-                            printf("Button %d pressed at %d,%d at %d\n", event.button.button, x, y, time);
-                            
-                            /* If the click is within the exit button boundry. */
-                            if(inside(x, y, scalables[1].rect)) return 0;
-                            break;
-                        }
-                    }
-                    break;
-                case SDL_WINDOWEVENT:
-                    switch(event.window.event)
-                    {
-                        case SDL_WINDOWEVENT_SIZE_CHANGED:
-                        {
-                            win_width  = event.window.data1;
-                            win_height = event.window.data2;
-                            for(i = 0; i < SCA_COUNT; i++)
-                            {
-                                scalables[i].rect.x = scalables[i].initial_width_percentage  * win_width;
-                                scalables[i].rect.y = scalables[i].initial_height_percentage * win_height;
-                            }
-                        }
-                        default:
-                            break;
-                    }
-                default:
-                    break;
-            }
-        }
-        /* Finished dealing with events; render stuff now. */
-       
+        main_menu_event_loop();
+               
         /* Set the draw color and fill the screen with it. */
         SDL_SetRenderDrawColor(renderer, (r+=1)%255, (g+=2)%255, (b+=3)%255, 255);
         SDL_RenderClear(renderer);
@@ -228,6 +170,71 @@ int main(int argc, char** argv)
         /* Draw the renderer. */
         SDL_RenderPresent(renderer);
     }
-       
+    
     return 0;
+}
+
+void main_menu_event_loop()
+{
+    SDL_Event event; 
+    while(SDL_PollEvent(&event))
+    {
+        switch(event.type)
+        {
+        case SDL_KEYDOWN:
+            switch(event.key.keysym.scancode)
+            {
+                case 41: // ESC - Close the program.
+                    exit(0);
+                    break;
+                case 80:    // LEFT - shrink ui scale
+                    win_scale -= 0.1f;
+                    break;
+                case 79:    // RIGHT - grow ui scale
+                    win_scale += 0.1f;
+                    break;
+                default:
+                    printf("Key %d pressed\n", event.key.keysym.scancode);
+                    break;
+            }
+            // printf("%d\n", event.key.keysym.scancode); // Use to determine scancodes
+            break;
+        case SDL_MOUSEBUTTONDOWN:
+            switch(event.button.button)
+            {
+                default:    // For now, fall through and do the same as button left.
+                case SDL_BUTTON_LEFT:
+                {
+                    int x = event.button.x;
+                    int y = event.button.y;
+                    int time = event.button.timestamp;
+                    printf("Button %d pressed at %d,%d at %d\n", event.button.button, x, y, time);
+                    
+                    /* If the click is within the exit button boundry. */
+                    if(inside(x, y, scalables[1].rect)) exit(0);
+                    break;
+                }
+            }
+            break;
+        case SDL_WINDOWEVENT:
+            switch(event.window.event)
+            {
+                case SDL_WINDOWEVENT_SIZE_CHANGED:
+                {
+                    win_width  = event.window.data1;
+                    win_height = event.window.data2;
+                    int i;
+                    for(i = 0; i < SCA_COUNT; i++)
+                    {
+                        scalables[i].rect.x = scalables[i].initial_width_percentage  * win_width;
+                        scalables[i].rect.y = scalables[i].initial_height_percentage * win_height;
+                    }
+                }
+                default:
+                    break;
+            }
+        default:
+            break;
+        }
+    }
 }
