@@ -1,4 +1,5 @@
 #include "SDL.h"
+#include "SDL_Image.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -71,6 +72,21 @@ int main(int argc, char** argv)
     cat_rect.w = 640;
     cat_rect.h = 480;
     
+    SDL_Surface* dino_surf = SDL_LoadBMP("resources/dino.png");
+    printf("image loaded\n");
+    SDL_Texture* dino_tex = SDL_CreateTextureFromSurface(renderer, dino_surf);
+    printf("texture made\n");
+    int width = dino_surf->w;
+    int height = dino_surf->h;
+    SDL_FreeSurface(dino_surf);
+    printf("surface freed\n");
+    
+    SDL_Rect dino_rect;
+    dino_rect.x = 300;
+    dino_rect.y = 300;
+    dino_rect.w = width;
+    dino_rect.h = height;
+    
     /* Colors for background rainbow. */
     int r = 0, g = 0, b = 0;
     
@@ -106,6 +122,9 @@ int main(int argc, char** argv)
         
         /* Copy the cat to the destintaion rectangle on the renderer. */
         SDL_RenderCopy(renderer, cat_tex, NULL, &cat_rect);
+        printf("about to copy texture\n");
+        int errorc = SDL_RenderCopy(renderer, dino_tex, NULL, &dino_rect);
+        printf("%d\n", errorc);
         
         /* Draw the renderer. */
         SDL_RenderPresent(renderer);
