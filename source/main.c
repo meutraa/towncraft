@@ -128,9 +128,6 @@ int main(int argc, char** argv)
         
         /* Copy the cat to the destintaion rectangle on the renderer. */
         SDL_RenderCopy(renderer, cat_tex, NULL, &cat_rect);
-        printf("about to copy texture\n");
-        int errorc = SDL_RenderCopy(renderer, dino_tex, NULL, &dino_rect);
-        printf("%d\n", errorc);
         
         /* Draw the renderer. */
         SDL_RenderPresent(renderer);
