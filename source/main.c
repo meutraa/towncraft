@@ -10,8 +10,7 @@ float win_scale = 1.0f;
 SDL_Renderer* renderer;
 
 char* texture_paths[] = {
-    "button.pnm"    // 0
-    "cat.bmp"       // 1
+    "resources/button.pnm"    // 0
 };
 
 struct Texture 
@@ -21,7 +20,7 @@ struct Texture
     int height;
 };
 
-struct Texture textures[2];
+struct Texture textures[1];
 
 struct Scalable 
 {
