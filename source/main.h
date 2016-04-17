@@ -1,3 +1,6 @@
+#include "SDL.h"
+#include "SDL_image.h"
+
 /* Function declarations. */
 void main_menu_event_loop();
 

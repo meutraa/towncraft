@@ -1,5 +1,3 @@
-#include "SDL.h"
-
 #include "math.h"
 
 int bounded_by(int x, int y, SDL_Rect r)

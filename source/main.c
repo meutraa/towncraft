@@ -1,13 +1,11 @@
-#include "SDL.h"
-#include "SDL_image.h"
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "main.h"
 #include "file.h"
 #include "math.h"
 #include "scalable.h"
 #include "texture.h"
+
+#include <stdio.h>
+#include <stdlib.h>
 
 /* Current window dimensions. */
 int win_width;

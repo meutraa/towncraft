@@ -1,5 +1,3 @@
-#include "SDL.h"
-
 #include "scalable.h"
 
 struct Scalable create_scalable(float x, float y, int w, int h, int texture_id)
