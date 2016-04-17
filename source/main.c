@@ -3,23 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* Function declarations. */
-void main_menu_event_loop();
-
-void resize_scalables();
-
-/* Checks whether a co-ordinate is inside an SDL_Rect boundry. */
-int bounded_by(int x, int y, SDL_Rect r);
-
-/* Free up memory. */
-void quit();
-
-#define GAME_NAME "Towncraft"
-#define SCA_COUNT 2     // Number of Scalables
-#define TEX_COUNT 1     // Number of Textures
-
-#define FALLBACK_RES_WIDTH 640
-#define FALLBACK_RES_HEIGHT 480
+#include "main.h"
+#include "file.h"
+#include "math.h"
+#include "scalable.h"
+#include "texture.h"
 
 /* Current window dimensions. */
 int win_width;
@@ -37,38 +25,9 @@ char* texture_paths[TEX_COUNT] = {
     "resources/button.pnm"    // 0
 };
 
-/* A structure that stores the initial texture with width and height. */
-struct Texture 
-{
-    SDL_Texture *texture;
-    int width;
-    int height;
-} textures[TEX_COUNT];  // Create an array of these structs
-
-/* Contains the initial position of the scalable in terms of a percentage. */
-struct Scalable 
-{
-    int texture_id;
-    SDL_Rect rect;
-    float initial_width_percentage;
-    float initial_height_percentage;
-} scalables[SCA_COUNT]; // Create an array of these structs
-
-/* Create a new Scalable struct. */
-struct Scalable CreateScalable(float x, float y, int texture_id)
-{
-    struct Scalable scalable;
-    SDL_Rect rect;
-    rect.x = x * win_width;
-    rect.y = y * win_height;
-    rect.w = textures[texture_id].width;
-    rect.h = textures[texture_id].height;
-    scalable.texture_id = texture_id;
-    scalable.rect = rect;
-    scalable.initial_width_percentage = x;
-    scalable.initial_height_percentage = y;
-    return scalable;
-}
+/* Create our texture arrays. */
+struct Texture textures[TEX_COUNT];
+struct Scalable scalables[SCA_COUNT];
 
 int main(int argc, char** argv)
 {
@@ -147,8 +106,8 @@ int main(int argc, char** argv)
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    scalables[0] = CreateScalable(0.8, 0.9, 0); // Button for options
-    scalables[1] = CreateScalable(0.9, 0.9, 0); // Button for exit
+    scalables[0] = create_scalable(0.8, 0.9, textures[0].width, textures[0].height, 0); // Button for options
+    scalables[1] = create_scalable(0.9, 0.9, textures[0].width, textures[0].height, 0); // Button for exit
     
     /* Set the background color to black. */
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -248,13 +207,6 @@ void resize_scalables()
         scalables[i].rect.w = textures[scalables[i].texture_id].width  * win_scale;
         scalables[i].rect.h = textures[scalables[i].texture_id].height * win_scale;
     }
-}
-
-int bounded_by(int x, int y, SDL_Rect r)
-{
-    if((x > r.x && x < r.x + r.w) && (y > r.y && y < r.y + r.h))
-        return 1;
-    return 0;
 }
 
 void quit()
