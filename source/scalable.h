@@ -28,7 +28,7 @@ struct Scalable create_scalable(float x, float y, int w, int h, int texture_id);
 struct Scalable 
 {
     int texture_id;     /**< an integer id to be used as a texture reference. */
-    SDL_Rect* rect;     /**< an SDL_Rect that defines the current absolute position and size. */
+    SDL_Rect rect;     /**< an SDL_Rect that defines the current absolute position and size. */
     float initial_width_percentage;     /**< a float value for the initial requested horizontal position. */
     float initial_height_percentage;    /**< a float value for the initial requested vertical position. */
 };

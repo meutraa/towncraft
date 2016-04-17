@@ -7,8 +7,8 @@
 /**
  * @brief An SDL_Texture wrapper that contains dimensions. 
  *
- * Because an SDL_Surface contains members width and height and an SDL_Texture\n
- * requires a function call to get these values, this saves calling a function\n
+ * Because an SDL_Surface contains members width and height and an SDL_Texture
+ * requires a function call to get these values, this saves calling a function
  * each time.
  */
 struct Texture 
