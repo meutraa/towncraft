@@ -1,16 +1,51 @@
 #include "scalable.h"
 
-struct Scalable create_scalable(float x, float y, int w, int h, int texture_id)
+Scalable create_scalable(float x, float y, SDL_Texture* textures[], int texture_id)
 {
-    struct Scalable scalable;
-    SDL_Rect rect;
-    rect.x = x;
-    rect.y = y;
-    rect.w = w;
-    rect.h = h;
-    scalable.texture_id = texture_id;
-    scalable.rect = rect;
-    scalable.initial_width_percentage = x;
-    scalable.initial_height_percentage = y;
-    return scalable;
+	int w, h;
+	SDL_QueryTexture(textures[texture_id], NULL, NULL, &w, &h);
+	SDL_Rect rect;
+	
+	Scalable scalable;
+	scalable.texture_id = texture_id;
+	scalable.rect = rect;
+	scalable.initial_x = x;
+	scalable.initial_y = y;
+	return scalable;
+}
+
+void resize_scalables(SDL_Window* window, SDL_Texture* textures[], Scalable scalables[], int n, float scale)
+{
+	int win_w, win_h;
+	SDL_GetWindowSize(window, &win_w, &win_h);
+	
+	for(int i = 0; i < n; i++)
+	{
+		int w, h;
+		SDL_QueryTexture(textures[scalables[i].texture_id], NULL, NULL, &w, &h);
+		scalables[i].rect.x = scalables[i].initial_x * scale * win_w;
+		scalables[i].rect.y = scalables[i].initial_y * scale * win_h;
+		scalables[i].rect.w = w * scale;
+		scalables[i].rect.h = h * scale;
+	}
+}
+
+int load_textures(SDL_Renderer* renderer, SDL_Texture* textures[], char* texture_paths[], int n)
+{
+	int errors = 0;
+	for(int i = 0; i < n; i++)
+	{
+		SDL_Surface* surface = IMG_Load(texture_paths[i]);
+		if(NULL == surface)
+		{
+			errors++;
+			fprintf(stderr, "\nIMG_Load failed to load \"%s\" to surface\n", texture_paths[i]);
+		}
+		else
+		{
+			textures[i] = SDL_CreateTextureFromSurface(renderer, surface);
+			SDL_FreeSurface(surface);
+		}
+	}
+	return errors;
 }
