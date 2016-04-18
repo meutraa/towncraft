@@ -16,7 +16,7 @@ Scalable create_scalable(float pos_x, float pos_y, SDL_Texture* textures[], int 
 	return scalable;
 }
 
-void resize_scalables(SDL_Window* window, SDL_Texture* textures[], Scalable scalables[], int n, float scale)
+void resize_scalables(SDL_Window* window, Scalable scalables[], int n, float scale)
 {
 	int win_w, win_h;
 	SDL_GetWindowSize(window, &win_w, &win_h);

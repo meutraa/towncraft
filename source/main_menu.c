@@ -2,7 +2,7 @@
 #include "math.h"
 #include "scalable.h"
 
-static int main_menu_event_loop(SDL_Window* window, SDL_Texture* textures[], Scalable* scalables);
+static int main_menu_event_loop(SDL_Window* window, Scalable* scalables);
 
 static char* texture_paths[] = {
 	"resources/button.pnm"    // 0
@@ -37,7 +37,7 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 	while(1)
 	{
 		/* If there are events in the event queue, process them. */
-		int status = main_menu_event_loop(window, textures, scalables);
+		int status = main_menu_event_loop(window, scalables);
 		if(0 != status)
 		{
 			break;
@@ -64,7 +64,7 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 	return 1;
 }
 
-static int main_menu_event_loop(SDL_Window* window, SDL_Texture* textures[], Scalable scalables[])
+static int main_menu_event_loop(SDL_Window* window, Scalable scalables[])
 {
 	SDL_Event event; 
 	while(SDL_PollEvent(&event))

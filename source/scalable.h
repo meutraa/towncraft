@@ -39,7 +39,7 @@ typedef struct Scalable
  */
 Scalable create_scalable(float pos_x, float pos_y, SDL_Texture* textures[], int texture_id);
 
-/** @fn void resize_scalables(SDL_Window* window, SDL_Texture* textures[], Scalable scalables[], int n, float scale)
+/** @fn void resize_scalables(SDL_Window* window, Scalable scalables[], int n, float scale)
  *  @brief Takes a Scalable array with the corresponding SDL_Texture array, and resizes the scalables according to scale.
  *  @param window the window used to determine window dimensions and positions of scalables. 
  *  @param scalables a Scalable array for which the members should be scaled.
