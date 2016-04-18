@@ -17,6 +17,26 @@ Scalable create_scalable(int pos_x, int pos_y, SDL_Texture* textures[], int text
 	return scalable;
 }
 
+Drawable create_text_drawable(SDL_Renderer* renderer, int pos_x, int pos_y, char* text, char* font_path, int font_size, SDL_Color* color)
+{
+	TTF_Font* font = TTF_OpenFont(font_path, font_size);
+	SDL_Surface* text_surface = TTF_RenderText_Solid(font, text, color);
+	SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, surface);
+	
+	SDL_Rect rect;
+	rect.w = text_surface->w;
+	rect.h = text_surface->h;
+	rect.x = pos_x;
+	rect.y = pos_y;
+	
+	Drawable drawable
+	drawable.texture = text_texture;
+	drawable.rect = rect;
+	
+	SDL_FreeSurface(text_surface);
+	return drawable;
+}
+
 int load_textures(SDL_Renderer* renderer, SDL_Texture* textures[], char* texture_paths[], int n)
 {
 	int errors = 0;
