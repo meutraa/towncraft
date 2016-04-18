@@ -38,7 +38,7 @@ int load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** d
 	/* Loop to obtain sizes and values. */
 	while(NULL != fgets(buf, MAX_LINE_LENGTH + 1, file))
 	{
-		if(NULL != strstr(buf, "resources/"))
+		if(NULL != strstr(buf, "images/"))
 		{
 			int found = 0;
 			for(int i = 0; i < MAX_RESOURCES && i < texture_count; i++)

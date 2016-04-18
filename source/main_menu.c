@@ -14,7 +14,7 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 	SDL_Texture** textures = NULL;
 	Drawable* drawables = NULL;
 	
-	drawables_length = load_drawables(renderer, &textures, &drawables, "resources/main_menu_layout.txt");
+	drawables_length = load_drawables(renderer, &textures, &drawables, "resources/layouts/main_menu.layout");
     
     SDL_Color text_color = {255,255,255,0};
     Drawable test_text = create_text_drawable(renderer, 50, 50, "balls are tasty", "resources/fonts/DejaVuSans.ttf", 16, text_color);
