@@ -66,22 +66,34 @@ int load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** d
 			
 			/* Read the next line and save the widescreen values. */
 			char* c;
-			fgets(buf, 128 + 1, file);
-			c = strtok(buf, " ");
-			SDL_Rect widescreen;
-			widescreen.x = atoi(c);
-			c = strtok(NULL, " ");
-			widescreen.y = atoi(c);
-			drawables_tmp[drawable_count].widescreen = widescreen;
+			if(NULL != fgets(buf, MAX_LINE_LENGTH + 1, file) && strlen(buf) > 2)
+			{
+				c = strtok(buf, " ");
+				SDL_Rect widescreen;
+				widescreen.x = atoi(c);
+				c = strtok(NULL, " ");
+				widescreen.y = atoi(c);
+				drawables_tmp[drawable_count].widescreen = widescreen;
+			}
+			else
+			{
+				printf("%s:%s is missing 16:9 positions.\n", layout_file, drawables_tmp[drawable_count].resource_path);	
+			}
 			
 			/* Read the last line and save the monitor values. */
-			fgets(buf, 128 + 1, file);
-			c = strtok(buf, " ");
-			SDL_Rect monitor;
-			monitor.x = atoi(c);
-			c = strtok(NULL, " ");
-			monitor.y = atoi(c);
-			drawables_tmp[drawable_count].monitor = monitor;
+			if(NULL != fgets(buf, MAX_LINE_LENGTH + 1, file) && strlen(buf) > 2)
+			{
+				c = strtok(buf, " ");
+				SDL_Rect monitor;
+				monitor.x = atoi(c);
+				c = strtok(NULL, " ");
+				monitor.y = atoi(c);
+				drawables_tmp[drawable_count].monitor = monitor;
+			}
+			else
+			{
+					printf("%s:%s is missing 16:10 positions.\n", layout_file, drawables_tmp[drawable_count].resource_path);	
+			}
 						
 			drawable_count++;
 		}		
@@ -120,8 +132,8 @@ int load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** d
 		for(int j = 0; j < texture_count; j++)
 		{
 			/* If the resource path of the drawable matches this mapped texture id. */
-			printf("%d,%d\n", i, j);
-			printf("drawables[%d] = %s & resources[%d] = %s\n", i, (*drawables)[i].resource_path, j, resources[j]);
+			//printf("%d,%d\n", i, j);
+			//printf("drawables[%d] = %s & resources[%d] = %s\n", i, (*drawables)[i].resource_path, j, resources[j]);
 			if(0 == strcmp((*drawables)[i].resource_path, resources[j]))
 			{
 				(*drawables)[i].texture = (*textures)[j];
