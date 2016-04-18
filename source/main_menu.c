@@ -33,7 +33,12 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 	
 	/* Initial scaling. */
 	resize_scalables(window, scalables, scalables_length, win_scale);
+    
+	SDL_Color text_color = {255,255,255,0};
+	TTF_Font* font = TTF_OpenFont("resources/fonts/DejaVuSans.ttf", 16);
+	SDL_Surface* message = TTF_RenderText_Solid(font, "The quick brown fox jumps over the lazy dog", text_color);
 	
+    
 	while(1)
 	{
 		/* If there are events in the event queue, process them. */

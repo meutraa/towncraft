@@ -42,6 +42,12 @@ int main(/*int argc, char** argv*/)
 		fprintf(stderr, "\nUnable to initialize SDL Audio Subsystem:  %s\n", SDL_GetError());
 	}
 	
+	if(TTF_Init())
+	{
+		fprintf(stderr, "\nUnable to initialize SDL_ttf Subsystem\n");
+		return 1;
+	}
+	
 	/* Create window */
 	SDL_Window* window = SDL_CreateWindow(
 		GAME_NAME,                                       // Window title
