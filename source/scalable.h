@@ -21,6 +21,8 @@ typedef struct Scalable
 	SDL_Rect rect;      /**< an SDL_Rect that defines the current absolute position and size. */
 	float initial_x;    /**< a float value for the initial requested horizontal position. */
 	float initial_y;    /**< a float value for the initial requested vertical position. */
+	int width;			/**< the width of the texture associated with texture_id. */
+	int height;			/**< the height of the texture associated with texture_id. */
 } Scalable;
 
 /** @fn Scalable create_scalable(float x, float y, SDL_Texture* textures[], int texture_id)
@@ -40,12 +42,11 @@ Scalable create_scalable(float x, float y, SDL_Texture* textures[], int texture_
 /** @fn void resize_scalables(SDL_Window* window, SDL_Texture* textures[], Scalable scalables[], int n, float scale)
  *  @brief Takes a Scalable array with the corresponding SDL_Texture array, and resizes the scalables according to scale.
  *  @param window the window used to determine window dimensions and positions of scalables. 
- *  @param textures and SDL_Texture array associated with the texture_ids of the scalables array.
  *  @param scalables a Scalable array for which the members should be scaled.
  *  @param n the number of scalables to be resized.
  *  @param scale a value to which the original size of the texture should be scaled by.
  */
-void resize_scalables(SDL_Window* window, SDL_Texture* textures[], Scalable scalables[], int n, float scale);
+void resize_scalables(SDL_Window* window, Scalable scalables[], int n, float scale);
 
 /** @fn int load_textures(SDL_Renderer* renderer, SDL_Texture* textures[], char* texture_paths[], int n)
  *  @brief Takes a string array of file paths and loads these files as textures to the given texture array.
