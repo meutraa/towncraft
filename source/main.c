@@ -11,9 +11,6 @@
 
 #define GAME_NAME "Towncraft"
 
-#define FALLBACK_RES_WIDTH 640
-#define FALLBACK_RES_HEIGHT 480
-
 int main(/*int argc, char** argv*/)
 {
 	/* Ensures any return will call SDL_Quit first. */
@@ -26,8 +23,8 @@ int main(/*int argc, char** argv*/)
 	 * fullscreen = 2, use fullscreen at current desktop res
 	 */
 	int fullscreen = 0;
-	int resolution_width  = FALLBACK_RES_WIDTH;
-	int resolution_height = FALLBACK_RES_HEIGHT;
+	int resolution_width  = DESIGN_WIDTH;
+	int resolution_height = DESIGN_HEIGHT;
 	
 	/* Initialise the video and timer subsystem. */
 	if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER))
