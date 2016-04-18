@@ -8,6 +8,7 @@
 
 #include "SDL.h"
 #include "SDL_image.h"
+#include "SDL_ttf.h"
 
 #define GAME_NAME "Towncraft"
 
@@ -37,6 +38,12 @@ int main(/*int argc, char** argv*/)
 	if(SDL_InitSubSystem(SDL_INIT_AUDIO))
 	{
 		fprintf(stderr, "\nUnable to initialize SDL Audio Subsystem:  %s\n", SDL_GetError());
+	}
+	
+	if(TTF_Init())
+	{
+		fprintf(stderr, "\nUnable to initialize SDL_ttf Subsystem\n");
+		return 1;
 	}
 	
 	/* Create window */
