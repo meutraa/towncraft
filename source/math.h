@@ -31,7 +31,7 @@
  */
 #define MAX(a, b) (((a)>(b))?(a):(b))
 
-/** @fn int bounded_by(int x, int y, SDL_Rect r)
+/** @fn int bounded_by(int x, int y, SDL_Rect* r)
  *  @brief Checks if a 2d point is inside a rectangle (SDL_Rect)
  *  @param x an integer value for the horizontal position.
  *  @param y an integer value for the vertical position.

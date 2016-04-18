@@ -6,7 +6,7 @@
  */
  
 /** @def MAX_SETTING_LENGTH
- *  @brief The max length of a line in the settings file.
+ *  @brief The max length to be read of a line in the settings file.
  */
  #define MAX_SETTING_LENGTH 128
 

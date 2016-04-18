@@ -1,10 +1,12 @@
 #ifndef MAIN_MENU_H
 #define MAIN_MENU_H
 
+#include "status.h"
 #include "SDL.h"
-#include "SDL_ttf.h"
-#include "SDL_mixer.h"
 
-int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window);
+#define DESIGN_WIDTH 1280
+#define DESIGN_HEIGHT 720
+
+Return main_menu_loop(SDL_Renderer* renderer);
 
 #endif

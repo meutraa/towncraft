@@ -1,6 +1,7 @@
 #include "file.h"
 #include "drawable.h"
 #include "main_menu.h"
+#include "status.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -72,10 +73,13 @@ int main(/*int argc, char** argv*/)
 		return 1;
 	}
 	
-	/* Get the renderer associated with the SDL_Window. 
-		http://wiki.libsdl.org/SDL_RendererFlags    */
-	int flags = (vsync ? SDL_RENDERER_PRESENTVSYNC : 0)|SDL_RENDERER_ACCELERATED;
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, flags);
+	/* Get the renderer associated with the SDL_Window. */
+	SDL_Renderer* renderer = SDL_CreateRenderer(
+		window, 
+		-1, 
+		SDL_RENDERER_ACCELERATED|
+		(vsync ? SDL_RENDERER_PRESENTVSYNC : 0) /* http://wiki.libsdl.org/SDL_RendererFlags */
+	);
 	
 	if(NULL == renderer)
 	{
@@ -94,8 +98,8 @@ int main(/*int argc, char** argv*/)
 	/* Start the main loop. */
 	while(1)
 	{
-		int status = main_menu_loop(renderer, window);
-		if(1 == status)
+		Return status = main_menu_loop(renderer);
+		if(QUIT_PROGRAM == status)
 		{
 			break;
 		}

@@ -12,36 +12,56 @@
 #include "SDL_ttf.h"
 #include "math.h"
 
-#define DESIGN_WIDTH 1280
-#define DESIGN_HEIGHT 720
-
+/** @def MAX_RESOURCES
+ *  @brief the maximum number of Textures that the load_drawables function will allocate memory in one call.
+ */
 #define MAX_RESOURCES 128
+
+/** @def MAX_LINE_LENGTH
+ *  @brief the maximum number of chars that will be read from a line on a layout file.
+ */
 #define MAX_LINE_LENGTH 128
+
+/** @def MAX_DRAWABLES
+ *  @brief the maximum number of Drawables the load_drawables function will allocate to memory in one call.
+ */
 #define MAX_DRAWABLES 256
 
 /**
  * @brief A structure that contains some values for convenience 
  *
  * This is effectively a wrapper structure for a Texture which does not contain a copy
- * of a Texture but rather a reference to be used as the Developer sees fit.
+ * of a Texture but rather a pointer. It also contains SDL_Rects with positions that vary
+ * for multiple aspect ratios, and a pointer to one of these which is currently in use.
  */
 typedef struct Drawable 
 {
 	SDL_Texture* texture;   /**< an integer id to be used as a texture reference. */
-	SDL_Rect* rect;      	/**< an SDL_Rect that defines the current absolute position and size. */
-	char* resource_path;
-	SDL_Rect widescreen;
-	SDL_Rect monitor;
+	SDL_Rect* rect;      	/**< an SDL_Rect pointer that defines the current position and size. */
+	char* resource_path;	/**< the resource file path. */
+	SDL_Rect widescreen;	/**< an SDL_Rect containing positions for a 16:9 aspect ratio. */
+	SDL_Rect monitor;		/**< an SDL_Rect containing positions for a 16:10 aspect ratio. */
 } Drawable;
 
-/** @fn int load_textures(SDL_Renderer* renderer, SDL_Texture* textures[], char* texture_paths[], int n)
- *  @brief Takes a string array of file paths and loads these files as textures to the given texture array.
- *  @param renderer the SDL_Renderer used to render this texture.
- *  @param textures an SDL_Texture array to fill. 
- *  @param texture_paths a string array with relative file paths.
- *  @param n the number of textures to be loaded.
- *  @warning The textures array must have memory allocated and must be of the same length as texture_paths.
- *  @return 0 if no errors, else the number of textures that failed to load. 
+/** @fn int load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** drawables, char* layout_path)
+ *  @brief Takes a layout file and fills the textures and drawables arrays.
+ *
+ *  This function will read a valid layout file and allocate memory for Drawables with the least number of SDL_Textures
+ *  required. It creates drawables from a layout file with the following format:\n
+ *  	path/to/resource\n
+ *      600 400\n
+ *		800 420\n
+ *	@note The first set of numbers is the X and Y co-ordinates of the top left corner of the Drawable on the Window.
+ *	@note All sizes are scaled to a resolution of 1280x720, so 1280 is always the very right, and 720 is always the very bottom.
+ *
+ *  @param renderer the SDL_Renderer used to render textures.
+ *  @param textures a pointer to an array of SDL_Texture pointers to fill. 
+ *  @param drawables a pointer to an array of drawables to fill.
+ *  @note It is not neccesary to allocate the memory for textures and drawables before calling this function.
+ *  @param layout_path a relative path to the resource file as a string.
+ *  @return the number of Drawables that were created.
+ *	@note the texture pointer of the returned Drawables may still be NULL and the SDL_Rects may not have initialised values if the
+ *  	function failed to parse any of the layout file. 
  */
 int load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** drawables, char* layout_path);
 

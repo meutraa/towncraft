@@ -1,14 +1,16 @@
 #include "main_menu.h"
 #include "math.h"
+#include "SDL_ttf.h"
+#include "SDL_mixer.h"
 #include "drawable.h"
 
-static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Drawable drawables[]);
+static enum Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[]);
 
 static int drawables_length;
 
 static float win_scale = 1.0f;
 
-int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
+Return main_menu_loop(SDL_Renderer* renderer)
 {
 	/* Create our texture arrays. */
 	SDL_Texture** textures = NULL;
@@ -21,13 +23,15 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
     
     Mix_Music* chiptune = Mix_LoadMUS("resources/audio/music/Super_Locomotive.ogg");
     Mix_PlayMusic(chiptune, -1);
-    
+	
+	Return status;
 	while(1)
 	{
 		/* If there are events in the event queue, process them. */
-		int status = main_menu_event_loop(window, renderer, drawables);
-		if(0 != status)
+		status = main_menu_event_loop(renderer, drawables);
+		if(QUIT_PROGRAM == status)
 		{
+			/* Break out of the loop and cleanup resources. */
 			break;
 		}
 			   
@@ -52,10 +56,10 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 	{
 		if(NULL != drawables[i].texture) SDL_DestroyTexture(drawables[i].texture);
 	}
-	return 1;
+	return status;
 }
 
-static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Drawable drawables[])
+static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[])
 {
 	SDL_Event event; 
 	while(SDL_PollEvent(&event))
@@ -66,7 +70,7 @@ static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Draw
 			switch(event.key.keysym.scancode)
 			{
 				case 41: // ESC - Close the program.
-					return 1;
+					return QUIT_PROGRAM;
 					break;
 				case 80:    // LEFT - shrink ui scale
 					win_scale -= 0.05f;
@@ -94,7 +98,7 @@ static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Draw
 					printf("Button %d pressed at %d,%d at %d\n", event.button.button, x, y, time);
 					
 					/* If the click is within the exit button boundry. */
-					if(bounded_by(x, y, drawables[1].rect)) return 1;
+					if(bounded_by(x, y, drawables[1].rect)) return QUIT_PROGRAM;
 					break;
 				}
 			}
@@ -116,5 +120,5 @@ static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Draw
 			break;
 		}
 	}
-	return 0;
+	return NORMAL;
 }
