@@ -54,8 +54,8 @@ int load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** d
 				int len = strlen(buf);
 				resources[texture_count] = calloc(len + 1, sizeof(char));
 				strncpy(resources[texture_count], buf, len);
+				resources[texture_count][len - 1] = '\0'; // len - 1 to remove \n
 				texture_count++;
-				resources[texture_count - 1][len - 1] = '\0'; // len - 1 to remove \n
 			}
 			
 			/* Save the resource path. */
@@ -114,13 +114,15 @@ int load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** d
 			SDL_FreeSurface(surface);
 		}
 	}
-	
+		
 	for(int i = 0; i < drawable_count; i++)
 	{
-		for(int j = 0; j < texture_count; i++)
+		for(int j = 0; j < texture_count; j++)
 		{
 			/* If the resource path of the drawable matches this mapped texture id. */
-			if(!strcmp((*drawables)[i].resource_path, resources[j]))
+			printf("%d,%d\n", i, j);
+			printf("drawables[%d] = %s & resources[%d] = %s\n", i, (*drawables)[i].resource_path, j, resources[j]);
+			if(0 == strcmp((*drawables)[i].resource_path, resources[j]))
 			{
 				(*drawables)[i].texture = (*textures)[j];
 				
