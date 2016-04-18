@@ -20,13 +20,16 @@ void resize_scalables(SDL_Window* window, Scalable scalables[], int n, float sca
 {
 	int win_w, win_h;
 	SDL_GetWindowSize(window, &win_w, &win_h);
+	float ratio_w = (float) win_w / (float) DESIGN_WIDTH;
+	float ratio_h = (float) win_h / (float) DESIGN_HEIGHT;
+	float ratio = MIN(ratio_w, ratio_h);
 	
 	for(int i = 0; i < n; i++)
 	{
 		scalables[i].rect.x = scalables[i].pos_x * win_w;
 		scalables[i].rect.y = scalables[i].pos_y * win_h;
-		scalables[i].rect.w = scalables[i].width  * scale;
-		scalables[i].rect.h = scalables[i].height * scale;
+		scalables[i].rect.w = scalables[i].width  * scale * ratio;
+		scalables[i].rect.h = scalables[i].height * scale * ratio;
 	}
 }
 

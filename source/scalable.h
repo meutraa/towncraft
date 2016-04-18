@@ -9,6 +9,9 @@
 #include "SDL_image.h"
 #include "math.h"
 
+#define DESIGN_WIDTH 1280
+#define DESIGN_HEIGHT 720
+
 /**
  * @brief A structure that contains some values for convenience 
  *
@@ -19,8 +22,8 @@ typedef struct Scalable
 {
 	int texture_id;     /**< an integer id to be used as a texture reference. */
 	SDL_Rect rect;      /**< an SDL_Rect that defines the current absolute position and size. */
-	float pos_x;    /**< a float value for the initial requested horizontal position. */
-	float pos_y;    /**< a float value for the initial requested vertical position. */
+	float pos_x;    	/**< a float value for the initial requested horizontal position. */
+	float pos_y;    	/**< a float value for the initial requested vertical position. */
 	int width;			/**< the width of the texture associated with texture_id. */
 	int height;			/**< the height of the texture associated with texture_id. */
 } Scalable;

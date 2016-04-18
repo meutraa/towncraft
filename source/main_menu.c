@@ -9,7 +9,7 @@ static char* texture_paths[] = {
 };
 static int scalables_length;
 
-static float win_scale = 1.0f;
+static float win_scale = 0.2f;
 
 int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 {
