@@ -1,0 +1,7 @@
+resources/button.pnm
+1100 700
+1100 720
+
+resources/button.pnm
+900 700
+900 720

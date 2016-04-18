@@ -4,9 +4,6 @@
 
 static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Drawable drawables[]);
 
-static char* texture_paths[] = {
-	"resources/button.pnm"    // 0
-};
 static int drawables_length;
 
 static float win_scale = 1.0f;
@@ -14,24 +11,11 @@ static float win_scale = 1.0f;
 int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 {
 	/* Create our texture arrays. */
-	int textures_count = LENGTH(texture_paths);
-	struct SDL_Texture* textures[textures_count];
+	SDL_Texture** textures = NULL;
+	Drawable* drawables = NULL;
 	
-	int errors = load_textures(renderer, textures, texture_paths, textures_count);
-	if(0 != errors)
-	{
-		printf("Errors loading textures:%d\n", errors);
-	}
-
-	Drawable options = create_drawable(1000, 600, textures[0]);
-	Drawable exit    = create_drawable(1150, 600, textures[0]);
-
-	Drawable drawables[] = {
-		options,
-		exit,
-	};
-	drawables_length = LENGTH(drawables);
-		
+	int drawables_length = load_drawables(renderer, &textures, &drawables, "resources/main_menu_layout.txt");
+			
 	while(1)
 	{
 		/* If there are events in the event queue, process them. */
@@ -47,7 +31,8 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 		/* Copy all the scalables to the window. */
 		for(int i = 0; i < drawables_length; i++)
 		{
-			SDL_RenderCopy(renderer, drawables[i].texture, NULL, &drawables[i].rect);
+			//printf("%d,%d\t%d,%d\n", drawables[i].rect->w, drawables[i].rect->h, drawables[i].rect->x, drawables[i].rect->y);
+			SDL_RenderCopy(renderer, drawables[i].texture, NULL, drawables[i].rect);
 		}
 		
 		/* Draw the renderer. */
@@ -55,10 +40,10 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 	}
 	
 	/* Clean up and end the main function. */
-	for(int i = 0; i < textures_count; i++)
-	{
-		SDL_DestroyTexture(textures[i]);
-	}
+	//for(int i = 0; i < textures_count; i++)
+	//{
+		//SDL_DestroyTexture(textures[i]);
+	//}
 	return 1;
 }
 

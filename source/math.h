@@ -38,6 +38,6 @@
  *  @param r an SDL_Rect for bounds.
  *  @return 0 if point is outside bounds, 1 else.
  */
-int bounded_by(int x, int y, SDL_Rect r);
+int bounded_by(int x, int y, SDL_Rect* r);
 
 #endif

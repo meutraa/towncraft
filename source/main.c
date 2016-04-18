@@ -75,6 +75,9 @@ int main(/*int argc, char** argv*/)
 		return 1;
 	}
 	
+	/* Set the virtual resolution used for scaling. */
+	SDL_RenderSetLogicalSize(renderer, resolution_width, resolution_height);
+	
 	/* Set renderer colour to black and clear window. */
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);

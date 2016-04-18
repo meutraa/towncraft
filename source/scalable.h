@@ -5,6 +5,8 @@
  *  @brief A structure that simplifies scaling SDL_Textures.
  */
 
+#include "string.h"
+#include "stdlib.h"
 #include "SDL.h"
 #include "SDL_image.h"
 #include "SDL_ttf.h"
@@ -12,6 +14,10 @@
 
 #define DESIGN_WIDTH 1280
 #define DESIGN_HEIGHT 720
+
+#define MAX_RESOURCES 128
+
+#define MAX_DRAWABLES 256
 
 /**
  * @brief A structure that contains some values for convenience 
@@ -22,7 +28,10 @@
 typedef struct Drawable 
 {
 	SDL_Texture* texture;   /**< an integer id to be used as a texture reference. */
-	SDL_Rect rect;      	/**< an SDL_Rect that defines the current absolute position and size. */
+	SDL_Rect* rect;      	/**< an SDL_Rect that defines the current absolute position and size. */
+	char* resource_path;
+	SDL_Rect widescreen;
+	SDL_Rect monitor;
 } Drawable;
 
 /** @fn Scalable create_scalable(float pos_x, float pos_y, SDL_Texture* textures[], int texture_id)
@@ -48,6 +57,5 @@ Drawable create_drawable(int pos_x, int pos_y, SDL_Texture* texture);
  *  @warning The textures array must have memory allocated and must be of the same length as texture_paths.
  *  @return 0 if no errors, else the number of textures that failed to load. 
  */
-int load_textures(SDL_Renderer* renderer, SDL_Texture* textures[], char* texture_paths[], int n);
-
+int load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** drawables, char* layout_path);
 #endif
