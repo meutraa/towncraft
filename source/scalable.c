@@ -14,7 +14,8 @@ Drawable create_text_drawable(SDL_Renderer* renderer, int pos_x, int pos_y, char
 	
 	Drawable drawable;
 	drawable.texture = text_texture;
-	drawable.rect = &rect;
+	drawable.widescreen = rect;
+	drawable.rect = &drawable.widescreen;
 	
 	SDL_FreeSurface(text_surface);
 	return drawable;

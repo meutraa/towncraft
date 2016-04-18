@@ -40,7 +40,7 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 			//printf("%d,%d\t%d,%d\n", drawables[i].rect->w, drawables[i].rect->h, drawables[i].rect->x, drawables[i].rect->y);
 			SDL_RenderCopy(renderer, drawables[i].texture, NULL, drawables[i].rect);
 		}
-        
+		
         SDL_RenderCopy(renderer, test_text.texture, NULL, test_text.rect);
 
 		/* Draw the renderer. */
@@ -48,10 +48,10 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 	}
 	
 	/* Clean up and end the main function. */
-	//for(int i = 0; i < textures_count; i++)
-	//{
-		//SDL_DestroyTexture(textures[i]);
-	//}
+	for(int i = 0; i < drawables_length; i++)
+	{
+		if(NULL != drawables[i].texture) SDL_DestroyTexture(drawables[i].texture);
+	}
 	return 1;
 }
 
