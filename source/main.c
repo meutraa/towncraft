@@ -1,13 +1,11 @@
 #include "file.h"
-#include "math.h"
-#include "scalable.h"
+#include "drawable.h"
 #include "main_menu.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "SDL.h"
-#include "SDL_image.h"
 #include "SDL_ttf.h"
 #include "SDL_mixer.h"
 
@@ -31,14 +29,14 @@ int main(/*int argc, char** argv*/)
 	/* Initialise the video and timer subsystem. */
 	if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER))
 	{
-		fprintf(stderr, "\nUnable to initialize SDL Subsystem:  %s\n", SDL_GetError());
+		fprintf(stderr, "\nUnable to initialize SDL Subsystem: %s\n", SDL_GetError());
 		return 1;
 	}
 	
 	/* Initialise the (optional) audio subsystem. */
 	if(SDL_InitSubSystem(SDL_INIT_AUDIO))
 	{
-		fprintf(stderr, "\nUnable to initialize SDL Audio Subsystem:  %s\n", SDL_GetError());
+		fprintf(stderr, "\nUnable to initialize SDL Audio Subsystem: %s\n", SDL_GetError());
 	}
 	
 	if(TTF_Init())

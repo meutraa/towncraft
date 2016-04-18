@@ -1,7 +1,7 @@
-#ifndef SCALABLE_H
-#define SCALABLE_H
+#ifndef DRAWABLE_H
+#define DRAWABLE_H
 
-/** @file scalable.h 
+/** @file drawable.h 
  *  @brief A structure that simplifies scaling SDL_Textures.
  */
 

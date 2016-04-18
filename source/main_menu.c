@@ -1,6 +1,6 @@
 #include "main_menu.h"
 #include "math.h"
-#include "scalable.h"
+#include "drawable.h"
 
 static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Drawable drawables[]);
 
