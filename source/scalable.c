@@ -23,8 +23,8 @@ void resize_scalables(SDL_Window* window, Scalable scalables[], int n, float sca
 	
 	for(int i = 0; i < n; i++)
 	{
-		scalables[i].rect.x = scalables[i].pos_x * scale * win_w;
-		scalables[i].rect.y = scalables[i].pos_y * scale * win_h;
+		scalables[i].rect.x = scalables[i].pos_x * win_w;
+		scalables[i].rect.y = scalables[i].pos_y * win_h;
 		scalables[i].rect.w = scalables[i].width  * scale;
 		scalables[i].rect.h = scalables[i].height * scale;
 	}
