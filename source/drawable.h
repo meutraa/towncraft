@@ -1,9 +1,9 @@
-#ifndef DRAWABLE_H
-#define DRAWABLE_H
-
 /** @file drawable.h 
  *  @brief A structure that simplifies scaling SDL_Textures.
  */
+ 
+#ifndef DRAWABLE_H
+#define DRAWABLE_H
 
 #include "string.h"
 #include "stdlib.h"
@@ -36,7 +36,7 @@
  */
 typedef struct Drawable 
 {
-	SDL_Texture* texture;   /**< an integer id to be used as a texture reference. */
+	SDL_Texture* texture;   /**< a pointer to an SDL_Texture */
 	SDL_Rect* rect;      	/**< an SDL_Rect pointer that defines the current position and size. */
 	char* resource_path;	/**< the resource file path. */
 	SDL_Rect widescreen;	/**< an SDL_Rect containing positions for a 16:9 aspect ratio. */
@@ -47,10 +47,12 @@ typedef struct Drawable
  *  @brief Takes a layout file and fills the textures and drawables arrays.
  *
  *  This function will read a valid layout file and allocate memory for Drawables with the least number of SDL_Textures
- *  required. It creates drawables from a layout file with the following format:\n
- *  	path/to/resource\n
- *      600 400\n
- *		800 420\n
+ *  required.\n It creates drawables from a layout file with the following format:
+ *
+ *   path/to/resource\n
+ *   600 400\n
+ *   800 420\n
+ *
  *	@note The first set of numbers is the X and Y co-ordinates of the top left corner of the Drawable on the Window.
  *	@note All sizes are scaled to a resolution of 1280x720, so 1280 is always the very right, and 720 is always the very bottom.
  *

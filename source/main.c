@@ -73,7 +73,7 @@ int main(/*int argc, char** argv*/)
 		return 1;
 	}
 	
-	/* Get the renderer associated with the SDL_Window. */
+	/* Create the renderer for the SDL_Window. */
 	SDL_Renderer* renderer = SDL_CreateRenderer(
 		window, 
 		-1, 

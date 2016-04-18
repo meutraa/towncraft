@@ -1,10 +1,10 @@
 #include "main_menu.h"
+#include "drawable.h"
 #include "math.h"
 #include "SDL_ttf.h"
 #include "SDL_mixer.h"
-#include "drawable.h"
 
-static enum Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[]);
+static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[]);
 
 static int drawables_length;
 

@@ -1,9 +1,10 @@
-#ifndef MATH_H
-#define MATH_H
-
 /** @file math.h 
  *  @brief A bunch of math functions.
  */
+
+#ifndef MATH_H
+#define MATH_H
+
 #include "SDL.h"
 
 /** @def LENGTH(x)

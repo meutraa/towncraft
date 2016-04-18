@@ -1,9 +1,9 @@
-#ifndef FILE_H
-#define FILE_H
-
 /** @file file.h 
  *  @brief file related functions.
  */
+
+#ifndef FILE_H
+#define FILE_H
  
 /** @def MAX_SETTING_LENGTH
  *  @brief The max length to be read of a line in the settings file.
