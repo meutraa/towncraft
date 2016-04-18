@@ -35,7 +35,7 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
     SDL_Color text_color = {255,255,255,0};
     Drawable test_text = create_text_drawable(renderer, 50, 50, "balls are tasty", "resources/fonts/DejaVuSans.ttf", 16, text_color);
     
-    Mix_Music* chiptune = Mix_LoadMUS("resources/audio/music/Chiptune.ogg");
+    Mix_Music* chiptune = Mix_LoadMUS("resources/audio/music/Super_Locomotive.ogg");
     Mix_PlayMusic(chiptune, -1);
     
 	while(1)

@@ -52,7 +52,7 @@ int main(/*int argc, char** argv*/)
 		fprintf(stderr, "\nUnable to initialize SDL_Mix Subsystem\n");
 	}
 	
-	if(Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096))
+	if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096))
 	{
 		fprintf(stderr, "\nUnable to open audio mixer\n");
 	}
