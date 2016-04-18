@@ -31,7 +31,10 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 		exit,
 	};
 	drawables_length = LENGTH(drawables);
-		
+    
+    SDL_Color text_color = {255,255,255,0};
+    Drawable test_text = create_text_drawable(renderer, 50, 50, "balls are tasty", "resources/fonts/DejaVuSans.ttf", 16, text_color);	
+    
 	while(1)
 	{
 		/* If there are events in the event queue, process them. */
@@ -49,7 +52,9 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 		{
 			SDL_RenderCopy(renderer, drawables[i].texture, NULL, &drawables[i].rect);
 		}
-		
+        
+        SDL_RenderCopy(renderer, test_text.texture, NULL, &test_text.rect);
+
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
 	}

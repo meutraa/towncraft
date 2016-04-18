@@ -48,6 +48,8 @@ Drawable create_drawable(int pos_x, int pos_y, SDL_Texture* texture);
  *  @warning The textures array must have memory allocated and must be of the same length as texture_paths.
  *  @return 0 if no errors, else the number of textures that failed to load. 
  */
+ Drawable create_text_drawable(SDL_Renderer* renderer, int pos_x, int pos_y, char* text, char* font_path, int font_size, SDL_Color color);
+ 
 int load_textures(SDL_Renderer* renderer, SDL_Texture* textures[], char* texture_paths[], int n);
 
 #endif
