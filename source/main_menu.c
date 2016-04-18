@@ -2,19 +2,17 @@
 #include "math.h"
 #include "scalable.h"
 
-static int main_menu_event_loop(SDL_Window* window, Scalable* scalables);
+static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Scalable scalables[]);
 
 static char* texture_paths[] = {
 	"resources/button.pnm"    // 0
 };
 static int scalables_length;
 
-static float win_scale = 0.2f;
+static float win_scale = 1.0f;
 
 int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 {
-	/* Save a reference to our window as global. */
-	
 	/* Create our texture arrays. */
 	int textures_count = LENGTH(texture_paths);
 	struct SDL_Texture* textures[textures_count];
@@ -26,18 +24,15 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 	}
 
 	Scalable scalables[] = {
-		 create_scalable(0.8, 0.9, textures, 0),
-		 create_scalable(0.9, 0.9, textures, 0),
+		 create_scalable(200, 400, textures, 0),
+		 create_scalable(400, 400, textures, 0),
 	};
 	scalables_length = LENGTH(scalables);
-	
-	/* Initial scaling. */
-	resize_scalables(window, scalables, scalables_length, win_scale);
-	
+		
 	while(1)
 	{
 		/* If there are events in the event queue, process them. */
-		int status = main_menu_event_loop(window, scalables);
+		int status = main_menu_event_loop(window, renderer, scalables);
 		if(0 != status)
 		{
 			break;
@@ -47,7 +42,7 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 		SDL_RenderClear(renderer);
 		
 		/* Copy all the scalables to the window. */
-		for(int i = 0; i < 2; i++)
+		for(int i = 0; i < scalables_length; i++)
 		{
 			SDL_RenderCopy(renderer, textures[scalables[i].texture_id], NULL, &scalables[i].rect);
 		}
@@ -64,7 +59,7 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 	return 1;
 }
 
-static int main_menu_event_loop(SDL_Window* window, Scalable scalables[])
+static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Scalable scalables[])
 {
 	SDL_Event event; 
 	while(SDL_PollEvent(&event))
@@ -79,11 +74,11 @@ static int main_menu_event_loop(SDL_Window* window, Scalable scalables[])
 					break;
 				case 80:    // LEFT - shrink ui scale
 					win_scale -= 0.05f;
-					resize_scalables(window, scalables, scalables_length, win_scale);
+					SDL_RenderSetScale(renderer, win_scale, win_scale);
 					break;
 				case 79:    // RIGHT - grow ui scale
 					win_scale += 0.05f;
-					resize_scalables(window, scalables, scalables_length, win_scale);
+					SDL_RenderSetScale(renderer, win_scale, win_scale);
 					break;
 				default:
 					printf("Key %d pressed\n", event.key.keysym.scancode);
@@ -113,7 +108,7 @@ static int main_menu_event_loop(SDL_Window* window, Scalable scalables[])
 			{
 				case SDL_WINDOWEVENT_SIZE_CHANGED:
 				{
-					resize_scalables(window, scalables, scalables_length, win_scale);
+					//SDL_RenderSetScale(renderer, win_scale, win_scale);
 				}
 				default:
 					break;
