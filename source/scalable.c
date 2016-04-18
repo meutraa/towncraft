@@ -30,13 +30,13 @@ int load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** d
 	char* resources[MAX_RESOURCES];
 	Drawable drawables_tmp[MAX_DRAWABLES];
 	
-	char buf[128 + 1];   // +1 for the terminating null-character.
+	char buf[MAX_LINE_LENGTH + 1];   // +1 for the terminating null-character.
 	/* The number of unique resource paths found. */
 	int texture_count = 0;
 	int drawable_count = 0;
 	 
 	/* Loop to obtain sizes and values. */
-	while(NULL != fgets(buf, 128 + 1, file))
+	while(NULL != fgets(buf, MAX_LINE_LENGTH + 1, file))
 	{
 		if(NULL != strstr(buf, "resources/"))
 		{

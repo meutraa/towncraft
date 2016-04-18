@@ -16,7 +16,7 @@
 #define DESIGN_HEIGHT 720
 
 #define MAX_RESOURCES 128
-
+#define MAX_LINE_LENGTH 128
 #define MAX_DRAWABLES 256
 
 /**
