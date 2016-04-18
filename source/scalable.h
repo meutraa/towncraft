@@ -18,11 +18,11 @@
  * This is effectively a wrapper structure for a Texture which does not contain a copy
  * of a Texture but rather a reference to be used as the Developer sees fit.
  */
-typedef struct Scalable 
+typedef struct Drawable 
 {
-	int texture_id;     /**< an integer id to be used as a texture reference. */
-	SDL_Rect rect;      /**< an SDL_Rect that defines the current absolute position and size. */
-} Scalable;
+	SDL_Texture* texture;   /**< an integer id to be used as a texture reference. */
+	SDL_Rect rect;      	/**< an SDL_Rect that defines the current absolute position and size. */
+} Drawable;
 
 /** @fn Scalable create_scalable(float pos_x, float pos_y, SDL_Texture* textures[], int texture_id)
  *  @brief Creates a new scalable struct.
@@ -36,7 +36,7 @@ typedef struct Scalable
 		  For example: Texture texture = textures[scalable.texture_id];
  *  @return a Scalable struct
  */
-Scalable create_scalable(int pos_x, int pos_y, SDL_Texture* textures[], int texture_id);
+Drawable create_drawable(int pos_x, int pos_y, SDL_Texture* texture);
 
 /** @fn int load_textures(SDL_Renderer* renderer, SDL_Texture* textures[], char* texture_paths[], int n)
  *  @brief Takes a string array of file paths and loads these files as textures to the given texture array.

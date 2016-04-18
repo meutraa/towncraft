@@ -1,9 +1,9 @@
 #include "scalable.h"
 
-Scalable create_scalable(int pos_x, int pos_y, SDL_Texture* textures[], int texture_id)
+Drawable create_drawable(int pos_x, int pos_y, SDL_Texture* texture)
 {
 	int width, height;
-	SDL_QueryTexture(textures[texture_id], NULL, NULL, &width, &height);
+	SDL_QueryTexture(texture, NULL, NULL, &width, &height);
 	
 	SDL_Rect rect;
 	rect.w = width;
@@ -11,10 +11,10 @@ Scalable create_scalable(int pos_x, int pos_y, SDL_Texture* textures[], int text
 	rect.x = pos_x;
 	rect.y = pos_y;
 	
-	Scalable scalable;
-	scalable.texture_id = texture_id;
-	scalable.rect = rect;
-	return scalable;
+	Drawable drawable;
+	drawable.texture = texture;
+	drawable.rect = rect;
+	return drawable;
 }
 
 int load_textures(SDL_Renderer* renderer, SDL_Texture* textures[], char* texture_paths[], int n)

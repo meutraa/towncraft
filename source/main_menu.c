@@ -2,12 +2,12 @@
 #include "math.h"
 #include "scalable.h"
 
-static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Scalable scalables[]);
+static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Drawable drawables[]);
 
 static char* texture_paths[] = {
 	"resources/button.pnm"    // 0
 };
-static int scalables_length;
+static int drawables_length;
 
 static float win_scale = 1.0f;
 
@@ -23,16 +23,19 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 		printf("Errors loading textures:%d\n", errors);
 	}
 
-	Scalable scalables[] = {
-		 create_scalable(200, 400, textures, 0),
-		 create_scalable(400, 400, textures, 0),
+	Drawable options = create_drawable(1000, 600, textures[0]);
+	Drawable exit    = create_drawable(1150, 600, textures[0]);
+
+	Drawable drawables[] = {
+		options,
+		exit,
 	};
-	scalables_length = LENGTH(scalables);
+	drawables_length = LENGTH(drawables);
 		
 	while(1)
 	{
 		/* If there are events in the event queue, process them. */
-		int status = main_menu_event_loop(window, renderer, scalables);
+		int status = main_menu_event_loop(window, renderer, drawables);
 		if(0 != status)
 		{
 			break;
@@ -42,9 +45,9 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 		SDL_RenderClear(renderer);
 		
 		/* Copy all the scalables to the window. */
-		for(int i = 0; i < scalables_length; i++)
+		for(int i = 0; i < drawables_length; i++)
 		{
-			SDL_RenderCopy(renderer, textures[scalables[i].texture_id], NULL, &scalables[i].rect);
+			SDL_RenderCopy(renderer, drawables[i].texture, NULL, &drawables[i].rect);
 		}
 		
 		/* Draw the renderer. */
@@ -59,7 +62,7 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 	return 1;
 }
 
-static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Scalable scalables[])
+static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Drawable drawables[])
 {
 	SDL_Event event; 
 	while(SDL_PollEvent(&event))
@@ -98,7 +101,7 @@ static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Scal
 					printf("Button %d pressed at %d,%d at %d\n", event.button.button, x, y, time);
 					
 					/* If the click is within the exit button boundry. */
-					if(bounded_by(x, y, scalables[1].rect)) return 1;
+					if(bounded_by(x, y, drawables[1].rect)) return 1;
 					break;
 				}
 			}
@@ -108,7 +111,10 @@ static int main_menu_event_loop(SDL_Window* window, SDL_Renderer* renderer, Scal
 			{
 				case SDL_WINDOWEVENT_SIZE_CHANGED:
 				{
-					//SDL_RenderSetScale(renderer, win_scale, win_scale);
+					//float ratio_w = (float) event.window.data1 / (float) DESIGN_WIDTH;
+					//float ratio_h = (float) event.window.data2 / (float) DESIGN_HEIGHT;
+					//float ratio = MIN(ratio_w, ratio_h)*win_scale;
+					//SDL_RenderSetScale(renderer, ratio, ratio);
 				}
 				default:
 					break;
