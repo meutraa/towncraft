@@ -1,6 +1,6 @@
 #include "scalable.h"
 
-Scalable create_scalable(float x, float y, SDL_Texture* textures[], int texture_id)
+Scalable create_scalable(float pos_x, float pos_y, SDL_Texture* textures[], int texture_id)
 {
 	int w, h;
 	SDL_QueryTexture(textures[texture_id], NULL, NULL, &w, &h);
@@ -9,8 +9,8 @@ Scalable create_scalable(float x, float y, SDL_Texture* textures[], int texture_
 	Scalable scalable;
 	scalable.texture_id = texture_id;
 	scalable.rect = rect;
-	scalable.initial_x = x;
-	scalable.initial_y = y;
+	scalable.pos_x = pos_x;
+	scalable.pos_y = pos_y;
 	return scalable;
 }
 
@@ -23,8 +23,8 @@ void resize_scalables(SDL_Window* window, SDL_Texture* textures[], Scalable scal
 	{
 		int w, h;
 		SDL_QueryTexture(textures[scalables[i].texture_id], NULL, NULL, &w, &h);
-		scalables[i].rect.x = scalables[i].initial_x * scale * win_w;
-		scalables[i].rect.y = scalables[i].initial_y * scale * win_h;
+		scalables[i].rect.x = scalables[i].pos_x * scale * win_w;
+		scalables[i].rect.y = scalables[i].pos_y * scale * win_h;
 		scalables[i].rect.w = w * scale;
 		scalables[i].rect.h = h * scale;
 	}

@@ -19,14 +19,14 @@ typedef struct Scalable
 {
 	int texture_id;     /**< an integer id to be used as a texture reference. */
 	SDL_Rect rect;      /**< an SDL_Rect that defines the current absolute position and size. */
-	float initial_x;    /**< a float value for the initial requested horizontal position. */
-	float initial_y;    /**< a float value for the initial requested vertical position. */
+	float pos_x;    /**< a float value for the initial requested horizontal position. */
+	float pos_y;    /**< a float value for the initial requested vertical position. */
 } Scalable;
 
-/** @fn Scalable create_scalable(float x, float y, SDL_Texture* textures[], int texture_id)
+/** @fn Scalable create_scalable(float pos_x, float pos_y, SDL_Texture* textures[], int texture_id)
  *  @brief Creates a new scalable struct.
- *  @param x a float ϵ [0-1] that represents relative horizontal starting position to the window.
- *  @param y a float ϵ [0-1] that represents relative vertical starting position to the window.
+ *  @param pos_x a float ϵ [0-1] that represents relative horizontal starting position to the window.
+ *  @param pos_y a float ϵ [0-1] that represents relative vertical starting position to the window.
  *  @note A value of 0 for x will be the very left, and 1 will be the very right.\n
  *        A value of 0 for y will be the very top, and 1 will be the very bottom.
  *  @param textures an array of SDL_Textures that corresponds to the texture_id that provides dimensions.
@@ -35,7 +35,7 @@ typedef struct Scalable
 		  For example: Texture texture = textures[scalable.texture_id];
  *  @return a Scalable struct
  */
-Scalable create_scalable(float x, float y, SDL_Texture* textures[], int texture_id);
+Scalable create_scalable(float pos_x, float pos_y, SDL_Texture* textures[], int texture_id);
 
 /** @fn void resize_scalables(SDL_Window* window, SDL_Texture* textures[], Scalable scalables[], int n, float scale)
  *  @brief Takes a Scalable array with the corresponding SDL_Texture array, and resizes the scalables according to scale.
