@@ -9,6 +9,7 @@
 #include "SDL.h"
 #include "SDL_image.h"
 #include "SDL_ttf.h"
+#include "SDL_mixer.h"
 
 #define GAME_NAME "Towncraft"
 
@@ -44,6 +45,16 @@ int main(/*int argc, char** argv*/)
 	{
 		fprintf(stderr, "\nUnable to initialize SDL_ttf Subsystem\n");
 		return 1;
+	}
+	
+	if(Mix_Init(MIX_INIT_OGG))
+	{
+		fprintf(stderr, "\nUnable to initialize SDL_Mix Subsystem\n");
+	}
+	
+	if(Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096))
+	{
+		fprintf(stderr, "\nUnable to open audio mixer\n");
 	}
 	
 	/* Create window */
