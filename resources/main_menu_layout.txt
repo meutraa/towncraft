@@ -1,7 +1,7 @@
 resources/button.pnm
-1100 700
-1100 720
+25 525
+25 540
 
 resources/button.pnm
-900 700
-900 720
+650 525
+650 540

@@ -14,8 +14,14 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 	SDL_Texture** textures = NULL;
 	Drawable* drawables = NULL;
 	
-	int drawables_length = load_drawables(renderer, &textures, &drawables, "resources/main_menu_layout.txt");
-			
+	drawables_length = load_drawables(renderer, &textures, &drawables, "resources/main_menu_layout.txt");
+    
+    SDL_Color text_color = {255,255,255,0};
+    Drawable test_text = create_text_drawable(renderer, 50, 50, "balls are tasty", "resources/fonts/DejaVuSans.ttf", 16, text_color);
+    
+    Mix_Music* chiptune = Mix_LoadMUS("resources/audio/music/Super_Locomotive.ogg");
+    Mix_PlayMusic(chiptune, -1);
+    
 	while(1)
 	{
 		/* If there are events in the event queue, process them. */
@@ -34,7 +40,9 @@ int main_menu_loop(SDL_Renderer* renderer, SDL_Window* window)
 			//printf("%d,%d\t%d,%d\n", drawables[i].rect->w, drawables[i].rect->h, drawables[i].rect->x, drawables[i].rect->y);
 			SDL_RenderCopy(renderer, drawables[i].texture, NULL, drawables[i].rect);
 		}
-		
+        
+        SDL_RenderCopy(renderer, test_text.texture, NULL, test_text.rect);
+
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
 	}
