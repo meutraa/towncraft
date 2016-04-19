@@ -29,15 +29,15 @@ int main(/*int argc, char** argv*/)
 	int resolution_height = DESIGN_HEIGHT;
 	
 	/* Initialise the video and timer subsystem. */
-	if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_AUDIO))
+	if(0 != SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_AUDIO))
 	{
 		fprintf(stderr, "\nUnable to initialize SDL Subsystem: %s\n", SDL_GetError());
 		return 1;
 	}
 	
-	if(TTF_Init())
+	if(0 != TTF_Init())
 	{
-		fprintf(stderr, "\nUnable to initialize SDL_ttf Subsystem\n");
+		fprintf(stderr, "\nUnable to initialize SDL_ttf Subsystem: %s\n", TTF_GetError());
 		return 1;
 	}
 	
