@@ -95,16 +95,25 @@ int main(/*int argc, char** argv*/)
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 	
+	Return status = SWITCHTO_MAINMENU;
+	
 	/* Start the main loop. */
 	while(1)
 	{
-		Return status = main_menu_loop(renderer);
-		if(QUIT_PROGRAM == status)
+		switch(status)
 		{
-			break;
+			case SWITCHTO_MAINMENU:
+				status = main_menu_loop(renderer);
+				break;
+			case SWITCHTO_OPTIONS:
+				status = options_loop(renderer);
+				break
+			case QUIT_PROGRAM:
+				goto cleanup;
 		}
 	}
 	
+cleanup:
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);	
 	return 0;
