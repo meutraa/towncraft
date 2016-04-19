@@ -2,8 +2,8 @@
  *  @brief function return codes to be used program-wide.
  */
 
-#ifndef MAIN_MENU_H
-#define MAIN_MENU_H
+#ifndef OPTIONS_MENU_H
+#define OPTIONS_MENU_H
 
 #include "status.h"
 #include "SDL.h"

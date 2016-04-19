@@ -1,6 +1,7 @@
 #include "file.h"
 #include "constants.h"
 #include "main_menu.h"
+#include "options_menu.h"
 #include "status.h"
 
 #include <stdio.h>
