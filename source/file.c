@@ -129,6 +129,11 @@ Return is_valid_layout(char* layout_file)
 					return ERROR;
 				}
 				c = strtok(NULL, " \n");
+				if(i == 4 && NULL != c && 0 != strlen(c))
+				{
+					fprintf(stderr, "%d: Too many parameters on font line.\n", total_lines - 3);
+					return ERROR;
+				}
 			}
 		}
 		else
@@ -143,7 +148,7 @@ Return is_valid_layout(char* layout_file)
 		{
 			char *c = strtok(lines[i], " ");
 			char *d = strtok(NULL, "\n");
-			if(NULL != strchr(d, ' '))
+			if(NULL != d && NULL != strchr(d, ' '))
 			{
 				fprintf(stderr, "Numbers do not contain spaces! %s", d);
 				return ERROR;
@@ -153,7 +158,7 @@ Return is_valid_layout(char* layout_file)
 			{
 				if(0 != valid_number(e[j]))
 				{
-					fprintf(stderr, "%d: Could not parse drawables position.\n", total_lines - 2 + j);
+					fprintf(stderr, "%d: Could not parse drawables position.\n", total_lines - 3 + j);
 					return ERROR;	
 				}
 			}
@@ -186,6 +191,7 @@ static int valid_number(char* a)
 		{
 			return -1;
 		}
+		printf("%ld\n", test);
 	}
 	return 0;
 }
