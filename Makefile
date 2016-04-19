@@ -1,10 +1,13 @@
 all: main docs
 
-main:
+main: clean
 	$(CC) -g -Wall -Wextra -Wno-switch --pedantic -O3 source/*.c -std=c99 -o towncraft `pkg-config --cflags --libs sdl2` -lSDL2_image -lSDL2_ttf -lSDL2_mixer
 
 docs:
 	doxygen documentation/doxygen.cfg
+	
+valgrind: clean main
+	valgrind --leak-check=full ./towncraft
 
 clean:
 	rm -rf towncraft

@@ -3,28 +3,7 @@
 
 #define NEXT_INT(a) atoi(strtok(NULL, a))
 
-Drawable create_text_drawable(SDL_Renderer* renderer, int pos_x, int pos_y, char* text, char* font_path, int font_size, SDL_Color color)
-{
-	TTF_Font* font = TTF_OpenFont(font_path, font_size);
-	SDL_Surface* text_surface = TTF_RenderText_Solid(font, text, color);
-	SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-	
-	SDL_Rect rect;
-	rect.w = text_surface->w;
-	rect.h = text_surface->h;
-	rect.x = pos_x;
-	rect.y = pos_y;
-	
-	Drawable drawable;
-	drawable.texture = text_texture;
-	drawable.widescreen = rect;
-	drawable.rect = &drawable.widescreen;
-	
-	SDL_FreeSurface(text_surface);
-	return drawable;
-}
-
-int load_drawables_unchecked(SDL_Renderer* renderer, SDL_Texture* (*textures)[], 
+int load_drawables(SDL_Renderer* renderer, SDL_Texture* (*textures)[], 
 							int texture_count, Drawable (*drawables)[], int drawable_count, char* layout_file)
 {
 	FILE* file = fopen(layout_file, "r");

@@ -6,9 +6,64 @@
 #include "status.h"
 #include "math.h"
 #include "constants.h"
+#include "drawable.h"
 
 static int file_exists(char* path);
 static int valid_number(char* a);
+
+int count_resources(char* path)
+{
+	int count = count_lines(path);
+	count++;
+	if(count % 5 != 0)
+	{
+		return -1;
+	}
+	return count/5; // deliberate integer division.
+}
+
+int count_lines(char* path)
+{
+	int ch, lines = 0;
+	FILE *file = fopen(path, "r");
+	while (EOF != (ch = fgetc(file)))
+	{
+    	if (ch=='\n') lines++;
+	}
+	if(NULL != file) fclose(file);
+	return lines;
+}
+
+int count_textures(char* layout_file, int drawable_count)
+{
+	FILE* file = fopen(layout_file, "r");
+	
+	char* resources[MAX_RESOURCES];
+	int index = 0;
+	
+	char lines[5][MAX_LINE_LENGTH + 1];   // +1 for the terminating null-character.
+	
+	for(int i = 0; i < drawable_count; i++)
+	{		
+		/* Read the next five lines and trim the new lines. */
+		for(int j = 0; j < 5; j++)
+		{
+			fgets(lines[j], MAX_LINE_LENGTH + 1, file);
+		}
+
+		if(NULL != strstr(lines[1], "images/"))
+		{
+			int recycle = 0;
+			for(int j = 0; j < index && recycle == 0; j++)
+			{
+				if(0 == strncmp(lines[1], resources[j], strlen(lines[1]))) recycle = 1;
+			}
+			if(0 == recycle) resources[index++] = lines[1];
+		}
+	}
+	return index;
+}
+
 
 int count_valid_settings(char* path)
 {

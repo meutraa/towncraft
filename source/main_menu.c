@@ -13,20 +13,29 @@ static float win_scale = 1.0f;
 
 Return main_menu_loop(SDL_Renderer* renderer)
 {
-	/* Create our texture arrays. */
-	int texture_count = 1;
-	int drawable_count = 3;
-	SDL_Texture* textures[texture_count];
-	Drawable drawables[drawable_count];
-	
 	char *layout_file = "resources/layouts/main_menu.layout";
+
+	/** BLOCK START 
+	 *  This block is re-usable across layouts but needs to be here.
+	 */
+	/* Verify the layout file is legit. */
 	Return valid = is_valid_layout(layout_file);
 	if(NORMAL != valid)
 	{
 		fprintf(stderr, "%s is not a valid layout file.\n", layout_file);
 		return QUIT_PROGRAM;
 	}
-	load_drawables_unchecked(renderer, &textures, texture_count, &drawables, drawable_count, layout_file);
+	
+	/* We have a well formated layout file and resources exist. */
+	int drawable_count = count_resources(layout_file);
+	printf("draws: %d\n", drawable_count);
+	int texture_count = count_textures(layout_file, drawable_count);
+	SDL_Texture* textures[texture_count];
+	Drawable drawables[drawable_count];
+	load_drawables(renderer, &textures, texture_count, &drawables, drawable_count, layout_file);
+	/**
+	 *  BLOCK END
+	 */
 
     Mix_Music* chiptune = Mix_LoadMUS("resources/audio/music/Super_Locomotive.ogg");
     Mix_PlayMusic(chiptune, -1);
@@ -73,7 +82,7 @@ Return main_menu_loop(SDL_Renderer* renderer)
 static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[])
 {
 	SDL_Event event; 
-	while(SDL_PollEvent(&event))
+	while(1 == SDL_PollEvent(&event))
 	{
 		switch(event.type)
 		{

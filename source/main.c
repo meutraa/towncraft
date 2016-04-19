@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define SDL_MAIN_HANDLED
 #include "SDL.h"
 #include "SDL_ttf.h"
 #include "SDL_mixer.h"
@@ -15,6 +16,7 @@
 
 int main(/*int argc, char** argv*/)
 {
+	SDL_SetMainReady();
 	/* Ensures any return will call SDL_Quit first. */
 	atexit(SDL_Quit);
 	
@@ -38,6 +40,7 @@ int main(/*int argc, char** argv*/)
 	if(0 != TTF_Init())
 	{
 		fprintf(stderr, "\nUnable to initialize SDL_ttf Subsystem: %s\n", TTF_GetError());
+		TTF_Quit();
 		return 1;
 	}
 	

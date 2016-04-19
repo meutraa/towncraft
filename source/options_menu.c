@@ -11,21 +11,29 @@ static Return options_menu_event_loop(SDL_Renderer* renderer, Drawable drawables
 static float win_scale = 1.0f;
 
 Return options_menu_loop(SDL_Renderer* renderer)
-{
-	/* Create our texture arrays. */
-	int texture_count = 1;
-	int drawable_count = 2;
-	SDL_Texture* textures[texture_count];
-	Drawable drawables[drawable_count];
-	
+{	
 	char *layout_file = "resources/layouts/options_menu.layout";
+
+	/** BLOCK START 
+	 *  This block is re-usable across layouts but needs to be here.
+	 */
+	/* Verify the layout file is legit. */
 	Return valid = is_valid_layout(layout_file);
 	if(NORMAL != valid)
 	{
 		fprintf(stderr, "%s is not a valid layout file.\n", layout_file);
 		return QUIT_PROGRAM;
 	}
-	load_drawables_unchecked(renderer, &textures, texture_count, &drawables, drawable_count, layout_file);
+	
+	/* We have a well formated layout file and resources exist. */
+	int drawable_count = count_resources(layout_file);
+	int texture_count = count_textures(layout_file, drawable_count);
+	SDL_Texture* textures[texture_count];
+	Drawable drawables[drawable_count];
+	load_drawables(renderer, &textures, texture_count, &drawables, drawable_count, layout_file);
+	/**
+	 *  BLOCK END
+	 */
 	
 	Return status;
 	while(1)
