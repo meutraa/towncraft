@@ -1,35 +1,29 @@
-#include "main_menu.h"
+#include "options_menu.h"
 #include "drawable.h"
 #include "math.h"
 #include "SDL_ttf.h"
 #include "SDL_mixer.h"
 
-static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[]);
+static Return options_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[]);
 
 static int drawables_length;
 
 static float win_scale = 1.0f;
 
-Return main_menu_loop(SDL_Renderer* renderer)
+Return options_menu_loop(SDL_Renderer* renderer)
 {
 	/* Create our texture arrays. */
 	SDL_Texture** textures = NULL;
 	Drawable* drawables = NULL;
 	
-	drawables_length = load_drawables(renderer, &textures, &drawables, "resources/layouts/main_menu.layout");
-    
-    SDL_Color text_color = {255,255,255,0};
-    Drawable test_text = create_text_drawable(renderer, 50, 50, "balls are tasty", "resources/fonts/DejaVuSans.ttf", 16, text_color);
-    
-    Mix_Music* chiptune = Mix_LoadMUS("resources/audio/music/Super_Locomotive.ogg");
-    Mix_PlayMusic(chiptune, -1);
+	drawables_length = load_drawables(renderer, &textures, &drawables, "resources/layouts/options_menu.layout");
 	
 	Return status;
 	while(1)
 	{
 		/* If there are events in the event queue, process them. */
-		status = main_menu_event_loop(renderer, drawables);
-		if(QUIT_PROGRAM == status||SWITCHTO_OPTIONS == status)
+		status = options_menu_event_loop(renderer, drawables);
+		if(QUIT_PROGRAM == status||SWITCHTO_MAINMENU == status)
 		{
 			/* Break out of the loop and cleanup resources. */
 			break;
@@ -44,9 +38,6 @@ Return main_menu_loop(SDL_Renderer* renderer)
 			//printf("%d,%d\t%d,%d\n", drawables[i].rect->w, drawables[i].rect->h, drawables[i].rect->x, drawables[i].rect->y);
 			SDL_RenderCopy(renderer, drawables[i].texture, NULL, drawables[i].rect);
 		}
-		
-        SDL_RenderCopy(renderer, test_text.texture, NULL, test_text.rect);
-
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
 	}
@@ -59,7 +50,7 @@ Return main_menu_loop(SDL_Renderer* renderer)
 	return status;
 }
 
-static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[])
+static Return options_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[])
 {
 	SDL_Event event; 
 	while(SDL_PollEvent(&event))
@@ -71,14 +62,6 @@ static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[])
 			{
 				case 41: // ESC - Close the program.
 					return QUIT_PROGRAM;
-					break;
-				case 80:    // LEFT - shrink ui scale
-					win_scale -= 0.05f;
-					SDL_RenderSetScale(renderer, win_scale, win_scale);
-					break;
-				case 79:    // RIGHT - grow ui scale
-					win_scale += 0.05f;
-					SDL_RenderSetScale(renderer, win_scale, win_scale);
 					break;
 				default:
 					printf("Key %d pressed\n", event.key.keysym.scancode);
@@ -99,7 +82,7 @@ static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[])
 					
 					/* If the click is within the exit button boundry. */
 					if(bounded_by(x, y, drawables[1].rect)) return QUIT_PROGRAM;
-					if(bounded_by(x, y, drawables[0].rect)) return SWITCHTO_OPTIONS;
+					if(bounded_by(x, y, drawables[0].rect)) return SWITCHTO_MAINMENU;
 					break;
 				}
 			}
