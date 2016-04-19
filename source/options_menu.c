@@ -1,6 +1,7 @@
 #include "options_menu.h"
 #include "drawable.h"
 #include "math.h"
+#include "file.h"
 #include "constants.h"
 #include "SDL_ttf.h"
 #include "SDL_mixer.h"
@@ -12,12 +13,19 @@ static float win_scale = 1.0f;
 Return options_menu_loop(SDL_Renderer* renderer)
 {
 	/* Create our texture arrays. */
-	SDL_Texture** textures = NULL;
-	Drawable* drawables = NULL;
+	int texture_count = 1;
+	int drawable_count = 2;
+	SDL_Texture* textures[texture_count];
+	Drawable drawables[drawable_count];
 	
-	Pair loaded = load_drawables(renderer, &textures, &drawables, "resources/layouts/options_menu.layout");
-	int texture_count = loaded.a;
-	int drawable_count = loaded.b;
+	char *layout_file = "resources/layouts/options_menu.layout";
+	Return valid = is_valid_layout(layout_file);
+	if(NORMAL != valid)
+	{
+		fprintf(stderr, "%s is not a valid layout file.\n", layout_file);
+		return QUIT_PROGRAM;
+	}
+	load_drawables_unchecked(renderer, &textures, texture_count, &drawables, drawable_count, layout_file);
 	
 	Return status;
 	while(1)
@@ -43,18 +51,15 @@ Return options_menu_loop(SDL_Renderer* renderer)
 		SDL_RenderPresent(renderer);
 	}
 	
-	/* Clean up and end the main function. */
+	/* Clean up and return to the main function. */
 	for(int i = 0; i < drawable_count; i++)
 	{
-		free(drawables[i].resource_path);
-		//free(drawables[i].name);
+		free(drawables[i].name);
 	}
 	for(int i = 0; i < texture_count; i++)
 	{
 		SDL_DestroyTexture(textures[i]);
 	}
-	free(drawables);
-	free(textures);
 	return status;
 }
 

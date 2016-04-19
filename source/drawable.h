@@ -34,7 +34,6 @@ typedef struct Drawable
 	SDL_Texture* texture;   /**< a pointer to an SDL_Texture */
 	SDL_Rect* rect;      	/**< an SDL_Rect pointer that defines the current position and size. */
 	char* name;				/**< a unique name. */
-	char* resource_path;	/**< the resource file path. */
 	SDL_Rect widescreen;	/**< an SDL_Rect containing positions for a 16:9 aspect ratio. */
 	SDL_Rect monitor;		/**< an SDL_Rect containing positions for a 16:10 aspect ratio. */
 } Drawable;
@@ -62,6 +61,10 @@ typedef struct Drawable
  *  	function failed to parse any of the layout file. 
  */
 Pair load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** drawables, char* layout_path);
+
+int load_drawables_unchecked(SDL_Renderer* renderer, SDL_Texture* (*textures)[], 
+							int texture_count, Drawable (*drawables)[], int drawable_count, char* layout_file);
+
 
 Drawable create_text_drawable(SDL_Renderer* renderer, int pos_x, int pos_y, char* text, char* font_path, int font_size, SDL_Color color);
  
