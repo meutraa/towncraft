@@ -15,6 +15,9 @@
 
 int main(/*int argc, char** argv*/)
 {
+	Return hi = is_valid_layout("resources/layouts/main_menu.layout");
+	if(hi != NORMAL) printf("error\n");
+	return 0;
 	/* Ensures any return will call SDL_Quit first. */
 	atexit(SDL_Quit);
 	

@@ -5,6 +5,8 @@
 #ifndef FILE_H
 #define FILE_H
 
+#include "status.h"
+
 /** @fn int count_valid_settings(char* path)
  *  @brief Counts how many valid settings it finds in a file.
  *
@@ -17,5 +19,7 @@
  *          valid settings parsed.
  */
 int count_valid_settings(char* path);
+
+Return is_valid_layout(char* layout_file);
 
 #endif
