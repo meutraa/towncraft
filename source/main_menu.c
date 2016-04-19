@@ -64,6 +64,8 @@ Return main_menu_loop(SDL_Renderer* renderer)
 	}
 	free(drawables);
 	free(textures);
+	Mix_HaltMusic();
+	Mix_FreeMusic(chiptune);
 	return status;
 }
 
