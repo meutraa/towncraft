@@ -22,10 +22,11 @@ Drawable create_text_drawable(SDL_Renderer* renderer, int pos_x, int pos_y, char
 	return drawable;
 }
 
-int load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** drawables, char* layout_file)
+Pair load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** drawables, char* layout_file)
 {
+	Pair pair;
 	FILE* file = fopen(layout_file, "r");
-	if(NULL == file) return -1;
+	if(NULL == file) return pair;
 	
 	/* This is an array containing unique resource file paths. */
 	char* resources[MAX_RESOURCES];
@@ -151,5 +152,7 @@ int load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** d
 			}
 		}
 	}
-	return drawable_count;
+	pair.a = texture_count;
+	pair.b = drawable_count;
+	return pair;
 }

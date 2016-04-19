@@ -7,8 +7,6 @@
 
 static Return options_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[]);
 
-static int drawables_length;
-
 static float win_scale = 1.0f;
 
 Return options_menu_loop(SDL_Renderer* renderer)
@@ -17,7 +15,9 @@ Return options_menu_loop(SDL_Renderer* renderer)
 	SDL_Texture** textures = NULL;
 	Drawable* drawables = NULL;
 	
-	drawables_length = load_drawables(renderer, &textures, &drawables, "resources/layouts/options_menu.layout");
+	Pair loaded = load_drawables(renderer, &textures, &drawables, "resources/layouts/options_menu.layout");
+	int texture_count = loaded.a;
+	int drawable_count = loaded.b;
 	
 	Return status;
 	while(1)
@@ -34,7 +34,7 @@ Return options_menu_loop(SDL_Renderer* renderer)
 		SDL_RenderClear(renderer);
 		
 		/* Copy all the scalables to the window. */
-		for(int i = 0; i < drawables_length; i++)
+		for(int i = 0; i < drawable_count; i++)
 		{
 			//printf("%d,%d\t%d,%d\n", drawables[i].rect->w, drawables[i].rect->h, drawables[i].rect->x, drawables[i].rect->y);
 			SDL_RenderCopy(renderer, drawables[i].texture, NULL, drawables[i].rect);
@@ -44,10 +44,17 @@ Return options_menu_loop(SDL_Renderer* renderer)
 	}
 	
 	/* Clean up and end the main function. */
-	for(int i = 0; i < drawables_length; i++)
+	for(int i = 0; i < drawable_count; i++)
 	{
-		if(NULL != drawables[i].texture) SDL_DestroyTexture(drawables[i].texture);
+		free(drawables[i].resource_path);
+		//free(drawables[i].name);
 	}
+	for(int i = 0; i < texture_count; i++)
+	{
+		SDL_DestroyTexture(textures[i]);
+	}
+	free(drawables);
+	free(textures);
 	return status;
 }
 

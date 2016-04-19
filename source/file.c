@@ -77,6 +77,7 @@ Return is_valid_layout(char* layout_file)
 			else if(i == 4 && 0 != strcmp(lines[4], "\n"))
 			{
 				fprintf(stderr, "Line %d should be empty and may not contain whitespace.\n", total_lines);
+				return ERROR;
 			}
 			total_lines++;
 		}

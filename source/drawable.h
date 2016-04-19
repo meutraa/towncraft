@@ -39,7 +39,7 @@ typedef struct Drawable
 	SDL_Rect monitor;		/**< an SDL_Rect containing positions for a 16:10 aspect ratio. */
 } Drawable;
 
-/** @fn int load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** drawables, char* layout_path)
+/** @fn Pair load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** drawables, char* layout_path)
  *  @brief Takes a layout file and fills the textures and drawables arrays.
  *
  *  This function will read a valid layout file and allocate memory for Drawables with the least number of SDL_Textures
@@ -57,11 +57,11 @@ typedef struct Drawable
  *  @param drawables a pointer to an array of drawables to fill.
  *  @note It is not neccesary to allocate the memory for textures and drawables before calling this function.
  *  @param layout_path a relative path to the resource file as a string.
- *  @return the number of Drawables that were created.
+ *  @return A pair {a = texture_count, b = resource_count}
  *	@note the texture pointer of the returned Drawables may still be NULL and the SDL_Rects may not have initialised values if the
  *  	function failed to parse any of the layout file. 
  */
-int load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** drawables, char* layout_path);
+Pair load_drawables(SDL_Renderer* renderer, SDL_Texture*** textures, Drawable** drawables, char* layout_path);
 
 Drawable create_text_drawable(SDL_Renderer* renderer, int pos_x, int pos_y, char* text, char* font_path, int font_size, SDL_Color color);
  
