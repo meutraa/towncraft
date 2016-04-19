@@ -1,3 +1,4 @@
+#include "constants.h"
 #include "drawable.h"
 
 Drawable create_text_drawable(SDL_Renderer* renderer, int pos_x, int pos_y, char* text, char* font_path, int font_size, SDL_Color color)

@@ -4,11 +4,6 @@
 
 #ifndef FILE_H
 #define FILE_H
- 
-/** @def MAX_SETTING_LENGTH
- *  @brief The max length to be read of a line in the settings file.
- */
- #define MAX_SETTING_LENGTH 128
 
 /** @fn int count_valid_settings(char* path)
  *  @brief Counts how many valid settings it finds in a file.

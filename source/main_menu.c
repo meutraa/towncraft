@@ -1,5 +1,6 @@
 #include "main_menu.h"
 #include "drawable.h"
+#include "constants.h"
 #include "math.h"
 #include "SDL_ttf.h"
 #include "SDL_mixer.h"
@@ -55,7 +56,11 @@ Return main_menu_loop(SDL_Renderer* renderer)
 	for(int i = 0; i < drawables_length; i++)
 	{
 		if(NULL != drawables[i].texture) SDL_DestroyTexture(drawables[i].texture);
+		free(drawables[i].resource_path);
+		free(drawables[i].name);
 	}
+	free(drawables);
+	free(textures);
 	return status;
 }
 

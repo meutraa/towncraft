@@ -17,11 +17,6 @@
  */
 #define MAX_RESOURCES 128
 
-/** @def MAX_LINE_LENGTH
- *  @brief the maximum number of chars that will be read from a line on a layout file.
- */
-#define MAX_LINE_LENGTH 128
-
 /** @def MAX_DRAWABLES
  *  @brief the maximum number of Drawables the load_drawables function will allocate to memory in one call.
  */
@@ -38,6 +33,7 @@ typedef struct Drawable
 {
 	SDL_Texture* texture;   /**< a pointer to an SDL_Texture */
 	SDL_Rect* rect;      	/**< an SDL_Rect pointer that defines the current position and size. */
+	char* name;				/**< a unique name. */
 	char* resource_path;	/**< the resource file path. */
 	SDL_Rect widescreen;	/**< an SDL_Rect containing positions for a 16:9 aspect ratio. */
 	SDL_Rect monitor;		/**< an SDL_Rect containing positions for a 16:10 aspect ratio. */

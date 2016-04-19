@@ -1,7 +1,14 @@
+options
 resources/images/button.pnm
 25 525
 25 540
 
+quit
 resources/images/button.pnm
 650 525
 650 540
+
+balls are tasty
+resources/fonts/DejaVuSans.ttf 24 255 255 255 0
+25 40
+25 60
