@@ -46,9 +46,9 @@ int main(/*int argc, char** argv*/)
 		fprintf(stderr, "\nUnable to initialize SDL_Mix Subsystem: %s\n", Mix_GetError());
 	}
 	
-	if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096))
+	if(0 != Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096))
 	{
-		fprintf(stderr, "\nUnable to open audio mixer\n");
+		fprintf(stderr, "\nUnable to open audio mixer: %s\n", Mix_GetError());
 	}
 	
 	/* Create window */
@@ -109,6 +109,7 @@ int main(/*int argc, char** argv*/)
 	}
 	
 cleanup:
+	Mix_CloseAudio();
 	Mix_Quit();
 	TTF_Quit();
 	SDL_DestroyRenderer(renderer);
