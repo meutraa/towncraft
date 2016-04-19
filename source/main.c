@@ -29,16 +29,10 @@ int main(/*int argc, char** argv*/)
 	int resolution_height = DESIGN_HEIGHT;
 	
 	/* Initialise the video and timer subsystem. */
-	if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER))
+	if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_AUDIO))
 	{
 		fprintf(stderr, "\nUnable to initialize SDL Subsystem: %s\n", SDL_GetError());
 		return 1;
-	}
-	
-	/* Initialise the (optional) audio subsystem. */
-	if(SDL_InitSubSystem(SDL_INIT_AUDIO))
-	{
-		fprintf(stderr, "\nUnable to initialize SDL Audio Subsystem: %s\n", SDL_GetError());
 	}
 	
 	if(TTF_Init())
@@ -47,7 +41,7 @@ int main(/*int argc, char** argv*/)
 		return 1;
 	}
 	
-	if(Mix_Init(MIX_INIT_OGG))
+	if(MIX_INIT_OGG != Mix_Init(MIX_INIT_OGG))
 	{
 		fprintf(stderr, "\nUnable to initialize SDL_Mix Subsystem: %s\n", Mix_GetError());
 	}
@@ -115,6 +109,8 @@ int main(/*int argc, char** argv*/)
 	}
 	
 cleanup:
+	Mix_Quit();
+	TTF_Quit();
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);	
 	return 0;

@@ -53,7 +53,7 @@ int load_drawables_unchecked(SDL_Renderer* renderer, SDL_Texture* (*textures)[],
 			TTF_Font* font = TTF_OpenFont(strtok(lines[1], " "), NEXT_INT(" "));
 			SDL_Color color = {NEXT_INT(" "), NEXT_INT(" "), NEXT_INT(" "), NEXT_INT(" \n")};
 			SDL_Surface* surface = TTF_RenderText_Solid(font, (*drawables)[i].name, color);
-			(*textures)[i] = SDL_CreateTextureFromSurface(renderer, surface);
+			(*drawables)[i].texture = SDL_CreateTextureFromSurface(renderer, surface);
 			SDL_FreeSurface(surface);
 			TTF_CloseFont(font);
 		}
