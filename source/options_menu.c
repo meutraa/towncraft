@@ -1,6 +1,7 @@
 #include "options_menu.h"
 #include "drawable.h"
 #include "math.h"
+#include "constants.h"
 #include "SDL_ttf.h"
 #include "SDL_mixer.h"
 

@@ -106,8 +106,8 @@ int main(/*int argc, char** argv*/)
 				status = main_menu_loop(renderer);
 				break;
 			case SWITCHTO_OPTIONS:
-				status = options_loop(renderer);
-				break
+				status = options_menu_loop(renderer);
+				break;
 			case QUIT_PROGRAM:
 				goto cleanup;
 		}
