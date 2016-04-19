@@ -191,7 +191,6 @@ static int valid_number(char* a)
 		{
 			return -1;
 		}
-		printf("%ld\n", test);
 	}
 	return 0;
 }
