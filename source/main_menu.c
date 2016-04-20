@@ -4,10 +4,11 @@
 #include "constants.h"
 #include "math.h"
 #include "status.h"
+#include "functions.h"
 #include "SDL_ttf.h"
 #include "SDL_mixer.h"
 
-static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[]);
+static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[], int drawable_count);
 
 static float win_scale = 1.0f;
 
@@ -43,7 +44,7 @@ Return main_menu_loop(SDL_Renderer* renderer)
 	while(1)
 	{
 		/* If there are events in the event queue, process them. */
-		status = main_menu_event_loop(renderer, drawables);
+		status = main_menu_event_loop(renderer, drawables, drawable_count);
 		if(QUIT_PROGRAM == status||SWITCHTO_OPTIONS == status)
 		{
 			/* Break out of the loop and cleanup resources. */
@@ -78,7 +79,7 @@ Return main_menu_loop(SDL_Renderer* renderer)
 	return status;
 }
 
-static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[])
+static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[], int drawable_count)
 {
 	SDL_Event event; 
 	while(1 == SDL_PollEvent(&event))
@@ -117,8 +118,18 @@ static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[])
 					printf("Button %d pressed at %d,%d at %d\n", event.button.button, x, y, time);
 					
 					/* If the click is within the exit button boundry. */
-					if(bounded_by(x, y, drawables[1].rect)) return QUIT_PROGRAM;
-					if(bounded_by(x, y, drawables[0].rect)) return SWITCHTO_OPTIONS;
+					if(bounded_by(x, y, drawables[0].rect))
+					{
+						for(int j = 0; j < FUNCTION_COUNT; j++)
+						{
+							if(0 == strncmp(drawables[0].name, function_strings[j], strlen(function_strings[j])))
+							{
+								int status = function_pointers[j](0);
+								if(-1 == status) return QUIT_PROGRAM;
+							}
+						}
+					}
+					//if(bounded_by(x, y, drawables[0].rect)) return SWITCHTO_OPTIONS;
 					break;
 				}
 			}
