@@ -11,6 +11,6 @@ typedef int (*function)(int, ...);
 
 extern const char* function_strings[FUNCTION_COUNT];
 
-extern const function function_pointers[FUNCTION_COUNT];
+extern const function* function_pointers[FUNCTION_COUNT];
 
 #endif

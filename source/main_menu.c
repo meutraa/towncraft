@@ -118,13 +118,13 @@ static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[],
 					printf("Button %d pressed at %d,%d at %d\n", event.button.button, x, y, time);
 					
 					/* If the click is within the exit button boundry. */
-					if(bounded_by(x, y, drawables[0].rect))
+					if(bounded_by(x, y, drawables[1].rect))
 					{
 						for(int j = 0; j < FUNCTION_COUNT; j++)
 						{
-							if(0 == strncmp(drawables[0].name, function_strings[j], strlen(function_strings[j])))
+							if(0 == strncmp(drawables[1].name, function_strings[j], strlen(function_strings[j])))
 							{
-								int status = function_pointers[j](0);
+								int status = (*function_pointers)[j](0);
 								if(-1 == status) return QUIT_PROGRAM;
 							}
 						}

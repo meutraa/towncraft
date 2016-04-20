@@ -10,8 +10,8 @@ static int fun_options(int a, ...)
 	return 1;
 }
 
-static function pointer_quit = fun_quit;
-static function pointer_options = fun_options;
+static const function pointer_quit = fun_quit;
+static const function pointer_options = fun_options;
 
 const char* function_strings[FUNCTION_COUNT] = 
 {
@@ -19,8 +19,8 @@ const char* function_strings[FUNCTION_COUNT] =
 	"options",
 };
 
-const function function_pointers[FUNCTION_COUNT] = 
+const function* function_pointers[FUNCTION_COUNT] = 
 {
-	pointer_quit,
-	pointer_options,
+	&pointer_quit,
+	&pointer_options,
 };
