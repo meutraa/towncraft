@@ -58,7 +58,7 @@ typedef struct Drawable
  *  @param drawables a pointer to an array of drawables to fill.
  *  @param drawable_count how many drawables are in the file.
  *  @note It is not neccesary to allocate the memory for textures and drawables before calling this function.
- *  @param layout_path a relative path to the resource file as a string.
+ *  @param layout_file a relative path to the resource file as a string.
  *  @return 0 if the function encountered no problems.
  *	@note the texture pointer of the returned Drawables may still be NULL and the SDL_Rects may not have initialised values if the
  *  	function failed to parse any of the layout file. 

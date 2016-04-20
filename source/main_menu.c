@@ -28,7 +28,6 @@ Return main_menu_loop(SDL_Renderer* renderer)
 	
 	/* We have a well formated layout file and resources exist. */
 	int drawable_count = count_resources(layout_file);
-	printf("draws: %d\n", drawable_count);
 	int texture_count = count_textures(layout_file, drawable_count);
 	SDL_Texture* textures[texture_count];
 	Drawable drawables[drawable_count];

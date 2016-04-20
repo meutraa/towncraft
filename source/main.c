@@ -59,7 +59,6 @@ int main(/*int argc, char** argv*/)
 		GAME_NAME,                                       // Window title
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,  // Position (x,y)
 		resolution_width, resolution_height,             // Size (x,y)
-		SDL_WINDOW_RESIZABLE|
 		((fullscreen == 1) ? SDL_WINDOW_FULLSCREEN : 0)|        // If custom_resolution is set use size x,y fullscreen
 		((fullscreen == 2) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) // If fullscreen is set use desktop resolution
 		// Window flags http://wiki.libsdl.org/SDL_WindowFlags

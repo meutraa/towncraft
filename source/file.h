@@ -29,7 +29,7 @@ int count_valid_settings(char* path);
 
 /** @fn int count_resources(char* layout_file)
  *  @brief Counts how many set of five lines there are in a file.
- *  @param path a string representing the relative file path of the file.
+ *  @param layout_file a string representing the relative file path of the file.
  *  @warning this function does not check the file for readability, and should only be used after is_valid_layout()
  *  @return the number of lines in a file divided by five, or if it is not divisible by five, 0.
  */
@@ -37,7 +37,7 @@ int count_resources(char* layout_file);
 
 /** @fn int count_textures(char* layout_file, int drawable_count)
  *  @brief Counts how many unique image textures there are in a file.
- *  @param path a string representing the relative file path of the file.
+ *  @param layout_file a string representing the relative file path of the file.
  *  @param drawable_count providing this saves a reread of the file. And you probably already have this count.
  *  @warning this function does not check the file for readability, and should only be used after is_valid_layout()
  *  @return the number of unique resource paths found.
