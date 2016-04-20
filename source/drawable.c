@@ -1,5 +1,9 @@
 #include "drawable.h"
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include "constants.h"
 #include "SDL_image.h"
 #include "SDL_ttf.h"

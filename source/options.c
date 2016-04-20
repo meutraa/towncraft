@@ -1,5 +1,3 @@
-#include "options.h"
-
 #include "constants.h"
 
 float ui_scale = 1.0f;

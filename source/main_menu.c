@@ -1,10 +1,9 @@
-#include "main_menu.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "drawable.h"
-#include "options.h"
 #include "file.h"
 #include "math.h"
-#include "status.h"
 #include "functions.h"
 #include "SDL_mixer.h"
 

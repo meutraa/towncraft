@@ -1,8 +1,6 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include "file.h"
 #include "constants.h"
 
 static int file_exists(char* path)

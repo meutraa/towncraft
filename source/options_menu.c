@@ -1,12 +1,9 @@
-#include "options_menu.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "drawable.h"
-#include "options.h"
 #include "file.h"
 #include "math.h"
-#include "constants.h"
-#include "SDL_ttf.h"
-#include "SDL_mixer.h"
 
 static Return options_menu_event_loop(Drawable drawables[]);
 

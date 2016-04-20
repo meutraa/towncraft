@@ -1,14 +1,11 @@
-#include "constants.h"
 #include "options.h"
 #include "main_menu.h"
 #include "options_menu.h"
-#include "status.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
 #define SDL_MAIN_HANDLED
-#include "SDL.h"
 #include "SDL_ttf.h"
 #include "SDL_mixer.h"
 
