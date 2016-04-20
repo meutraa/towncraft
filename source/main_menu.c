@@ -1,5 +1,6 @@
 #include "main_menu.h"
 #include "drawable.h"
+#include "options.h"
 #include "file.h"
 #include "constants.h"
 #include "math.h"
@@ -9,8 +10,6 @@
 #include "SDL_mixer.h"
 
 static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[], int drawable_count);
-
-static float win_scale = 1.0f;
 
 Return main_menu_loop(SDL_Renderer* renderer)
 {
@@ -92,14 +91,6 @@ static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[],
 				case 41: // ESC - Close the program.
 					return QUIT_PROGRAM;
 					break;
-				case 80:    // LEFT - shrink ui scale
-					win_scale -= 0.05f;
-					SDL_RenderSetScale(renderer, win_scale, win_scale);
-					break;
-				case 79:    // RIGHT - grow ui scale
-					win_scale += 0.05f;
-					SDL_RenderSetScale(renderer, win_scale, win_scale);
-					break;
 				default:
 					printf("Key %d pressed\n", event.key.keysym.scancode);
 					break;
@@ -131,19 +122,6 @@ static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[],
 				}
 			}
 			break;
-		case SDL_WINDOWEVENT:
-			switch(event.window.event)
-			{
-				case SDL_WINDOWEVENT_SIZE_CHANGED:
-				{
-					float ratio_w = (float) event.window.data1 / (float) DESIGN_WIDTH;
-					float ratio_h = (float) event.window.data2 / (float) DESIGN_HEIGHT;
-					float ratio = MIN(ratio_w, ratio_h)*win_scale;
-					SDL_RenderSetScale(renderer, ratio, ratio);
-				}
-				default:
-					break;
-			}
 		default:
 			break;
 		}

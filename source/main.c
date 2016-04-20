@@ -1,5 +1,6 @@
 #include "file.h"
 #include "constants.h"
+#include "options.h"
 #include "main_menu.h"
 #include "options_menu.h"
 #include "status.h"
@@ -20,12 +21,6 @@ int main(/*int argc, char** argv*/)
 	/* Ensures any return will call SDL_Quit first. */
 	atexit(SDL_Quit);
 	
-	/* Load in relevant settings. */
-	int vsync = 1;
-	/* fullscreen = 0, use fallback/window res,
-	 * fullscreen = 1, use fullscreen at fallback/window res,
-	 * fullscreen = 2, use fullscreen at current desktop res
-	 */
 	int fullscreen = 0;
 	int resolution_width  = DESIGN_WIDTH;
 	int resolution_height = DESIGN_HEIGHT;

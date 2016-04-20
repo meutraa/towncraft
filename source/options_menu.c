@@ -1,5 +1,6 @@
 #include "options_menu.h"
 #include "drawable.h"
+#include "options.h"
 #include "math.h"
 #include "file.h"
 #include "constants.h"
@@ -7,8 +8,6 @@
 #include "SDL_mixer.h"
 
 static Return options_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[]);
-
-static float win_scale = 1.0f;
 
 Return options_menu_loop(SDL_Renderer* renderer)
 {	
@@ -108,19 +107,6 @@ static Return options_menu_event_loop(SDL_Renderer* renderer, Drawable drawables
 				}
 			}
 			break;
-		case SDL_WINDOWEVENT:
-			switch(event.window.event)
-			{
-				case SDL_WINDOWEVENT_SIZE_CHANGED:
-				{
-					float ratio_w = (float) event.window.data1 / (float) DESIGN_WIDTH;
-					float ratio_h = (float) event.window.data2 / (float) DESIGN_HEIGHT;
-					float ratio = MIN(ratio_w, ratio_h)*win_scale;
-					SDL_RenderSetScale(renderer, ratio, ratio);
-				}
-				default:
-					break;
-			}
 		default:
 			break;
 		}
