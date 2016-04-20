@@ -41,13 +41,4 @@
  */
 int bounded_by(int x, int y, SDL_Rect* r);
 
-/**
- * @brief A structure that contains two integers.
- */
-typedef struct Pair 
-{
-	int a;	/**< first integer. */
-	int b;	/**< second integer. */
-} Pair;
-
 #endif
