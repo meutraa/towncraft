@@ -118,7 +118,7 @@ static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[],
 					else
 					{
 						int ind = get_function_index("print");
-						if(-1 != ind) function_pointers[ind](0,"Click not captured");
+						if(-1 != ind) function_pointers[ind](1,"Click not captured");
 					}
 					break;
 				}
