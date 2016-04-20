@@ -129,6 +129,11 @@ static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[],
 							}
 						}
 					}
+					else
+					{
+						int ind = getfunctionindex();
+						if(-1 != ind) ;
+					}
 					//if(bounded_by(x, y, drawables[0].rect)) return SWITCHTO_OPTIONS;
 					break;
 				}

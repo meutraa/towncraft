@@ -10,6 +10,12 @@ static int fun_options(int a, ...)
 	return 1;
 }
 
+static int fun_print(int a, ...)
+{
+	va_list args;
+	va_start
+}
+
 static const function pointer_quit = fun_quit;
 static const function pointer_options = fun_options;
 
