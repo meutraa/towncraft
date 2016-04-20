@@ -1,9 +1,2 @@
-option1
-resources/images/button.pnm
-25 25
-25 40
-
-option2
-resources/images/button.pnm
-650 25
-650 40
+option1;resources/images/button.pnm;25;25;25;40
+option2;resources/images/button.pnm;650;25;650;40

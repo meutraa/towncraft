@@ -8,7 +8,7 @@
 /** @def MAX_LINE_LENGTH
  *  @brief the maximum number of chars that will be read from a line on a layout file.
  */
-#define MAX_LINE_LENGTH 128
+#define MAX_LINE_LENGTH 256
 
 /** @def DESIGN_WIDTH
  *  @brief The horizontal pixel position that all functions will treat as 100% of any other resolution.

@@ -38,32 +38,17 @@ typedef struct Drawable
 	SDL_Rect monitor;		/**< an SDL_Rect containing positions for a 16:10 aspect ratio. */
 } Drawable;
 
-/** @fn int load_drawables(SDL_Renderer* renderer, SDL_Texture* (*textures)[], int texture_count, Drawable (*drawables)[], int drawable_count, char* layout_file);
+/** @fn void load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout_file);
  *  @brief Takes a layout file and fills the textures and drawables arrays.
  *
  *  This function will read a valid layout file and allocate memory for Drawables with the least number of SDL_Textures
- *  required.\n It creates drawables from a layout file with the following format:
- *
- *   name or string for font
- *   resources/images/image.pnm OR resources/fonts/font.ttf 24 255 255 255 0\n
- *   600 400\n
- *   800 420\n
- *
- *	@note The first set of numbers is the X and Y co-ordinates of the top left corner of the Drawable on the Window.
- *	@note All sizes are scaled to a resolution of 1280x720, so 1280 is always the very right, and 720 is always the very bottom.
+ *  required.
  *
  *  @param renderer the SDL_Renderer used to render textures.
- *  @param textures a pointer to an array of SDL_Texture pointers to fill. 
- *	@param texture_count how many textures are in the file
  *  @param drawables a pointer to an array of drawables to fill.
- *  @param drawable_count how many drawables are in the file.
  *  @note It is not neccesary to allocate the memory for textures and drawables before calling this function.
  *  @param layout_file a relative path to the resource file as a string.
- *  @return 0 if the function encountered no problems.
- *	@note the texture pointer of the returned Drawables may still be NULL and the SDL_Rects may not have initialised values if the
- *  	function failed to parse any of the layout file. 
  */
-int load_drawables(SDL_Renderer* renderer, SDL_Texture* (*textures)[], 
-							int texture_count, Drawable (*drawables)[], int drawable_count, char* layout_file);
+void load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout_file);
 
 #endif

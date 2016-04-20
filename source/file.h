@@ -7,13 +7,6 @@
 
 #include "status.h"
 
-/** @fn int count_lines(char* path)
- *  @brief Counts how many '\n' characters are in a file.
- *  @param path a string representing the relative file path of the file.
- *  @return 0 if the file could not be read, else the number of new line characters found
- */
-int count_lines(char* path);
-
 /** @fn int count_valid_settings(char* path)
  *  @brief Counts how many valid settings it finds in a file.
  *
@@ -27,32 +20,11 @@ int count_lines(char* path);
  */
 int count_valid_settings(char* path);
 
-/** @fn int count_resources(char* layout_file)
- *  @brief Counts how many set of five lines there are in a file.
+/** @fn int count_valid_drawables(char* layout_file)
+ *  @brief Tests the validility of a layout file and 
  *  @param layout_file a string representing the relative file path of the file.
- *  @warning this function does not check the file for readability, and should only be used after is_valid_layout()
- *  @return the number of lines in a file divided by five, or if it is not divisible by five, 0.
+ *  @return 0 if the file is invalid, the number of lines other wise. 
  */
-int count_resources(char* layout_file);
-
-/** @fn int count_textures(char* layout_file, int drawable_count)
- *  @brief Counts how many unique image textures there are in a file.
- *  @param layout_file a string representing the relative file path of the file.
- *  @param drawable_count providing this saves a reread of the file. And you probably already have this count.
- *  @warning this function does not check the file for readability, and should only be used after is_valid_layout()
- *  @return the number of unique resource paths found.
- */
-int count_textures(char* layout_file, int drawable_count);
-
-/** @fn Return is_valid_layout(char* layout_file)
- *  @brief Tests the validility of a layout file. 
- *  
- *  It current checks all numbers are valid and the correct number of them, that resource files exist 
- *  and are readable, and that there are the correct number of lines and parameters. 
- *  @note This function is very strict and will not return successfully even if the errors might still work.
- *  @param layout_file a string representing the relative file path of the file.
- *  @return NORMAL if everything is fine, some other status else.
- */
-Return is_valid_layout(char* layout_file);
+int count_valid_drawables(char* layout_file);
 
 #endif

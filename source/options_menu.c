@@ -13,26 +13,17 @@ Return options_menu_loop(SDL_Renderer* renderer)
 {	
 	char *layout_file = "resources/layouts/options_menu.layout";
 
-	/** BLOCK START 
-	 *  This block is re-usable across layouts but needs to be here.
-	 */
-	/* Verify the layout file is legit. */
-	Return valid = is_valid_layout(layout_file);
-	if(NORMAL != valid)
+	/* BLOCK START */
+	int drawable_count = count_valid_drawables(layout_file);
+	if(0 == drawable_count)
 	{
 		fprintf(stderr, "%s is not a valid layout file.\n", layout_file);
 		return QUIT_PROGRAM;
 	}
 	
-	/* We have a well formated layout file and resources exist. */
-	int drawable_count = count_resources(layout_file);
-	int texture_count = count_textures(layout_file, drawable_count);
-	SDL_Texture* textures[texture_count];
 	Drawable drawables[drawable_count];
-	load_drawables(renderer, &textures, texture_count, &drawables, drawable_count, layout_file);
-	/**
-	 *  BLOCK END
-	 */
+	load_drawables(renderer, &drawables, layout_file);
+	/* BLOCK END */
 	
 	Return status;
 	while(1)
@@ -62,10 +53,7 @@ Return options_menu_loop(SDL_Renderer* renderer)
 	for(int i = 0; i < drawable_count; i++)
 	{
 		free(drawables[i].name);
-	}
-	for(int i = 0; i < texture_count; i++)
-	{
-		SDL_DestroyTexture(textures[i]);
+		SDL_DestroyTexture(drawables[i].texture);
 	}
 	return status;
 }

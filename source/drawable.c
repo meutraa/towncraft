@@ -1,94 +1,49 @@
 #include "constants.h"
 #include "drawable.h"
 
-int load_drawables(SDL_Renderer* renderer, SDL_Texture* (*textures)[], 
-							int texture_count, Drawable (*drawables)[], int drawable_count, char* layout_file)
+void load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout_file)
 {
 	FILE* file = fopen(layout_file, "r");
+		
+	int len = MAX_LINE_LENGTH + 1;   // +1 for the terminating null-character.
+	int i = 0;
 	
-	char* resources[texture_count];
-	int current_texture_index = 0;
+	char line[len], name[len], path[len];
+	int wx, wy, mx, my;
+	int r, g, b, a, font_size;
+	SDL_Surface* surface;
 	
-	char lines[5][MAX_LINE_LENGTH + 1];   // +1 for the terminating null-character.
-	
-	for(int i = 0; i < drawable_count; i++)
-	{		
-		/* Read the next five lines and trim the new lines. */
-		for(int j = 0; j < 5; j++)
+	while(NULL != fgets(line, len, file))
+	{
+		if(NULL != strstr(line, "images/")) 
 		{
-			fgets(lines[j], MAX_LINE_LENGTH + 1, file);
+			sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d", name, path, &wx, &wy, &mx, &my);
+			surface = IMG_Load(path);
 		}
-		
-		/* Name of resource. */
-		lines[0][strlen(lines[0]) - 1] = '\0';
-		(*drawables)[i].name = (char*) calloc(strlen(lines[0]) + 1, sizeof(char));
-		strncpy((*drawables)[i].name, lines[0], strlen(lines[0]));
-		
-		/* Resource path. */
-		if(NULL != strstr(lines[1], "fonts/"))
+		else if(NULL != strstr(line, "fonts/"))
 		{
-			char* font_path = strtok(lines[1], " ");
-			char* lp = strtok(NULL, " ");
-			char* pend;
-			int font_size  = (int) strtol(lp, &pend, 10);
-			pend++;
-			int red   = (int) strtol(pend, &pend, 10);
-			int green = (int) strtol(pend, &pend, 10);
-			int blue  = (int) strtol(pend, &pend, 10);
-			int alpha = (int) strtol(pend, &pend, 10);
-
-			TTF_Font* font = TTF_OpenFont(font_path, font_size);
-			SDL_Color color = { red, green, blue, alpha };
-			SDL_Surface* surface = TTF_RenderText_Solid(font, (*drawables)[i].name, color);
-			(*drawables)[i].texture = SDL_CreateTextureFromSurface(renderer, surface);
-			SDL_FreeSurface(surface);
+			sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d;%d;%d;%d;%d;%d", 
+					name, path, &font_size, &r, &g, &b, &a, &wx, &wy, &mx, &my);
+			TTF_Font* font = TTF_OpenFont(path, font_size);
+			SDL_Color color = { r, g, b, a };
+			surface = TTF_RenderText_Solid(font, name, color);
 			TTF_CloseFont(font);
 		}
-		else if(NULL != strstr(lines[1], "images/"))
-		{
-			int recycle = 0;
-			for(int j = 0; j < texture_count && j < current_texture_index; j++)
-			{
-				/* If we already have this resource loaded as a texture. */
-				if(0 == strncmp(lines[1], resources[j], strlen(lines[1])))
-				{
-					recycle = 1;
-					(*drawables)[i].texture = (*textures)[j];
-					break;
-				}
-			}
-			
-			/* If this is a new resource path. */
-			if(0 == recycle)
-			{
-				int p = current_texture_index;
-				resources[p] = lines[1];
-				resources[p][strlen(resources[p]) - 1] = '\0';
-				SDL_Surface* surface = IMG_Load(lines[1]);
-				(*textures)[p] = SDL_CreateTextureFromSurface(renderer, surface);
-				(*drawables)[i].texture = (*textures)[p];
-				SDL_FreeSurface(surface);
-				current_texture_index++;
-			}
-		}
+		/* Save the name. */
+		(*drawables)[i].name = (char*) calloc(strlen(name) + 1, sizeof(char));
+		strncpy((*drawables)[i].name, name, strlen(name));
 		
-		/* Widescreen rect. */
-		SDL_Rect widescreen, monitor;
-		widescreen.x = atoi(strtok(lines[2], " "));
-		widescreen.y = atoi(strtok(NULL, " \n"));
-		monitor.x = atoi(strtok(lines[3], " "));
-		monitor.x = atoi(strtok(NULL, " \n"));
+		/* Save the texture. */
+		(*drawables)[i].texture = SDL_CreateTextureFromSurface(renderer, surface);
 		
 		/* Fill the dimensions. */
-		int w, h;
-		SDL_QueryTexture((*drawables)[i].texture, NULL, NULL, &w, &h);
-		widescreen.w = w;
-		widescreen.h = h;
-		monitor.w = w;
-		monitor.h = h;
-		(*drawables)[i].widescreen = widescreen;
-		(*drawables)[i].monitor = monitor;
+		(*drawables)[i].widescreen = (SDL_Rect) { wx, wy, surface->w, surface->h };
+		(*drawables)[i].monitor = (SDL_Rect) { mx, my, surface->w, surface->h };
 		(*drawables)[i].rect = &(*drawables)[i].widescreen;
+		
+		SDL_FreeSurface(surface);
+		i++;
 	}
-	return 0;
+	/* Close file. */
+	if(NULL != file) fclose(file);
 }

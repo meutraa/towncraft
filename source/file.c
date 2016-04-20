@@ -8,248 +8,6 @@
 #include "constants.h"
 #include "drawable.h"
 
-static int file_exists(char* path);
-static int valid_number(char* a);
-
-int count_resources(char* path)
-{
-	int count = count_lines(path);
-	count++;
-	if(count % 5 != 0)
-	{
-		return -1;
-	}
-	return count/5; // deliberate integer division.
-}
-
-int count_lines(char* path)
-{
-	int ch, lines = 0;
-	FILE *file = fopen(path, "r");
-	while (EOF != (ch = fgetc(file)))
-	{
-    	if (ch=='\n') lines++;
-	}
-	if(NULL != file) fclose(file);
-	return lines;
-}
-
-int count_textures(char* layout_file, int drawable_count)
-{
-	FILE* file = fopen(layout_file, "r");
-	
-	char* resources[MAX_RESOURCES];
-	int index = 0;
-	
-	char lines[5][MAX_LINE_LENGTH + 1];   // +1 for the terminating null-character.
-	
-	for(int i = 0; i < drawable_count; i++)
-	{		
-		/* Read the next five lines and trim the new lines. */
-		for(int j = 0; j < 5; j++)
-		{
-			fgets(lines[j], MAX_LINE_LENGTH + 1, file);
-		}
-
-		if(NULL != strstr(lines[1], "images/"))
-		{
-			int recycle = 0;
-			for(int j = 0; j < index && recycle == 0; j++)
-			{
-				if(0 == strncmp(lines[1], resources[j], strlen(lines[1]))) recycle = 1;
-			}
-			if(0 == recycle) resources[index++] = lines[1];
-		}
-	}
-	return index;
-}
-
-
-int count_valid_settings(char* path)
-{
-	FILE* file = fopen(path, "r");
-	if(NULL == file) return 0;
-	
-	char buf[MAX_LINE_LENGTH + 1];   // +1 for the terminating null-character.
-	char* c;
-	int total = 0;
-	 
-	while(NULL != fgets(buf, MAX_LINE_LENGTH + 1, file))
-	{
-		int fields = 0;
-		c = strtok(buf, ":");   // Get the first field
-		while(NULL != c)
-		{
-			if(0 != strlen(c))
-			{
-				fields++;
-				c = strtok(NULL, ":\n");  // Get next field
-			}
-			else
-			{
-				fprintf(stdout, "Empty field in settings file.");
-			}
-		}
-		if(3 == fields)
-		{
-			total++;
-		}
-	}
-	if(NULL != file) fclose(file);
-	return total;
-}
-
-Return is_valid_layout(char* layout_file)
-{
-	FILE* file = fopen(layout_file, "r");
-	if(NULL == file) return FILE_READ_ERROR;
-		
-	int len = MAX_LINE_LENGTH + 1;
-	char lines[5][len]; /* One for each line of a layout drawable. */
-	int total_lines = 0;
-	
-	while(0 == feof(file))
-	{
-		for(int i = 0; i < (int) LENGTH(lines); i++)
-		{
-			fgets(lines[i], len, file);
-			int len = strlen(lines[i]);
-			
-			if(NULL == lines[0])
-			{
-				break;
-			}
-			if(0 != len)
-			{
-				lines[i][len-- - 1] = '\0';
-			}
-			if(i > 0 && NULL == lines[i])
-			{
-				fprintf(stderr, "Unexpected end of file. Last line read: %s\n", lines[i - 1]);
-				return FILE_UNEXPECTED_EOF;
-			}
-			if(MAX_LINE_LENGTH == len + 1)
-			{
-				fprintf(stderr, "Contents of line *may* have surpassed MAX_LINE_LENGTH(%d): %s\n", MAX_LINE_LENGTH, lines[i]);
-				return FILE_BUFFER_OVERFLOW;
-			}
-			if(i != 4 && 0 == len)
-			{
-				fprintf(stderr, "Line %d is empty and should not be.\n", total_lines);
-				return ERROR;
-			}
-			total_lines++;
-		}
-		
-		/* LINE TWO */
-		if(NULL != strstr(lines[1], "images/"))
-		{
-			/* Check the file exists. */
-			int exists = file_exists(lines[1]);
-			if(0 != exists)
-			{
-				fprintf(stderr, "File \"%s\" does not exist or is not readable.\n", lines[1]);
-				return FILE_READ_ERROR;
-			}
-		}
-		else if(NULL != strstr(lines[1], "fonts/"))
-		{
-			/* Font file check and value sanity check. */
-			char *c;
-			c = strtok(lines[1], " ");
-			if(NULL == c)
-			{
-				fprintf(stderr, "Could not find a ' ' after the font path: %s\n", lines[1]);
-				return ERROR;
-			}
-			else if(0 == strlen(c))
-			{
-				fprintf(stderr, "Font path empty on line: %s\n", lines[1]);
-				return ERROR;
-			}
-			int exists = file_exists(c);
-			if(0 != exists)
-			{
-				fprintf(stderr, "Font file \"%s\" does not exist or is not readable.\n", c);
-				return FILE_READ_ERROR;
-			}
-			
-			c = strtok(NULL, " ");
-			/* Test for font parameters. */
-			for(int i = 0; i < 5; i ++)
-			{
-				if(0 != valid_number(c))
-				{
-					fprintf(stderr, "%d: Could not parse font's parameters.\n", total_lines - 3);
-					return ERROR;
-				}
-				c = strtok(NULL, " \n");
-				if(i == 4 && NULL != c && 0 != strlen(c))
-				{
-					fprintf(stderr, "%d: Too many parameters on font line.\n", total_lines - 3);
-					return ERROR;
-				}
-			}
-		}
-		else
-		{
-			fprintf(stderr, "Resource format not recognised: %s\n", lines[1]);
-			return ERROR;
-		}
-		
-		/* LINE THREE & FOUR */
-		
-		for(int i = 2; i < 4; i ++)
-		{
-			char *c = strtok(lines[i], " ");
-			char *d = strtok(NULL, "\n");
-			if(NULL != d && NULL != strchr(d, ' '))
-			{
-				fprintf(stderr, "Numbers do not contain spaces! %s", d);
-				return ERROR;
-			}
-			char* e[2] = {c, d};
-			for (int j = 0; j < 2; j++)
-			{
-				if(0 != valid_number(e[j]))
-				{
-					fprintf(stderr, "%d: Could not parse drawables position.\n", total_lines - 3 + j);
-					return ERROR;	
-				}
-			}
-		}
-		
-		/* LINE FIVE */
-		if(0 != strlen(lines[4]))
-		{
-			fprintf(stderr, "Line %d should be empty and may not contain whitespace.\n", total_lines);
-			return ERROR;
-		}
-	}
-	return NORMAL;
-}
-
-static int valid_number(char* a)
-{
-	if(NULL == a || 0 == strlen(a))
-	{
-		return -1;
-	}
-	if(1 == strlen(a) && a[0] == '0')
-	{
-		return 0;
-	}
-	else
-	{
-		long test = strtol(a, NULL, 10);
-		if(0L == test)
-		{
-			return -1;
-		}
-	}
-	return 0;
-}
-
 static int file_exists(char* path)
 {
 	FILE *file = fopen(path, "r");
@@ -259,4 +17,43 @@ static int file_exists(char* path)
 	}
 	fclose(file);
 	return 0;
+}
+
+int count_valid_drawables(char* layout_file)
+{
+	FILE* file = fopen(layout_file, "r");
+	if(NULL == file) return 0;
+		
+	int len = MAX_LINE_LENGTH + 1;
+	
+	/* variables to fill for each item. */
+	char line[len], name[len], path[len];
+	int wx, wy, mx, my;
+	int r, g, b, a, font_size;
+	
+	int status = 0, lines = 0, ret = 1;
+	
+	while(NULL != fgets(line, len, file))
+	{
+		if(NULL != strstr(line, "images/")) 
+		{
+			status = sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d", name, path, &wx, &wy, &mx, &my);
+			if(6 != status) { ret = 0; break; }
+		}
+		else if(NULL != strstr(line, "fonts/"))
+		{
+			status = sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d;%d;%d;%d;%d;%d", 
+					name, path, &font_size, &r, &g, &b, &a, &wx, &wy, &mx, &my);
+			if(11 != status){ ret = 0; break; }
+		}
+		else{ ret = 0; break; }
+		
+		if(-1 == file_exists(path)) { ret = 0; break; }
+		lines++;
+	}
+	/* Close file. */
+	if(NULL != file) fclose(file);
+	
+	/* If no lines have been read. */
+	return 0 == status || 0 == ret? 0 : lines;
 }
