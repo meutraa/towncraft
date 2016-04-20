@@ -123,7 +123,7 @@ static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[],
 						int index = get_function_index(drawables[1].name);
 						if(-1 != index)
 						{
-							return (*function_pointers)[index](0);
+							return function_pointers[index](0);
 						}
 					}
 					//if(bounded_by(x, y, drawables[0].rect)) return SWITCHTO_OPTIONS;
