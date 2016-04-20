@@ -118,7 +118,7 @@ static Return main_menu_event_loop(Drawable drawables[], int drawable_count)
 					else
 					{
 						int ind = get_function_index("print");
-						if(-1 != ind) function_pointers[ind](0,"Click not captured");
+						if(-1 != ind) function_pointers[ind](1,"Click not captured");
 					}
 					break;
 				}
