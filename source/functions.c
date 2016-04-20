@@ -32,9 +32,6 @@ static int fun_print(int a, ...)
 	return 0;
 }
 
-static const function pointer_quit = fun_quit;
-static const function pointer_options = fun_options;
-static const function pointer_print = fun_print;
 
 const char* function_strings[FUNCTION_COUNT] = 
 {
@@ -43,9 +40,10 @@ const char* function_strings[FUNCTION_COUNT] =
 	"print",
 };
 
-const function* function_pointers[FUNCTION_COUNT] = 
+const function function_pointers[FUNCTION_COUNT] = 
 {
-	&pointer_quit,
-	&pointer_options,
-	&pointer_print,
+
+	fun_quit,
+	fun_options,
+	fun_print,
 };
