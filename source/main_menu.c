@@ -107,20 +107,25 @@ static Return main_menu_event_loop(Drawable drawables[], int drawable_count)
 					int y = event.button.y;
 					
 					/* If the click is within the exit button boundry. */
-					if(bounded_by(x, y, drawables[1].rect))
+					for(int i = 0; i < drawable_count; i ++)
 					{
-						int index = get_function_index(drawables[1].name);
-						if(-1 != index)
+						if(bounded_by(x, y, drawables[i].rect))
 						{
-							return function_pointers[index](0);
+							int index = get_function_index(drawables[i].name);
+							switch(index)
+							{
+								case 0: /* fun_quit() */
+									return function_pointers[index](0);
+								case 1:	/* fun_options() */
+									return function_pointers[index](0);
+								case 2: /* fun_print() */
+									function_pointers[index](1, "Click not captured");
+									break;
+								default:
+									break;
+							}
 						}
 					}
-					else
-					{
-						int ind = get_function_index("print");
-						if(-1 != ind) function_pointers[ind](1,"Click not captured");
-					}
-					break;
 				}
 			}
 			break;
