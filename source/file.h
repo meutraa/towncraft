@@ -44,6 +44,15 @@ int count_resources(char* layout_file);
  */
 int count_textures(char* layout_file, int drawable_count);
 
+/** @fn Return is_valid_layout(char* layout_file)
+ *  @brief Tests the validility of a layout file. 
+ *  
+ *  It current checks all numbers are valid and the correct number of them, that resource files exist 
+ *  and are readable, and that there are the correct number of lines and parameters. 
+ *  @note This function is very strict and will not return successfully even if the errors might still work.
+ *  @param layout_file a string representing the relative file path of the file.
+ *  @return NORMAL if everything is fine, some other status else.
+ */
 Return is_valid_layout(char* layout_file);
 
 #endif

@@ -7,7 +7,7 @@
 #include "SDL_ttf.h"
 #include "SDL_mixer.h"
 
-static Return options_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[]);
+static Return options_menu_event_loop(Drawable drawables[]);
 
 Return options_menu_loop(SDL_Renderer* renderer)
 {	
@@ -38,7 +38,7 @@ Return options_menu_loop(SDL_Renderer* renderer)
 	while(1)
 	{
 		/* If there are events in the event queue, process them. */
-		status = options_menu_event_loop(renderer, drawables);
+		status = options_menu_event_loop(drawables);
 		if(QUIT_PROGRAM == status||SWITCHTO_MAINMENU == status)
 		{
 			/* Break out of the loop and cleanup resources. */
@@ -70,7 +70,7 @@ Return options_menu_loop(SDL_Renderer* renderer)
 	return status;
 }
 
-static Return options_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[])
+static Return options_menu_event_loop(Drawable drawables[])
 {
 	SDL_Event event; 
 	while(SDL_PollEvent(&event))
