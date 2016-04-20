@@ -7,7 +7,7 @@
 
 #include "status.h"
 
-#define FUNCTION_COUNT 2
+#define FUNCTION_COUNT 3
 
 typedef Return (*function)(int, ...);
 

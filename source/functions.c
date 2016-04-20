@@ -1,5 +1,7 @@
 #include "functions.h"
 #include <string.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 int get_function_index(char* function_name)
 {
@@ -13,24 +15,36 @@ int get_function_index(char* function_name)
 	return -1;
 }
 
-static Return fun_quit(int a, ...)
+static Return fun_quit(int n, ...)
 {
-	return QUIT_PROGRAM;
+	return (0 != n ? NORMAL : QUIT_PROGRAM);
 }
 
-static Return fun_options(int a, ...)
+static Return fun_options(int n, ...)
 {
-	return SWITCHTO_OPTIONS;
+	return (0 != n ? NORMAL : SWITCHTO_OPTIONS);
 }
+
+static Return fun_print(int n, ...)
+{
+	va_list args;
+	va_start(args, n);
+	printf("%s\n", va_arg(args, char*));
+	return NORMAL;
+}
+
 
 const char* function_strings[FUNCTION_COUNT] = 
 {
 	"quit",
 	"options",
+	"print",
 };
 
 const function function_pointers[FUNCTION_COUNT] = 
 {
+
 	fun_quit,
 	fun_options,
+	fun_print,
 };
