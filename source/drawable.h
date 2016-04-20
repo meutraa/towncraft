@@ -5,22 +5,7 @@
 #ifndef DRAWABLE_H
 #define DRAWABLE_H
 
-#include "string.h"
-#include "stdlib.h"
 #include "SDL.h"
-#include "SDL_image.h"
-#include "SDL_ttf.h"
-#include "math.h"
-
-/** @def MAX_RESOURCES
- *  @brief the maximum number of Textures that the load_drawables function will allocate memory in one call.
- */
-#define MAX_RESOURCES 128
-
-/** @def MAX_DRAWABLES
- *  @brief the maximum number of Drawables the load_drawables function will allocate to memory in one call.
- */
-#define MAX_DRAWABLES 256
 
 /**
  * @brief A structure that contains some values for convenience 

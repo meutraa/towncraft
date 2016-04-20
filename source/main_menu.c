@@ -1,12 +1,11 @@
 #include "main_menu.h"
+
 #include "drawable.h"
 #include "options.h"
 #include "file.h"
-#include "constants.h"
 #include "math.h"
 #include "status.h"
 #include "functions.h"
-#include "SDL_ttf.h"
 #include "SDL_mixer.h"
 
 static Return main_menu_event_loop(Drawable drawables[], int drawable_count);

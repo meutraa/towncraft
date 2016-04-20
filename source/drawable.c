@@ -1,5 +1,8 @@
-#include "constants.h"
 #include "drawable.h"
+
+#include "constants.h"
+#include "SDL_image.h"
+#include "SDL_ttf.h"
 
 void load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout_file)
 {

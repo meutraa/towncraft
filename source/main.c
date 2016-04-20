@@ -1,4 +1,3 @@
-#include "file.h"
 #include "constants.h"
 #include "options.h"
 #include "main_menu.h"
@@ -20,10 +19,6 @@ int main(/*int argc, char** argv*/)
 	SDL_SetMainReady();
 	/* Ensures any return will call SDL_Quit first. */
 	atexit(SDL_Quit);
-	
-	int fullscreen = 0;
-	int resolution_width  = DESIGN_WIDTH;
-	int resolution_height = DESIGN_HEIGHT;
 	
 	/* Initialise the video and timer subsystem. */
 	if(0 != SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_AUDIO))

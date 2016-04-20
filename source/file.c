@@ -3,10 +3,7 @@
 #include <string.h>
 
 #include "file.h"
-#include "status.h"
-#include "math.h"
 #include "constants.h"
-#include "drawable.h"
 
 static int file_exists(char* path)
 {

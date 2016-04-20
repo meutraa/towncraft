@@ -16,22 +16,6 @@
  */
 #define LENGTH(x)  (sizeof(x)/sizeof((x)[0]))
 
-/** @def MIN(a, b)
- *  @brief get the lower value of a pair.
- *  @param a the first value.
- *  @param b the second value.
- *	@return the lower value.
- */
-#define MIN(a, b) (((a)<(b))?(a):(b))
-
-/** @def MAX(a, b)
- *  @brief get the higher value of a pair.
- *  @param a the first value.
- *  @param b the second value.
- *	@return the higher value.
- */
-#define MAX(a, b) (((a)>(b))?(a):(b))
-
 /** @fn int bounded_by(int x, int y, SDL_Rect* r)
  *  @brief Checks if a 2d point is inside a rectangle (SDL_Rect)
  *  @param x an integer value for the horizontal position.
