@@ -120,13 +120,10 @@ static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[],
 					/* If the click is within the exit button boundry. */
 					if(bounded_by(x, y, drawables[1].rect))
 					{
-						for(int j = 0; j < FUNCTION_COUNT; j++)
+						int index = get_function_index(drawables[1].name);
+						if(-1 != index)
 						{
-							if(0 == strncmp(drawables[1].name, function_strings[j], strlen(function_strings[j])))
-							{
-								int status = (*function_pointers)[j](0);
-								if(-1 == status) return QUIT_PROGRAM;
-							}
+							return (*function_pointers)[index](0);
 						}
 					}
 					//if(bounded_by(x, y, drawables[0].rect)) return SWITCHTO_OPTIONS;
