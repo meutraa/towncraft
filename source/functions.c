@@ -1,13 +1,26 @@
 #include "functions.h"
+#include <string.h>
 
-static int fun_quit(int a, ...)
+int get_function_index(char* function_name)
 {
+	for(int i = 0; i < FUNCTION_COUNT; i++)
+	{
+		if(0 == strncmp(function_name, function_strings[i], strlen(function_strings[i])))
+		{
+			return i;
+		}
+	}
 	return -1;
 }
 
-static int fun_options(int a, ...)
+static Return fun_quit(int a, ...)
 {
-	return 1;
+	return QUIT_PROGRAM;
+}
+
+static Return fun_options(int a, ...)
+{
+	return SWITCHTO_OPTIONS;
 }
 
 static int fun_print(int a, ...)
