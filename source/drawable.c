@@ -1,8 +1,6 @@
 #include "constants.h"
 #include "drawable.h"
 
-#define NEXT_INT(a) atoi(strtok(NULL, a))
-
 int load_drawables(SDL_Renderer* renderer, SDL_Texture* (*textures)[], 
 							int texture_count, Drawable (*drawables)[], int drawable_count, char* layout_file)
 {
@@ -29,8 +27,18 @@ int load_drawables(SDL_Renderer* renderer, SDL_Texture* (*textures)[],
 		/* Resource path. */
 		if(NULL != strstr(lines[1], "fonts/"))
 		{
-			TTF_Font* font = TTF_OpenFont(strtok(lines[1], " "), NEXT_INT(" "));
-			SDL_Color color = {NEXT_INT(" "), NEXT_INT(" "), NEXT_INT(" "), NEXT_INT(" \n")};
+			char* font_path = strtok(lines[1], " ");
+			char* lp = strtok(NULL, " ");
+			char* pend;
+			int font_size  = (int) strtol(lp, &pend, 10);
+			pend++;
+			int red   = (int) strtol(pend, &pend, 10);
+			int green = (int) strtol(pend, &pend, 10);
+			int blue  = (int) strtol(pend, &pend, 10);
+			int alpha = (int) strtol(pend, &pend, 10);
+
+			TTF_Font* font = TTF_OpenFont(font_path, font_size);
+			SDL_Color color = { red, green, blue, alpha };
 			SDL_Surface* surface = TTF_RenderText_Solid(font, (*drawables)[i].name, color);
 			(*drawables)[i].texture = SDL_CreateTextureFromSurface(renderer, surface);
 			SDL_FreeSurface(surface);
