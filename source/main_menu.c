@@ -120,7 +120,6 @@ static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[],
 						int ind = get_function_index("print");
 						if(-1 != ind) function_pointers[ind](0,"Click not captured");
 					}
-					//if(bounded_by(x, y, drawables[0].rect)) return SWITCHTO_OPTIONS;
 					break;
 				}
 			}
