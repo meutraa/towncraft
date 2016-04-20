@@ -114,8 +114,6 @@ static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[],
 				{
 					int x = event.button.x;
 					int y = event.button.y;
-					int time = event.button.timestamp;
-					printf("Button %d pressed at %d,%d at %d\n", event.button.button, x, y, time);
 					
 					/* If the click is within the exit button boundry. */
 					if(bounded_by(x, y, drawables[1].rect))
@@ -128,8 +126,8 @@ static Return main_menu_event_loop(SDL_Renderer* renderer, Drawable drawables[],
 					}
 					else
 					{
-						int ind = get_function_index();
-						if(-1 != ind) ;
+						int ind = get_function_index("print");
+						if(-1 != ind) function_pointers[ind](0,"Click not captured");
 					}
 					//if(bounded_by(x, y, drawables[0].rect)) return SWITCHTO_OPTIONS;
 					break;
