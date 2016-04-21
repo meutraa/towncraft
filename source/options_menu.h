@@ -8,6 +8,13 @@
 #include "status.h"
 #include "SDL.h"
 
+typedef enum Submenu = {
+	NONE,
+	VIDEO,
+	AUDIO,
+	CONTROL,
+} Submenu;
+
 /*! Return options_menu_loop(SDL_Renderer* renderer)
 	\brief Starts a loop that renders the options menu screen.
 	Before calling this, all unneeded memory should be freed. Once this starts, it will load the options menu layout

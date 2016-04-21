@@ -10,7 +10,7 @@
 static Return options_menu_event_loop(Drawable drawables[], int drawable_count);
 
 Return options_menu_loop(SDL_Renderer* renderer)
-{	
+{
 	char *layout_file = "resources/layouts/options_menu.layout";
 
 	/* BLOCK START */
@@ -21,27 +21,23 @@ Return options_menu_loop(SDL_Renderer* renderer)
 		return QUIT_PROGRAM;
 	}
 	/* BLOCK END */
-	
+
 	Return status = NORMAL;
 	while(NORMAL == status)
 	{
 		/* If there are events in the event queue, process them. */
 		status = options_menu_event_loop(drawables, drawable_count);
-		
+
 		/* Fill the screen with the background color. */
 		SDL_RenderClear(renderer);
-		
+
 		/* Copy all the scalables to the window. */
-		for(int i = 0; i < drawable_count; i++)
-		{
-			//printf("%d,%d\t%d,%d\n", drawables[i].rect->w, drawables[i].rect->h, drawables[i].rect->x, drawables[i].rect->y);
-			SDL_RenderCopy(renderer, drawables[i].texture, NULL, drawables[i].rect);
-		}
-			   
+		render_drawables(renderer, drawables, drawable_count);
+
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
 	}
-	
+
 	/* Clean up and return to the main function. */
 	for(int i = 0; i < drawable_count; i++)
 	{
@@ -53,7 +49,7 @@ Return options_menu_loop(SDL_Renderer* renderer)
 
 static Return options_menu_event_loop(Drawable drawables[], int drawable_count)
 {
-	SDL_Event event; 
+	SDL_Event event;
 	while(SDL_PollEvent(&event))
 	{
 		switch(event.type)
@@ -78,7 +74,7 @@ static Return options_menu_event_loop(Drawable drawables[], int drawable_count)
 				{
 					int x = event.button.x;
 					int y = event.button.y;
-					
+
 					/* If the click is within the exit button boundry. */
 					for(int i = 0; i < drawable_count; i ++)
 					{

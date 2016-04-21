@@ -21,23 +21,20 @@ Return main_menu_loop(SDL_Renderer* renderer)
 		return QUIT_PROGRAM;
 	}
 	/* BLOCK END */
-	
+
 	Return status = NORMAL;
 	while(NORMAL == status)
 	{
 		/* If there are events in the event queue, process them. */
 		status = main_menu_event_loop(drawables, drawable_count);
-		
+
 		/* Copy all the scalables to the window. */
-		for(int i = 0; i < drawable_count; i++)
-		{
-			SDL_RenderCopy(renderer, drawables[i].texture, NULL, drawables[i].rect);
-		}
-			   
+		render_drawables(renderer, drawables, drawable_count);
+
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
 	}
-	
+
 	/* Clean up and return to the main function. */
 	for(int i = 0; i < drawable_count; i++)
 	{
@@ -49,7 +46,7 @@ Return main_menu_loop(SDL_Renderer* renderer)
 
 static Return main_menu_event_loop(Drawable drawables[], int drawable_count)
 {
-	SDL_Event event; 
+	SDL_Event event;
 	while(1 == SDL_PollEvent(&event))
 	{
 		switch(event.type)
@@ -74,7 +71,7 @@ static Return main_menu_event_loop(Drawable drawables[], int drawable_count)
 				{
 					int x = event.button.x;
 					int y = event.button.y;
-					
+
 					/* If the click is within the exit button boundry. */
 					for(int i = 0; i < drawable_count; i ++)
 					{
