@@ -7,11 +7,8 @@
 
 #include "SDL.h"
 
-/* To be detected as C. Can be removed once a keyword like extern/struct/typdef/enum is used. */
-#ifndef C_DETECT
-#define C_DETECT
-typedef struct Empty { int nothing; } Empty;
-#endif
+/* This next line tricks gitlab-linguist into thinking this is C. */
+//typedef struct
 
 /*! \fn int bounded_by(int x, int y, SDL_Rect* r)
 	\note This function is made redundant in SDL 2.0.4 with SDL_PointInRect()

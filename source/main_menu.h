@@ -8,11 +8,8 @@
 #include "status.h"
 #include "SDL.h"
 
-/* To be detected as C. Can be removed once a keyword like extern/struct/typdef/enum is used. */
-#ifndef C_DETECT
-#define C_DETECT
-typedef struct Empty { int nothing; } Empty;
-#endif
+/* This next line tricks gitlab-linguist into thinking this is C. */
+//typedef struct
 
 /*! Status main_menu_loop(SDL_Renderer* renderer)
 	\brief Starts a loop that renders the main menu screen.
