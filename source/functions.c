@@ -16,32 +16,32 @@ int get_function_index(char* function_name)
 	return -1;
 }
 
-static Return fun_quit(int n, ...)
+static Status fun_quit(int n, ...)
 {
 	return 0 != n ? NORMAL : QUIT_PROGRAM;
 }
 
-static Return fun_options(int n, ...)
+static Status fun_options(int n, ...)
 {
 	return 0 != n ? NORMAL : SWITCHTO_OPTIONS;
 }
 
-static Return fun_main(int n, ...)
+static Status fun_main(int n, ...)
 {
 	return 0 != n ? NORMAL : SWITCHTO_MAINMENU;
 }
 
-static Return fun_options_video(int n, ...)
+static Status fun_options_video(int n, ...)
 {
 	return 0 != n ? NORMAL : SWITCHTO_OPTIONS_VIDEO;
 }
 
-static Return fun_options_audio(int n, ...)
+static Status fun_options_audio(int n, ...)
 {
 	return 0 != n ? NORMAL : SWITCHTO_OPTIONS_AUDIO;
 }
 
-static Return fun_options_controls(int n, ...)
+static Status fun_options_controls(int n, ...)
 {
 	return 0 != n ? NORMAL : SWITCHTO_OPTIONS_CONTROLS;
 }

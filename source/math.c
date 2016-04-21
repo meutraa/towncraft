@@ -1,4 +1,4 @@
-#include "math.h"
+#include "SDL.h"
 
 int bounded_by(int x, int y, SDL_Rect* r)
 {

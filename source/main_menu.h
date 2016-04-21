@@ -8,13 +8,19 @@
 #include "status.h"
 #include "SDL.h"
 
-/*! Return main_menu_loop(SDL_Renderer* renderer)
+/* To be detected as C. Can be removed once a keyword like extern/struct/typdef/enum is used. */
+#ifndef C_DETECT
+#define C_DETECT
+typedef struct Empty { int nothing; } Empty;
+#endif
+
+/*! Status main_menu_loop(SDL_Renderer* renderer)
 	\brief Starts a loop that renders the main menu screen.
 	Before calling this, all unneeded memory should be freed. Once this starts, it will load the main menu layout
 	and start rendering the layout.
 	\param renderer used for all rendering inside the main menu screen.
 	\return QUIT_PROGRAM or NORMAL enums.
 */
-Return main_menu_loop(SDL_Renderer* renderer);
+Status main_menu_loop(SDL_Renderer* renderer);
 
 #endif

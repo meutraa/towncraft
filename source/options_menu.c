@@ -8,23 +8,23 @@
 #include "functions.h"
 
 /* This function is unpure and accesses global drawable arrays and counts! */
-static Return options_menu_event_loop();
+static Status options_menu_event_loop();
 
 static char *layouts[] = {
-	"resources/layouts/options_menu.layout",
-	"resources/layouts/options_video.layout",
-	"resources/layouts/options_audio.layout",
-	"resources/layouts/options_controls.layout",
+	"resources/layouts/options_menu.csv",
+	"resources/layouts/options_video.csv",
+	"resources/layouts/options_audio.csv",
+	"resources/layouts/options_controls.csv",
 };
 
-static Return submenu = NONE;
+static Status submenu = NONE;
 
 static int drawable_counts[4];
 static Drawable* drawables[4];
 
-Return options_menu_loop(SDL_Renderer* renderer)
+Status options_menu_loop(SDL_Renderer* renderer)
 {
-	Return status = NORMAL;
+	Status status = NORMAL;
 
 	/* BLOCK START */
 	for(int i = 0; i < 4; i++)
@@ -73,7 +73,7 @@ Return options_menu_loop(SDL_Renderer* renderer)
 	return status;
 }
 
-static Return options_menu_event_loop()
+static Status options_menu_event_loop()
 {
 	SDL_Event event;
 	while(SDL_PollEvent(&event))

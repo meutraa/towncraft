@@ -14,9 +14,9 @@
 
 /*!
 	\brief A typedef that makes using a function pointer legible.
-	\note This function pointer is of the strict type Return function(int a, ...).
+	\note This function pointer is of the strict type Status function(int a, ...).
 */
-typedef Return (*function)(int, ...);
+typedef Status (*function)(int, ...);
 
 /*! \var extern const char* function_strings[FUNCTION_COUNT]
 	\brief An array of strings that map to the function pointers in function_pointers array.

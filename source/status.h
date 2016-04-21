@@ -8,7 +8,7 @@
 /*!
 	\brief A bunch of return codes that can be used to give more meaning to returning ints from functions.
 */
-typedef enum Return {
+typedef enum Status {
 	FATAL_ERROR,	/*!< Program should free up resources and quit. */
 	ERROR,			/*!< Program should at least print out an error occured. */
 	NORMAL,			/*!< Everything went hunky dory. */
@@ -22,6 +22,6 @@ typedef enum Return {
 	SWITCHTO_OPTIONS_CONTROLS,
 	NONE,
 	SWITCHTO_MAINMENU,		/*!< Program should now load the main menu. */
-} Return;
+} Status;
 
 #endif

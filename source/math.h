@@ -7,16 +7,14 @@
 
 #include "SDL.h"
 
-/*! \def LENGTH(x)
-	\brief macro to get the length of an array.
-	\param x the array to be measured.
-	\warning Do not use this macro with an array pointer, as this will return the size of the pointer.
-	This means it is impossible to find the length of an array that is a function parameter.
-	\return the length of an array as an unsigned long integer
-*/
-#define LENGTH(x)  (sizeof(x)/sizeof((x)[0]))
+/* To be detected as C. Can be removed once a keyword like extern/struct/typdef/enum is used. */
+#ifndef C_DETECT
+#define C_DETECT
+typedef struct Empty { int nothing; } Empty;
+#endif
 
 /*! \fn int bounded_by(int x, int y, SDL_Rect* r)
+	\note This function is made redundant in SDL 2.0.4 with SDL_PointInRect()
 	\brief Checks if a 2d point is inside a rectangle (SDL_Rect)
 	\param x an integer value for the horizontal position.
 	\param y an integer value for the vertical position.
