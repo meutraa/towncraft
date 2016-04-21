@@ -1,4 +1,4 @@
-button_options;color;142;50;0;0;0;92;285;603;285;603 // font placed at (x,y), then (x - 15, y - 3) height = fontsize + 2
-options;resources/fonts/SGK100.ttf;48;1;255;255;255;0;300;600;300;600
-button_quit;color;92;50;0;0;0;92;785;603;785;603
-quit;resources/fonts/SGK100.ttf;48;1;255;255;255;0;800;600;800;600
+button_options;color;142;34;0;0;0;92;285;603;285;603 // font placed at (x,y), then (x - 15, y - 3) height = fontsize + 2
+options;resources/fonts/fleftex_mono_8.ttf;32;1;255;255;255;0;300;600;300;600
+button_quit;color;92;34;0;0;0;92;785;603;785;603
+quit;resources/fonts/fleftex_mono_8.ttf;32;1;255;255;255;0;800;600;800;600
