@@ -8,7 +8,7 @@ int get_function_index(char* function_name)
 {
 	for(int i = 0; i < FUNCTION_COUNT; i++)
 	{
-		if(0 == strncmp(function_name, function_strings[i], strlen(function_strings[i])))
+		if(0 == strcmp(function_name, function_strings[i]))
 		{
 			return i;
 		}
@@ -31,28 +31,37 @@ static Return fun_main(int n, ...)
 	return 0 != n ? NORMAL : SWITCHTO_MAINMENU;
 }
 
-static Return fun_print(int n, ...)
+static Return fun_options_video(int n, ...)
 {
-	va_list args;
-	va_start(args, n);
-	printf("%s\n", va_arg(args, char*));
-	return NORMAL;
+	return 0 != n ? NORMAL : SWITCHTO_OPTIONS_VIDEO;
 }
 
+static Return fun_options_audio(int n, ...)
+{
+	return 0 != n ? NORMAL : SWITCHTO_OPTIONS_AUDIO;
+}
 
-const char* function_strings[FUNCTION_COUNT] = 
+static Return fun_options_controls(int n, ...)
+{
+	return 0 != n ? NORMAL : SWITCHTO_OPTIONS_CONTROLS;
+}
+
+const char* function_strings[FUNCTION_COUNT] =
 {
 	"button_quit",
 	"button_options",
 	"button_main",
-	"print",
+	"button_options_video",
+	"button_options_audio",
+	"button_options_controls",
 };
 
-const function function_pointers[FUNCTION_COUNT] = 
+const function function_pointers[FUNCTION_COUNT] =
 {
-
 	fun_quit,
 	fun_options,
 	fun_main,
-	fun_print,
+	fun_options_video,
+	fun_options_audio,
+	fun_options_controls,
 };

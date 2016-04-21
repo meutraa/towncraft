@@ -7,47 +7,73 @@
 #include "status.h"
 #include "functions.h"
 
-static Return options_menu_event_loop(Drawable drawables[], int drawable_count);
+/* This function is unpure and accesses global drawable arrays and counts! */
+static Return options_menu_event_loop();
+
+static char *layouts[] = {
+	"resources/layouts/options_menu.layout",
+	"resources/layouts/options_video.layout",
+	"resources/layouts/options_audio.layout",
+	"resources/layouts/options_controls.layout",
+};
+
+static Return submenu = NONE;
+
+static int drawable_counts[4];
+static Drawable* drawables[4];
 
 Return options_menu_loop(SDL_Renderer* renderer)
 {
-	char *layout_file = "resources/layouts/options_menu.layout";
+	Return status = NORMAL;
 
 	/* BLOCK START */
-	Drawable drawables[count_lines(layout_file)];
-	int drawable_count = load_drawables(renderer, &drawables, layout_file);
-	if(0 == drawable_count)
+	for(int i = 0; i < 4; i++)
 	{
-		return QUIT_PROGRAM;
+		drawables[i] = calloc(count_lines(layouts[i]), sizeof(Drawable));
+		drawable_counts[i] = load_drawables(renderer, &drawables[i], layouts[i]);
+		if(0 == drawable_counts[i])
+		{
+			status = QUIT_PROGRAM;
+			break;
+		}
 	}
 	/* BLOCK END */
 
-	Return status = NORMAL;
 	while(NORMAL == status)
 	{
 		/* If there are events in the event queue, process them. */
-		status = options_menu_event_loop(drawables, drawable_count);
+		status = options_menu_event_loop();
 
 		/* Fill the screen with the background color. */
 		SDL_RenderClear(renderer);
 
 		/* Copy all the scalables to the window. */
-		render_drawables(renderer, drawables, drawable_count);
+		render_drawables(renderer, drawables[0], drawable_counts[0]);
+		if(SWITCHTO_OPTIONS_VIDEO == submenu)
+			render_drawables(renderer, drawables[1], drawable_counts[1]);
+		else if(SWITCHTO_OPTIONS_AUDIO == submenu)
+			render_drawables(renderer, drawables[2], drawable_counts[2]);
+		else if(SWITCHTO_OPTIONS_CONTROLS == submenu)
+			render_drawables(renderer, drawables[3], drawable_counts[3]);
 
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
 	}
 
 	/* Clean up and return to the main function. */
-	for(int i = 0; i < drawable_count; i++)
+	for(int i = 0; i < 4; i ++)
 	{
-		free(drawables[i].name);
-		SDL_DestroyTexture(drawables[i].texture);
+		for(int j = 0; j < drawable_counts[i]; j++)
+		{
+			free(drawables[i][j].name);
+			SDL_DestroyTexture(drawables[i][j].texture);
+		}
+		free(drawables[i]);
 	}
 	return status;
 }
 
-static Return options_menu_event_loop(Drawable drawables[], int drawable_count)
+static Return options_menu_event_loop()
 {
 	SDL_Event event;
 	while(SDL_PollEvent(&event))
@@ -75,18 +101,20 @@ static Return options_menu_event_loop(Drawable drawables[], int drawable_count)
 					int x = event.button.x;
 					int y = event.button.y;
 
-					/* If the click is within the exit button boundry. */
-					for(int i = 0; i < drawable_count; i ++)
+					/* Check clicks for side bar. */
+					for(int i = 0; i < drawable_counts[0]; i ++)
 					{
-						if(bounded_by(x, y, drawables[i].rect))
+						if(bounded_by(x, y, drawables[0][i].rect))
 						{
-							int index = get_function_index(drawables[i].name);
+							int index = get_function_index(drawables[0][i].name);
 							switch(index)
 							{
 								case 2:	/* fun_main() */
 									return function_pointers[index](0);
-								case 3: /* fun_print() */
-									function_pointers[index](1, "Click not captured");
+								case 3: /* fun_options_video() */
+								case 4: /* fun_options_audio() */
+								case 5: /* fun_options_controls() */
+									submenu = function_pointers[index](0);
 									break;
 								default:
 									break;

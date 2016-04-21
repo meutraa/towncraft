@@ -9,7 +9,7 @@
 #include "SDL_image.h"
 #include "SDL_ttf.h"
 
-void render_drawables(SDL_Renderer renderer, Drawable drawables, int count)
+void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count)
 {
 	for(int i = 0; i < count; i++)
 	{
@@ -17,7 +17,7 @@ void render_drawables(SDL_Renderer renderer, Drawable drawables, int count)
 	}
 }
 
-int load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout_file)
+int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_file)
 {
 	FILE* file = fopen(layout_file, "r");
 	if(NULL == file) return 0;

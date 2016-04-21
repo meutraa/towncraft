@@ -14,7 +14,7 @@ Return main_menu_loop(SDL_Renderer* renderer)
 	char *layout_file = "resources/layouts/main_menu.layout";
 
 	/* BLOCK START */
-	Drawable drawables[count_lines(layout_file)];
+	Drawable* drawables = (Drawable*) calloc(count_lines(layout_file), sizeof(Drawable));
 	int drawable_count = load_drawables(renderer, &drawables, layout_file);
 	if(0 == drawable_count)
 	{
@@ -41,6 +41,7 @@ Return main_menu_loop(SDL_Renderer* renderer)
 		free(drawables[i].name);
 		SDL_DestroyTexture(drawables[i].texture);
 	}
+	free(drawables);
 	return status;
 }
 
@@ -84,9 +85,6 @@ static Return main_menu_event_loop(Drawable drawables[], int drawable_count)
 									return function_pointers[index](0);
 								case 1:	/* fun_options() */
 									return function_pointers[index](0);
-								case 3: /* fun_print() */
-									function_pointers[index](1, "Click not captured");
-									break;
 								default:
 									break;
 							}

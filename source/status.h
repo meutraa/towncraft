@@ -17,6 +17,10 @@ typedef enum Return {
 	FILE_BUFFER_OVERFLOW,	/*!< A line in the file may not have been fully read and you should fix this. */
 	FILE_UNEXPECTED_EOF,	/*!< The end of the file was encountered in the wrong place. */
 	SWITCHTO_OPTIONS,		/*!< Program should now load the options menu. */
+	SWITCHTO_OPTIONS_VIDEO,
+	SWITCHTO_OPTIONS_AUDIO,
+	SWITCHTO_OPTIONS_CONTROLS,
+	NONE,
 	SWITCHTO_MAINMENU,		/*!< Program should now load the main menu. */
 } Return;
 

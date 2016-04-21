@@ -10,7 +10,7 @@
 /*! \def FUNCTION_COUNT
 	\brief The number of function pointers in the function_pointers array.
 */
-#define FUNCTION_COUNT 4
+#define FUNCTION_COUNT 6
 
 /*!
 	\brief A typedef that makes using a function pointer legible.
