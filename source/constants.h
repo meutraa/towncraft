@@ -5,9 +5,6 @@
 #ifndef OUR_CONSTANTS_H
 #define OUR_CONSTANTS_H
 
-/* This next line tricks gitlab-linguist into thinking this is C. */
-//typedef struct
-
 /*! def MAX_LINE_LENGTH
 	\brief the maximum number of chars that will be read from a line on a layout file.
 */

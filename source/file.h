@@ -5,9 +5,6 @@
 #ifndef FILE_H
 #define FILE_H
 
-/* This next line tricks gitlab-linguist into thinking this is C. */
-//typedef struct
-
 /*! \fn int count_lines(char* path)
 	\brief Counts how many '\n' characters are in a file.
 	\param path a string representing the relative file path of the file.
