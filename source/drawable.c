@@ -49,6 +49,20 @@ int load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout
 								  TTF_RenderText_Blended(font, name, color);
 			TTF_CloseFont(font);
 		}
+		else if(NULL != strstr(line, ";color;"))
+		{
+			int width, height;
+			status = sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d;%d;%d;%d;%d;%d;%d", 
+			name, path, &width, &height, &r, &g, &b, &a, &wx, &wy, &mx, &my);
+			if(12 != status)
+			{ 
+				loaded = 0; break; 
+			}
+			surface = SDL_CreateRGBSurface(0, width, height, 8, 0, 0, 0, 0);
+			SDL_SetSurfaceColorMod(surface, r, g, b);
+			SDL_SetSurfaceAlphaMod(surface, a);
+			SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_BLEND);
+		}
 		else 
 		{ 
 			loaded = 0; 

@@ -76,7 +76,7 @@ int main(/*int argc, char** argv*/)
 	SDL_RenderSetLogicalSize(renderer, resolution_width, resolution_height);
 	
 	/* Set renderer colour to black and clear window. */
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	SDL_RenderClear(renderer);
 	
 	Return status = SWITCHTO_MAINMENU;

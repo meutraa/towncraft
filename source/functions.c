@@ -37,8 +37,8 @@ static Return fun_print(int n, ...)
 
 const char* function_strings[FUNCTION_COUNT] = 
 {
-	"quit",
-	"options",
+	"button_quit",
+	"button_options",
 	"print",
 };
 
