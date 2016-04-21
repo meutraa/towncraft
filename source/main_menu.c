@@ -21,9 +21,6 @@ Return main_menu_loop(SDL_Renderer* renderer)
 		return QUIT_PROGRAM;
 	}
 	/* BLOCK END */
-
-    Mix_Music* chiptune = Mix_LoadMUS("resources/audio/music/Super_Locomotive.ogg");
-    Mix_PlayMusic(chiptune, -1);
 	
 	Return status = NORMAL;
 	while(NORMAL == status)
@@ -47,8 +44,6 @@ Return main_menu_loop(SDL_Renderer* renderer)
 		free(drawables[i].name);
 		SDL_DestroyTexture(drawables[i].texture);
 	}
-	Mix_HaltMusic();
-	Mix_FreeMusic(chiptune);
 	return status;
 }
 

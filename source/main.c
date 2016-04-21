@@ -80,24 +80,28 @@ int main(/*int argc, char** argv*/)
 	SDL_RenderClear(renderer);
 	
 	Return status = SWITCHTO_MAINMENU;
+	Mix_Music* chiptune = Mix_LoadMUS("resources/audio/music/rolemusic_the_pirate_and_the_dancer.ogg");
 	
 	/* Start the main loop. */
-	while(1)
+	while(status != QUIT_PROGRAM)
 	{
 		switch(status)
 		{
 			case SWITCHTO_MAINMENU:
+				Mix_FadeInMusicPos(chiptune, -1, 2000, 0.5);
 				status = main_menu_loop(renderer);
 				break;
 			case SWITCHTO_OPTIONS:
+				Mix_FadeOutMusic(1000);
 				status = options_menu_loop(renderer);
 				break;
-			case QUIT_PROGRAM:
-				goto cleanup;
+			default:
+				break;
 		}
 	}
 	
-cleanup:
+	Mix_HaltMusic();
+	Mix_FreeMusic(chiptune);
 	Mix_CloseAudio();
 	Mix_Quit();
 	TTF_Quit();
