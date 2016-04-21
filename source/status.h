@@ -5,6 +5,9 @@
 #ifndef STATUS_H
 #define STATUS_H
 
+/* This next line tricks gitlab-linguist into thinking this is C. */
+//typedef struct
+
 /*!
 	\brief A bunch of return codes that can be used to give more meaning to returning ints from functions.
 */

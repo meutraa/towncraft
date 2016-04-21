@@ -7,9 +7,6 @@
 
 #include "status.h"
 
-/* This next line tricks gitlab-linguist into thinking this is C. */
-//typedef struct
-
 /*! \def FUNCTION_COUNT
 	\brief The number of function pointers in the function_pointers array.
 */
