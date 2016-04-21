@@ -1,2 +1,4 @@
-option1;resources/fonts/DejaVuSans.ttf;48;1;255;255;255;0;25;25;25;40
-option2;resources/fonts/DejaVuSans.ttf;48;1;255;255;255;0;25;125;25;140
+video;resources/fonts/SGK100.ttf;48;1;255;255;255;0;50;50;50;50
+audio;resources/fonts/SGK100.ttf;48;1;255;255;255;0;50;125;50;125
+controls;resources/fonts/SGK100.ttf;48;1;255;255;255;0;50;200;50;200
+back;resources/fonts/SGK100.ttf;48;1;255;255;255;0;50;600;50;600

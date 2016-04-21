@@ -1,4 +1,2 @@
-options;resources/fonts/DejaVuSans.ttf;48;1;255;255;255;0;200;600;200;600
-quit;resources/fonts/DejaVuSans.ttf;48;1;255;255;255;0;800;600;800;600
-8bit font test;resources/fonts/VCR_OSD_MONO_1.001.ttf;21;0;255;255;255;0;525;60;525;60
-8bit font test;resources/fonts/SGK100.ttf;32;0;255;255;255;0;525;150;525;150
+options;resources/fonts/SGK100.ttf;48;1;255;255;255;0;300;600;300;600
+quit;resources/fonts/SGK100.ttf;48;1;255;255;255;0;800;600;800;600
