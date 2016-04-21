@@ -51,6 +51,8 @@ void load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layou
 		SDL_FreeSurface(surface);
 		i++;
 	}
+	
+clean:
 	/* Close file. */
 	if(NULL != file) fclose(file);
 }
