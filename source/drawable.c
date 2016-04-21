@@ -33,7 +33,8 @@ void load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layou
 					name, path, &font_size, &mode, &r, &g, &b, &a, &wx, &wy, &mx, &my);
 			TTF_Font* font = TTF_OpenFont(path, font_size);
 			SDL_Color color = { r, g, b, a };
-			surface = TTF_RenderText_Blended(font, name, color);
+			if(0 == mode) surface = TTF_RenderText_Solid(font, name, color);
+			else if(1 == mode) surface = TTF_RenderText_Blended(font, name, color);
 			TTF_CloseFont(font);
 		}
 		/* Save the name. */
