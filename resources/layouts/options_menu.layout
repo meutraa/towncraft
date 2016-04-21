@@ -1,5 +1,6 @@
-button_video;color;120;50;0;0;0;92;35;53;35;53
-video;resources/fonts/SGK100.ttf;48;1;255;255;255;0;50;50;50;50
-audio;resources/fonts/SGK100.ttf;48;1;255;255;255;0;50;125;50;125
-controls;resources/fonts/SGK100.ttf;48;1;255;255;255;0;50;200;50;200
-back;resources/fonts/SGK100.ttf;48;1;255;255;255;0;50;600;50;600
+button_video;color;150;45;0;0;0;92;35;45;35;45
+video;resources/fonts/fleftex_mono_8.ttf;32;1;255;255;255;0;50;50;50;50
+button_audio;color;150;45;0;0;0;92;35;120;35;120
+audio;resources/fonts/fleftex_mono_8.ttf;32;1;255;255;255;0;50;125;50;125
+controls;resources/fonts/fleftex_mono_8.ttf;32;1;255;255;255;0;50;200;50;200
+back;resources/fonts/fleftex_mono_8.ttf;32;1;255;255;255;0;50;600;50;600
