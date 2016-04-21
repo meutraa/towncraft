@@ -1,3 +1,5 @@
 options;resources/images/button.pnm;25;525;25;540
 quit;resources/images/button.pnm;650;525;650;540
 balls are tasty;resources/fonts/DejaVuSans.ttf;24;1;255;255;255;0;25;60;25;60
+8bit font test;resources/fonts/VCR_OSD_MONO_1.001.ttf;21;0;255;255;255;0;525;60;525;60
+8bit font test;resources/fonts/SGK100.ttf;32;0;255;255;255;0;525;150;525;150
