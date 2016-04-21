@@ -1,4 +1,5 @@
 #include "drawable.h"
+#include "file.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -8,12 +9,13 @@
 #include "SDL_image.h"
 #include "SDL_ttf.h"
 
-void load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout_file)
+int load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout_file)
 {
 	FILE* file = fopen(layout_file, "r");
+	if(NULL == file) return 0;
 		
 	int len = MAX_LINE_LENGTH + 1;   // +1 for the terminating null-character.
-	int i = 0;
+	int i = 0, loaded = 0, status;
 	
 	char line[len], name[len], path[len];
 	int wx, wy, mx, my;
@@ -24,19 +26,25 @@ void load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layou
 	{
 		if(NULL != strstr(line, "images/")) 
 		{
-			sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d", name, path, &wx, &wy, &mx, &my);
+			status = sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d", name, path, &wx, &wy, &mx, &my);
+			if(6 != status || -1 == file_exists(path)) { loaded = 0; break; }
+			
 			surface = IMG_Load(path);
 		}
 		else if(NULL != strstr(line, "fonts/"))
 		{
-			sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d;%d;%d;%d;%d;%d;%d", 
+			status = sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d;%d;%d;%d;%d;%d;%d", 
 					name, path, &font_size, &mode, &r, &g, &b, &a, &wx, &wy, &mx, &my);
+			if(12 != status || -1 == file_exists(path)) { loaded = 0; break; }
+			
 			TTF_Font* font = TTF_OpenFont(path, font_size);
 			SDL_Color color = { r, g, b, a };
-			if(0 == mode) surface = TTF_RenderText_Solid(font, name, color);
-			else if(1 == mode) surface = TTF_RenderText_Blended(font, name, color);
+			surface = (0 == mode) ? TTF_RenderText_Solid(font, name, color) :
+								  TTF_RenderText_Blended(font, name, color);
 			TTF_CloseFont(font);
 		}
+		else { loaded = 0; break; }
+		
 		/* Save the name. */
 		(*drawables)[i].name = (char*) calloc(strlen(name) + 1, sizeof(char));
 		strncpy((*drawables)[i].name, name, strlen(name));
@@ -51,7 +59,23 @@ void load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layou
 		
 		SDL_FreeSurface(surface);
 		i++;
+		loaded++;
 	}
+	
+	/* free up all resources if errors. */
+	if(0 != i && 0 == loaded)
+	{
+		while(i >= 0)
+		{
+			if(NULL != (*drawables)[i].name) free((*drawables)[i].name);
+			if(NULL != (*drawables)[i].texture)
+			{
+				SDL_DestroyTexture((*drawables)[i--].texture);
+			}
+		}
+	}
+
 	/* Close file. */
 	if(NULL != file) fclose(file);
+	return loaded;
 }

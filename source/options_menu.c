@@ -4,6 +4,7 @@
 #include "drawable.h"
 #include "file.h"
 #include "math.h"
+#include "status.h"
 
 static Return options_menu_event_loop(Drawable drawables[]);
 
@@ -12,15 +13,13 @@ Return options_menu_loop(SDL_Renderer* renderer)
 	char *layout_file = "resources/layouts/options_menu.layout";
 
 	/* BLOCK START */
-	int drawable_count = count_valid_drawables(layout_file);
+	Drawable drawables[count_lines(layout_file)];
+	int drawable_count = load_drawables(renderer, &drawables, layout_file);
 	if(0 == drawable_count)
 	{
 		fprintf(stderr, "%s is not a valid layout file.\n", layout_file);
 		return QUIT_PROGRAM;
 	}
-	
-	Drawable drawables[drawable_count];
-	load_drawables(renderer, &drawables, layout_file);
 	/* BLOCK END */
 	
 	Return status = NORMAL;
