@@ -18,12 +18,17 @@ int get_function_index(char* function_name)
 
 static Return fun_quit(int n, ...)
 {
-	return (0 != n ? NORMAL : QUIT_PROGRAM);
+	return 0 != n ? NORMAL : QUIT_PROGRAM;
 }
 
 static Return fun_options(int n, ...)
 {
-	return (0 != n ? NORMAL : SWITCHTO_OPTIONS);
+	return 0 != n ? NORMAL : SWITCHTO_OPTIONS;
+}
+
+static Return fun_main(int n, ...)
+{
+	return 0 != n ? NORMAL : SWITCHTO_MAINMENU;
 }
 
 static Return fun_print(int n, ...)
@@ -39,6 +44,7 @@ const char* function_strings[FUNCTION_COUNT] =
 {
 	"button_quit",
 	"button_options",
+	"button_main",
 	"print",
 };
 
@@ -47,5 +53,6 @@ const function function_pointers[FUNCTION_COUNT] =
 
 	fun_quit,
 	fun_options,
+	fun_main,
 	fun_print,
 };

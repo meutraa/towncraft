@@ -5,8 +5,9 @@
 #include "file.h"
 #include "math.h"
 #include "status.h"
+#include "functions.h"
 
-static Return options_menu_event_loop(Drawable drawables[]);
+static Return options_menu_event_loop(Drawable drawables[], int drawable_count);
 
 Return options_menu_loop(SDL_Renderer* renderer)
 {	
@@ -25,7 +26,7 @@ Return options_menu_loop(SDL_Renderer* renderer)
 	while(NORMAL == status)
 	{
 		/* If there are events in the event queue, process them. */
-		status = options_menu_event_loop(drawables);
+		status = options_menu_event_loop(drawables, drawable_count);
 		
 		/* Fill the screen with the background color. */
 		SDL_RenderClear(renderer);
@@ -50,7 +51,7 @@ Return options_menu_loop(SDL_Renderer* renderer)
 	return status;
 }
 
-static Return options_menu_event_loop(Drawable drawables[])
+static Return options_menu_event_loop(Drawable drawables[], int drawable_count)
 {
 	SDL_Event event; 
 	while(SDL_PollEvent(&event))
@@ -77,13 +78,25 @@ static Return options_menu_event_loop(Drawable drawables[])
 				{
 					int x = event.button.x;
 					int y = event.button.y;
-					int time = event.button.timestamp;
-					printf("Button %d pressed at %d,%d at %d\n", event.button.button, x, y, time);
 					
 					/* If the click is within the exit button boundry. */
-					if(bounded_by(x, y, drawables[1].rect)) return QUIT_PROGRAM;
-					if(bounded_by(x, y, drawables[0].rect)) return SWITCHTO_MAINMENU;
-					break;
+					for(int i = 0; i < drawable_count; i ++)
+					{
+						if(bounded_by(x, y, drawables[i].rect))
+						{
+							int index = get_function_index(drawables[i].name);
+							switch(index)
+							{
+								case 2:	/* fun_main() */
+									return function_pointers[index](0);
+								case 3: /* fun_print() */
+									function_pointers[index](1, "Click not captured");
+									break;
+								default:
+									break;
+							}
+						}
+					}
 				}
 			}
 			break;

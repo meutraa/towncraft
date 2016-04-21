@@ -31,9 +31,6 @@ Return main_menu_loop(SDL_Renderer* renderer)
 		/* If there are events in the event queue, process them. */
 		status = main_menu_event_loop(drawables, drawable_count);
 		
-		/* Fill the screen with the background color. */
-		SDL_RenderClear(renderer);
-		
 		/* Copy all the scalables to the window. */
 		for(int i = 0; i < drawable_count; i++)
 		{
@@ -95,7 +92,7 @@ static Return main_menu_event_loop(Drawable drawables[], int drawable_count)
 									return function_pointers[index](0);
 								case 1:	/* fun_options() */
 									return function_pointers[index](0);
-								case 2: /* fun_print() */
+								case 3: /* fun_print() */
 									function_pointers[index](1, "Click not captured");
 									break;
 								default:

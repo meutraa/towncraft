@@ -4,5 +4,5 @@ button_audio;color;150;45;0;0;0;168;35;120;35;120
 audio;resources/fonts/fleftex_mono_8.ttf;32;1;255;255;255;0;50;125;50;125
 button_controls;color;222;45;0;0;0;168;35;195;35;195
 controls;resources/fonts/fleftex_mono_8.ttf;32;1;255;255;255;0;50;200;50;200
-button_back;color;126;45;0;0;0;168;35;595;35;595
+button_main;color;126;45;0;0;0;168;35;595;35;595
 back;resources/fonts/fleftex_mono_8.ttf;32;1;255;255;255;0;50;600;50;600
