@@ -17,7 +17,6 @@ Return options_menu_loop(SDL_Renderer* renderer)
 	int drawable_count = load_drawables(renderer, &drawables, layout_file);
 	if(0 == drawable_count)
 	{
-		fprintf(stderr, "%s is not a valid layout file.\n", layout_file);
 		return QUIT_PROGRAM;
 	}
 	/* BLOCK END */

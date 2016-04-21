@@ -27,7 +27,10 @@ int load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout
 		if(NULL != strstr(line, "images/")) 
 		{
 			status = sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d", name, path, &wx, &wy, &mx, &my);
-			if(6 != status || -1 == file_exists(path)) { loaded = 0; break; }
+			if(6 != status || -1 == file_exists(path)) 
+			{ 
+				loaded = 0; break; 
+			}
 			
 			surface = IMG_Load(path);
 		}
@@ -35,7 +38,10 @@ int load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout
 		{
 			status = sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d;%d;%d;%d;%d;%d;%d", 
 					name, path, &font_size, &mode, &r, &g, &b, &a, &wx, &wy, &mx, &my);
-			if(12 != status || -1 == file_exists(path)) { loaded = 0; break; }
+			if(12 != status || -1 == file_exists(path))
+			{ 
+				loaded = 0; break; 
+			}
 			
 			TTF_Font* font = TTF_OpenFont(path, font_size);
 			SDL_Color color = { r, g, b, a };
@@ -43,7 +49,11 @@ int load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout
 								  TTF_RenderText_Blended(font, name, color);
 			TTF_CloseFont(font);
 		}
-		else { loaded = 0; break; }
+		else 
+		{ 
+			loaded = 0; 
+			break; 
+		}
 		
 		/* Save the name. */
 		(*drawables)[i].name = (char*) calloc(strlen(name) + 1, sizeof(char));
@@ -65,13 +75,11 @@ int load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout
 	/* free up all resources if errors. */
 	if(0 != i && 0 == loaded)
 	{
-		while(i >= 0)
+		fprintf(stderr, "Line %d of file %s is invalid.\n", i + 1, layout_file);
+		while(--i >= 0)
 		{
-			if(NULL != (*drawables)[i].name) free((*drawables)[i].name);
-			if(NULL != (*drawables)[i].texture)
-			{
-				SDL_DestroyTexture((*drawables)[i--].texture);
-			}
+			free((*drawables)[i].name);
+			SDL_DestroyTexture((*drawables)[i].texture);
 		}
 	}
 
