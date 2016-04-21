@@ -1,18 +1,13 @@
-SDLLIBS=`sdl2-config --cflags --static-libs` -lSDL2_image -lSDL2_ttf -lSDL2_mixer -Wl,-Dynamic -L/usr/lib/x86_64-linux-gnu/pulseaudio -lpulse-simple -lpulse -lpulsecommon-4.0
+LDFLAGS=-lSDL2_image -lSDL2_ttf -lSDL2_mixer `pkg-config --cflags --libs sdl2`
+CFLAGS=-g -Wfatal-errors -Wall -Wextra -Wpedantic -Og -std=c99 -Wunused-macros -Wcomments
 
 all: main docs
 
-static:
-	$(CC) -g -static -Wall -Wextra --pedantic -O3 source/*.c -std=c99 -o towncraft $(SDLLIBS)
-
 main:
-	$(CC) -g -Wall -Wextra --pedantic -O3 source/*.c -std=c99 -o towncraft `pkg-config --cflags --libs sdl2` -lSDL2_image -lSDL2_ttf -lSDL2_mixer
+	$(CC) $(CFLAGS) $(LIBS) source/*.c -o towncraft $(LDFLAGS)
 
 docs:
 	doxygen documentation/doxygen.cfg
-
-valgrind: clean main
-	valgrind --leak-check=full ./towncraft
 
 clean:
 	rm -rf towncraft
