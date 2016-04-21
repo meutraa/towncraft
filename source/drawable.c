@@ -17,7 +17,7 @@ void load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layou
 	
 	char line[len], name[len], path[len];
 	int wx, wy, mx, my;
-	int r, g, b, a, font_size;
+	int mode, r, g, b, a, font_size;
 	SDL_Surface* surface;
 	
 	while(NULL != fgets(line, len, file))
@@ -29,8 +29,8 @@ void load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layou
 		}
 		else if(NULL != strstr(line, "fonts/"))
 		{
-			sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d;%d;%d;%d;%d;%d", 
-					name, path, &font_size, &r, &g, &b, &a, &wx, &wy, &mx, &my);
+			sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d;%d;%d;%d;%d;%d;%d", 
+					name, path, &font_size, &mode, &r, &g, &b, &a, &wx, &wy, &mx, &my);
 			TTF_Font* font = TTF_OpenFont(path, font_size);
 			SDL_Color color = { r, g, b, a };
 			surface = TTF_RenderText_Blended(font, name, color);

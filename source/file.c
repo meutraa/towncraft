@@ -24,7 +24,7 @@ int count_valid_drawables(char* layout_file)
 	/* variables to fill for each item. */
 	char line[len], name[len], path[len];
 	int wx, wy, mx, my;
-	int r, g, b, a, font_size;
+	int mode, r, g, b, a, font_size;
 	
 	int status = 0, lines = 0, ret = 1;
 	
@@ -37,9 +37,9 @@ int count_valid_drawables(char* layout_file)
 		}
 		else if(NULL != strstr(line, "fonts/"))
 		{
-			status = sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d;%d;%d;%d;%d;%d", 
-					name, path, &font_size, &r, &g, &b, &a, &wx, &wy, &mx, &my);
-			if(11 != status){ ret = 0; break; }
+			status = sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d;%d;%d;%d;%d;%d;%d", 
+					name, path, &font_size, &mode, &r, &g, &b, &a, &wx, &wy, &mx, &my);
+			if(12 != status){ ret = 0; break; }
 		}
 		else{ ret = 0; break; }
 		
