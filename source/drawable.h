@@ -24,16 +24,13 @@ typedef struct Drawable
 } Drawable;
 
 /** @fn void load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout_file);
- *  @brief Takes a layout file and fills the textures and drawables arrays.
- *
- *  This function will read a valid layout file and allocate memory for Drawables with the least number of SDL_Textures
- *  required.
+ *  @brief Takes a layout file and fills the drawables array.
  *
  *  @param renderer the SDL_Renderer used to render textures.
  *  @param drawables a pointer to an array of drawables to fill.
- *  @note It is not neccesary to allocate the memory for textures and drawables before calling this function.
  *  @param layout_file a relative path to the resource file as a string.
+ *  @return the number of loaded drawables, 0 if error.
  */
-void load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout_file);
+int load_drawables(SDL_Renderer* renderer, Drawable (*drawables)[], char* layout_file);
 
 #endif
