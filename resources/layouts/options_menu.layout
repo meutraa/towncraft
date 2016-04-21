@@ -1,4 +1,4 @@
-background;resources/images/aoe.pnm;0;0;0;0
+background;resources/images/wot-city.pnm;0;0;0;0
 sidebar;color;292;720;0;0;0;92;0;0;0;0
 button_video;color;150;45;0;0;0;168;35;45;35;45
 video;resources/fonts/fleftex_mono_8.ttf;32;1;255;255;255;0;50;50;50;50

@@ -1,4 +1,4 @@
-background;resources/images/aoe.pnm;0;0;0;0
+background;resources/images/wot-world.pnm;0;0;0;0
 button_options;color;194;45;0;0;0;168;285;595;285;595 // font placed at (x,y), then (x - 15, y - 5), width(int n) = 24*7 + 30 , height(32) = 45
 options;resources/fonts/fleftex_mono_8.ttf;32;1;255;255;255;0;300;600;300;600
 button_quit;color;126;45;0;0;0;168;785;595;785;595
