@@ -28,27 +28,21 @@ Return main_menu_loop(SDL_Renderer* renderer)
     Mix_Music* chiptune = Mix_LoadMUS("resources/audio/music/Super_Locomotive.ogg");
     Mix_PlayMusic(chiptune, -1);
 	
-	Return status;
-	while(1)
+	Return status = NORMAL;
+	while(NORMAL == status)
 	{
 		/* If there are events in the event queue, process them. */
 		status = main_menu_event_loop(drawables, drawable_count);
-		if(QUIT_PROGRAM == status||SWITCHTO_OPTIONS == status)
-		{
-			/* Break out of the loop and cleanup resources. */
-			break;
-		}
-			   
+		
 		/* Fill the screen with the background color. */
 		SDL_RenderClear(renderer);
 		
 		/* Copy all the scalables to the window. */
 		for(int i = 0; i < drawable_count; i++)
 		{
-			//printf("%d,%d\t%d,%d\n", drawables[i].rect->w, drawables[i].rect->h, drawables[i].rect->x, drawables[i].rect->y);
 			SDL_RenderCopy(renderer, drawables[i].texture, NULL, drawables[i].rect);
 		}
-		
+			   
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
 	}

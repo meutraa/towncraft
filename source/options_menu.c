@@ -23,17 +23,12 @@ Return options_menu_loop(SDL_Renderer* renderer)
 	load_drawables(renderer, &drawables, layout_file);
 	/* BLOCK END */
 	
-	Return status;
-	while(1)
+	Return status = NORMAL;
+	while(NORMAL == status)
 	{
 		/* If there are events in the event queue, process them. */
 		status = options_menu_event_loop(drawables);
-		if(QUIT_PROGRAM == status||SWITCHTO_MAINMENU == status)
-		{
-			/* Break out of the loop and cleanup resources. */
-			break;
-		}
-			   
+		
 		/* Fill the screen with the background color. */
 		SDL_RenderClear(renderer);
 		
@@ -43,6 +38,7 @@ Return options_menu_loop(SDL_Renderer* renderer)
 			//printf("%d,%d\t%d,%d\n", drawables[i].rect->w, drawables[i].rect->h, drawables[i].rect->x, drawables[i].rect->y);
 			SDL_RenderCopy(renderer, drawables[i].texture, NULL, drawables[i].rect);
 		}
+			   
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
 	}
