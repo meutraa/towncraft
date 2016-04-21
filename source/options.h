@@ -5,6 +5,9 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
+/* This next line tricks gitlab-linguist into thinking this is C. */
+//typedef struct
+
 /*! \var extern float ui_scale
 	\brief All ui elements will scale their width and height by this value.
 */
