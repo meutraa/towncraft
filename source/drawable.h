@@ -23,9 +23,17 @@ typedef struct Drawable
 	SDL_Rect monitor;		/*!< an SDL_Rect containing positions for a 16:10 aspect ratio. */
 } Drawable;
 
+
+/*! \fn void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count)
+	\brief Copys an array of drawables to the renderer provided.
+
+	\param renderer the SDL_Renderer used to render textures.
+	\param drawables a pointer to an array of drawables to copy to the renderer.
+	\param count the number of drawables to copy.
+*/
 void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count);
 
-/*! \fn void load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_file);
+/*! \fn void load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_file)
 	\brief Takes a layout file and fills the drawables array.
 
 	\param renderer the SDL_Renderer used to render textures.

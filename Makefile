@@ -3,14 +3,14 @@ SDLLIBS=`sdl2-config --cflags --static-libs` -lSDL2_image -lSDL2_ttf -lSDL2_mixe
 all: main docs
 
 static:
-	$(CC) -g -static -Wall -Wextra -Wno-switch --pedantic -O3 source/*.c -std=c99 -o towncraft $(SDLLIBS)
+	$(CC) -g -static -Wall -Wextra --pedantic -O3 source/*.c -std=c99 -o towncraft $(SDLLIBS)
 
 main:
-	$(CC) -g -Wall -Wextra -Wno-switch --pedantic -O3 source/*.c -std=c99 -o towncraft `pkg-config --cflags --libs sdl2` -lSDL2_image -lSDL2_ttf -lSDL2_mixer
+	$(CC) -g -Wall -Wextra --pedantic -O3 source/*.c -std=c99 -o towncraft `pkg-config --cflags --libs sdl2` -lSDL2_image -lSDL2_ttf -lSDL2_mixer
 
 docs:
 	doxygen documentation/doxygen.cfg
-	
+
 valgrind: clean main
 	valgrind --leak-check=full ./towncraft
 

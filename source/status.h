@@ -5,9 +5,6 @@
 #ifndef STATUS_H
 #define STATUS_H
 
-/* This next line tricks gitlab-linguist into thinking this is C. */
-//typedef struct
-
 /*!
 	\brief A bunch of return codes that can be used to give more meaning to returning ints from functions.
 */
@@ -20,9 +17,9 @@ typedef enum Status {
 	FILE_BUFFER_OVERFLOW,	/*!< A line in the file may not have been fully read and you should fix this. */
 	FILE_UNEXPECTED_EOF,	/*!< The end of the file was encountered in the wrong place. */
 	SWITCHTO_OPTIONS,		/*!< Program should now load the options menu. */
-	SWITCHTO_OPTIONS_VIDEO,
-	SWITCHTO_OPTIONS_AUDIO,
-	SWITCHTO_OPTIONS_CONTROLS,
+	SHOW_OPTIONS_VIDEO,
+	SHOW_OPTIONS_AUDIO,
+	SHOW_OPTIONS_CONTROLS,
 	NONE,
 	SWITCHTO_MAINMENU,		/*!< Program should now load the main menu. */
 } Status;
