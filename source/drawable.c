@@ -13,9 +13,9 @@
 
 /* font placed at (x,y), then (x - 15, y - 5), width(int n) = 24*7 + 30 , height(32) = 45 */
 
-#define TEXT_FORMAT  "text%*[^\"]\"%256[^\"]\"%*[ \t]%256[^:]:%d:%d%*[^(](%d,%d,%d,%d)%*[^(](%d,%d)%*[^(](%d,%d)"
-#define IMG_FORMAT   "image%*[^\"]\"%256[^\"]\"%*[ \t]%256[^ \t]%*[^(](%d,%d)%*[^(](%d,%d)"
-#define COLOR_FORMAT "color%*[^\"]\"%256[^\"]\"%*[^(](%d,%d)%*[^(](%d,%d,%d,%d)%*[^(](%d,%d)%*[^(](%d,%d)"
+#define TEXT_FORMAT  "%d%*[ \t]text%*[^\"]\"%256[^\"]\"%*[ \t]%256[^:]:%d:%d%*[^(](%d,%d,%d,%d)%*[^(](%d,%d)%*[^(](%d,%d)"
+#define IMG_FORMAT   "%d%*[ \t]image%*[^\"]\"%256[^\"]\"%*[ \t]%256[^ \t]%*[^(](%d,%d)%*[^(](%d,%d)"
+#define COLOR_FORMAT "%d%*[ \t]color%*[^\"]\"%256[^\"]\"%*[^(](%d,%d)%*[^(](%d,%d,%d,%d)%*[^(](%d,%d)%*[^(](%d,%d)"
 
 static int count_params(char* format)
 {
@@ -40,11 +40,22 @@ void destroy_drawables(Drawable** drawables, int count)
 	free((*drawables));
 }
 
+void show_drawables(Drawable** drawables, int count, int show)
+{
+	for(int i = 0; i < count; i++)
+	{
+		(*drawables)[i].visible = (1 == show) ? 1 : 0;
+	}
+}
+
 void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count)
 {
 	for(int i = 0; i < count; i++)
 	{
-		SDL_RenderCopy(renderer, drawables[i].texture, NULL, drawables[i].rect);
+		if(1 == drawables[i].visible)
+		{
+			SDL_RenderCopy(renderer, drawables[i].texture, NULL, drawables[i].rect);
+		}
 	}
 }
 
@@ -76,13 +87,14 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 	int i = 0;
 
 	char line[len], name[len], path[len];
-	int wx, wy, mx, my, width, height;
+	int wx, wy, mx, my, width, height, visible;
 	int mode, r, g, b, a, font_size;
 	SDL_Surface* surface;
 
 	while(NULL != fgets(line, len, file) && i < MAX_DRAWABLES)
 	{
-		if(IMG_COUNT == sscanf(line, IMG_FORMAT, name, path, &wx, &wy, &mx, &my))
+		if(IMG_COUNT == sscanf(line, IMG_FORMAT,
+		&visible, name, path, &wx, &wy, &mx, &my))
 		{
 			if(-1 == file_exists(path))
 			{
@@ -92,7 +104,8 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 
 			surface = IMG_Load(path);
 		}
-		else if(TEXT_COUNT == sscanf(line, TEXT_FORMAT, name, path, &font_size, &mode, &r, &g, &b, &a, &wx, &wy, &mx, &my))
+		else if(TEXT_COUNT == sscanf(line, TEXT_FORMAT,
+		&visible, name, path, &font_size, &mode, &r, &g, &b, &a, &wx, &wy, &mx, &my))
 		{
 			if(-1 == file_exists(path))
 			{
@@ -106,7 +119,8 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 								  TTF_RenderText_Blended(font, name, color);
 			TTF_CloseFont(font);
 		}
-		else if(COLOR_COUNT == sscanf(line, COLOR_FORMAT, name, &width, &height, &r, &g, &b, &a, &wx, &wy, &mx, &my))
+		else if(COLOR_COUNT == sscanf(line, COLOR_FORMAT,
+		&visible, name, &width, &height, &r, &g, &b, &a, &wx, &wy, &mx, &my))
 		{
 			surface = SDL_CreateRGBSurface(0, width, height, 8, 0, 0, 0, 0);
 			SDL_SetSurfaceColorMod(surface, r, g, b);
@@ -122,6 +136,9 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 		/* Save the name. */
 		(*drawables)[i].name = (char*) calloc(strlen(name) + 1, sizeof(char));
 		strncpy((*drawables)[i].name, name, strlen(name));
+
+		/* Save the visibility. */
+		(*drawables)[i].visible = (1 == visible) ? 1 : 0;
 
 		/* Save the texture. */
 		(*drawables)[i].texture = SDL_CreateTextureFromSurface(renderer, surface);

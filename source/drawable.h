@@ -19,6 +19,7 @@ typedef struct Drawable
 	SDL_Texture* texture;   /*!< a pointer to an SDL_Texture */
 	SDL_Rect* rect;      	/*!< an SDL_Rect pointer that defines the current position and size. */
 	char* name;				/*!< a unique name. */
+	int	visible;			/*!< 1 == rendered, anything else == not rendered. */
 	SDL_Rect widescreen;	/*!< an SDL_Rect containing positions for a 16:9 aspect ratio. */
 	SDL_Rect monitor;		/*!< an SDL_Rect containing positions for a 16:10 aspect ratio. */
 } Drawable;
@@ -30,6 +31,15 @@ typedef struct Drawable
 	\param count the number of drawables to free.
 */
 void destroy_drawables(Drawable** drawables, int count);
+
+/*! \fn show_drawables(Drawable** drawables, int count, int show)
+	\brief Sets the visible property of all the drawables to 0 or 1
+
+	\param drawables a pointer to an array of drawables.
+	\param count the number of drawables.
+	\param show 1 for visible, anything else will become 0.
+*/
+void show_drawables(Drawable** drawables, int count, int show);
 
 /*! \fn void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count)
 	\brief Copys an array of drawables to the renderer provided.

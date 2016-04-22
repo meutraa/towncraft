@@ -9,24 +9,27 @@
 /* This function is unpure and accesses global drawable arrays and counts! */
 static Status options_menu_event_loop();
 
-static Status submenu = NONE;
-
-static char *layouts[] = {
+#define DRAWABLE_ARRAYS 4
+static char *layouts[DRAWABLE_ARRAYS] = {
 	"resources/layouts/options_menu.csv",
 	"resources/layouts/options_video.csv",
 	"resources/layouts/options_audio.csv",
 	"resources/layouts/options_controls.csv",
 };
-static int drawable_counts[4];
-static Drawable* drawables[4];
+
+static int counts[DRAWABLE_ARRAYS];
+static Drawable* drawables[DRAWABLE_ARRAYS];
+
+/* 1 = video, 2 = audio, 3 = controls */
+static int menu = 1;
 
 Status options_menu_loop(SDL_Renderer* renderer)
 {
 	Status status = NORMAL;
 
-	for(int i = 0; i < 4; i++)
+	for(int i = 0; i < DRAWABLE_ARRAYS; i++)
 	{
-		drawable_counts[i] = load_drawables(renderer, &drawables[i], layouts[i]);
+		counts[i] = load_drawables(renderer, &drawables[i], layouts[i]);
 	}
 
 	while(NORMAL == status)
@@ -38,22 +41,19 @@ Status options_menu_loop(SDL_Renderer* renderer)
 		SDL_RenderClear(renderer);
 
 		/* Copy all the scalables to the window. */
-		render_drawables(renderer, drawables[0], drawable_counts[0]);
-		if(SHOW_OPTIONS_VIDEO == submenu)
-			render_drawables(renderer, drawables[1], drawable_counts[1]);
-		else if(SHOW_OPTIONS_AUDIO == submenu)
-			render_drawables(renderer, drawables[2], drawable_counts[2]);
-		else if(SHOW_OPTIONS_CONTROLS == submenu)
-			render_drawables(renderer, drawables[3], drawable_counts[3]);
+		for(int i = 0; i < DRAWABLE_ARRAYS; i++)
+		{
+			render_drawables(renderer, drawables[i], counts[i]);
+		}
 
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
 	}
 
 	/* Clean up and return to the main function. */
-	for(int i = 0; i < 4; i ++)
+	for(int i = 0; i < DRAWABLE_ARRAYS; i ++)
 	{
-		destroy_drawables(&drawables[i], drawable_counts[i]);
+		destroy_drawables(&drawables[i], counts[i]);
 	}
 	return status;
 }
@@ -73,16 +73,28 @@ static Status options_menu_event_loop()
 		if(SDL_MOUSEBUTTONDOWN == event.type && SDL_BUTTON_LEFT == event.button.button)
 		{
 			/* Loop through the drawables in the side bar. */
-			for(int i = 0; i < drawable_counts[0]; i ++)
+			for(int i = 0; i < counts[0]; i ++)
 			{
 				if(bounded_by(event.button.x, event.button.y, drawables[0][i].rect))
 				{
 					if(0 == strcmp(drawables[0][i].name, "button_options_video"))
-						submenu = SHOW_OPTIONS_VIDEO;
+					{
+						show_drawables(&drawables[menu], counts[menu], 0);
+						menu = 1;
+						show_drawables(&drawables[menu], counts[menu], 1);
+					}
 					else if(0 == strcmp(drawables[0][i].name, "button_options_audio"))
-						submenu = SHOW_OPTIONS_AUDIO;
+					{
+						show_drawables(&drawables[menu], counts[menu], 0);
+						menu = 2;
+						show_drawables(&drawables[menu], counts[menu], 1);
+					}
 					else if(0 == strcmp(drawables[0][i].name, "button_options_controls"))
-						submenu = SHOW_OPTIONS_CONTROLS;
+					{
+						show_drawables(&drawables[menu], counts[menu], 0);
+						menu = 3;
+						show_drawables(&drawables[menu], counts[menu], 1);
+					}
 					if(0 == strcmp(drawables[0][i].name, "button_options_back"))
 						return SWITCHTO_MAINMENU;
 				}
