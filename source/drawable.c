@@ -9,6 +9,28 @@
 #include "SDL_image.h"
 #include "SDL_ttf.h"
 
+#define MAX_DRAWABLES 32
+
+/* font placed at (x,y), then (x - 15, y - 5), width(int n) = 24*7 + 30 , height(32) = 45 */
+
+#define TEXT_COUNT  12
+#define IMG_COUNT   6
+#define COLOR_COUNT 11
+
+#define TEXT_FORMAT  "text%*[^\"]\"%256[^\"]\"%*[ \t]%256[^:]:%d:%d%*[^(](%d,%d,%d,%d)%*[^(](%d,%d)%*[^(](%d,%d)"
+#define IMG_FORMAT   "image%*[^\"]\"%256[^\"]\"%*[ \t]%256[^ \t]%*[^(](%d,%d)%*[^(](%d,%d)"
+#define COLOR_FORMAT "color%*[^\"]\"%256[^\"]\"%*[^(](%d,%d)%*[^(](%d,%d,%d,%d)%*[^(](%d,%d)%*[^(](%d,%d)"
+
+void destroy_drawables(Drawable** drawables, int count)
+{
+	for(int i = 0; i < count; i++)
+	{
+		free((*drawables)[i].name);
+		SDL_DestroyTexture((*drawables)[i].texture);
+	}
+	free((*drawables));
+}
+
 void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count)
 {
 	for(int i = 0; i < count; i++)
@@ -20,35 +42,40 @@ void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count)
 int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_file)
 {
 	FILE* file = fopen(layout_file, "r");
-	if(NULL == file) return 0;
+	if(NULL == file)
+	{
+		fprintf(stderr, "%s: file not readable\n\n", layout_file);
+		return 0;
+	}
+
+	(*drawables) = (Drawable*) calloc(MAX_DRAWABLES, sizeof(Drawable));
 
 	int len = MAX_LINE_LENGTH + 1;   // +1 for the terminating null-character.
-	int i = 0, loaded = 0, status;
+	int i = 0;
 
 	char line[len], name[len], path[len];
-	int wx, wy, mx, my;
+	int wx, wy, mx, my, width, height;
 	int mode, r, g, b, a, font_size;
 	SDL_Surface* surface;
 
 	while(NULL != fgets(line, len, file))
 	{
-		if(NULL != strstr(line, "images/"))
+		if(IMG_COUNT == sscanf(line, IMG_FORMAT, name, path, &wx, &wy, &mx, &my))
 		{
-			status = sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d", name, path, &wx, &wy, &mx, &my);
-			if(6 != status || -1 == file_exists(path))
+			if(-1 == file_exists(path))
 			{
-				loaded = 0; break;
+				fprintf(stderr, "%s:%d:%s\n^^ file not readable ^^\n\n", layout_file, i, line);
+				continue;
 			}
 
 			surface = IMG_Load(path);
 		}
-		else if(NULL != strstr(line, "fonts/"))
+		else if(TEXT_COUNT == sscanf(line, TEXT_FORMAT, name, path, &font_size, &mode, &r, &g, &b, &a, &wx, &wy, &mx, &my))
 		{
-			status = sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d;%d;%d;%d;%d;%d;%d",
-					name, path, &font_size, &mode, &r, &g, &b, &a, &wx, &wy, &mx, &my);
-			if(12 != status || -1 == file_exists(path))
+			if(-1 == file_exists(path))
 			{
-				loaded = 0; break;
+				fprintf(stderr, "%s:%d:%s\n^^ file not readable ^^\n\n", layout_file, i, line);
+				continue;
 			}
 
 			TTF_Font* font = TTF_OpenFont(path, font_size);
@@ -57,15 +84,8 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 								  TTF_RenderText_Blended(font, name, color);
 			TTF_CloseFont(font);
 		}
-		else if(NULL != strstr(line, ";color;"))
+		else if(COLOR_COUNT == sscanf(line, COLOR_FORMAT, name, &width, &height, &r, &g, &b, &a, &wx, &wy, &mx, &my))
 		{
-			int width, height;
-			status = sscanf(line, "%256[^;];%256[^;];%d;%d;%d;%d;%d;%d;%d;%d;%d;%d",
-			name, path, &width, &height, &r, &g, &b, &a, &wx, &wy, &mx, &my);
-			if(12 != status)
-			{
-				loaded = 0; break;
-			}
 			surface = SDL_CreateRGBSurface(0, width, height, 8, 0, 0, 0, 0);
 			SDL_SetSurfaceColorMod(surface, r, g, b);
 			SDL_SetSurfaceAlphaMod(surface, a);
@@ -73,8 +93,8 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 		}
 		else
 		{
-			loaded = 0;
-			break;
+			fprintf(stderr, "%s:%d:%s^^ unrecognised layout string ^^\n\n", layout_file, i, line);
+			continue;
 		}
 
 		/* Save the name. */
@@ -91,21 +111,12 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 
 		SDL_FreeSurface(surface);
 		i++;
-		loaded++;
 	}
 
-	/* free up all resources if errors. */
-	if(0 != i && 0 == loaded)
-	{
-		fprintf(stderr, "Line %d of file %s is invalid.\n", i + 1, layout_file);
-		while(--i >= 0)
-		{
-			free((*drawables)[i].name);
-			SDL_DestroyTexture((*drawables)[i].texture);
-		}
-	}
+	/* Shrink the array to the size we used. */
+	(*drawables) = (Drawable*) realloc((*drawables), i*sizeof(Drawable));
 
 	/* Close file. */
-	if(NULL != file) fclose(file);
-	return loaded;
+	fclose(file);
+	return i;
 }

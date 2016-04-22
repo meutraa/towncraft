@@ -24,11 +24,19 @@ typedef struct Drawable
 } Drawable;
 
 
+/*! \fn void destroy_drawables(Drawable** drawables, int count)
+	\brief Frees all memory contained in the Drawable.
+
+	\param drawables a pointer to an array of drawables.
+	\param count the number of drawables to free.
+*/
+void destroy_drawables(Drawable** drawables, int count);
+
 /*! \fn void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count)
 	\brief Copys an array of drawables to the renderer provided.
 
 	\param renderer the SDL_Renderer used to render textures.
-	\param drawables a pointer to an array of drawables to copy to the renderer.
+	\param drawables a pointer to an array of drawables.
 	\param count the number of drawables to copy.
 */
 void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count);

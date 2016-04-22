@@ -9,15 +9,14 @@
 /* This function is unpure and accesses global drawable arrays and counts! */
 static Status options_menu_event_loop();
 
+static Status submenu = NONE;
+
 static char *layouts[] = {
 	"resources/layouts/options_menu.csv",
 	"resources/layouts/options_video.csv",
 	"resources/layouts/options_audio.csv",
 	"resources/layouts/options_controls.csv",
 };
-
-static Status submenu = NONE;
-
 static int drawable_counts[4];
 static Drawable* drawables[4];
 
@@ -27,13 +26,7 @@ Status options_menu_loop(SDL_Renderer* renderer)
 
 	for(int i = 0; i < 4; i++)
 	{
-		drawables[i] = calloc(count_lines(layouts[i]), sizeof(Drawable));
 		drawable_counts[i] = load_drawables(renderer, &drawables[i], layouts[i]);
-		if(0 == drawable_counts[i])
-		{
-			status = QUIT_PROGRAM;
-			break;
-		}
 	}
 
 	while(NORMAL == status)
@@ -60,12 +53,7 @@ Status options_menu_loop(SDL_Renderer* renderer)
 	/* Clean up and return to the main function. */
 	for(int i = 0; i < 4; i ++)
 	{
-		for(int j = 0; j < drawable_counts[i]; j++)
-		{
-			free(drawables[i][j].name);
-			SDL_DestroyTexture(drawables[i][j].texture);
-		}
-		free(drawables[i]);
+		destroy_drawables(&drawables[i], drawable_counts[i]);
 	}
 	return status;
 }

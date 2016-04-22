@@ -1,2 +1,2 @@
-video_background;color;938;670;0;0;0;148;317;25;317;25
-video;resources/fonts/fleftex_mono_8.ttf;32;1;255;255;255;0;367;50;367;50
+color	"video_background" (938,670) 					(0,0,0,148) 	(317,25) (317,25)
+text	"video" resources/fonts/fleftex_mono_8.ttf:32:1 (255,255,255,0) (367,50) (367,50)

@@ -7,18 +7,15 @@
 #include "math.h"
 #include "SDL_mixer.h"
 
-static Status main_menu_event_loop(Drawable drawables[], int drawable_count);
+static Status main_menu_event_loop();
+
+static char *layout_file = "resources/layouts/main_menu.csv";
+static int drawable_count;
+static Drawable* drawables;
 
 Status main_menu_loop(SDL_Renderer* renderer)
 {
-	char *layout_file = "resources/layouts/main_menu.csv";
-
-	Drawable* drawables = (Drawable*) calloc(count_lines(layout_file), sizeof(Drawable));
-	int drawable_count = load_drawables(renderer, &drawables, layout_file);
-	if(0 == drawable_count)
-	{
-		return QUIT_PROGRAM;
-	}
+	drawable_count = load_drawables(renderer, &drawables, layout_file);
 
 	Status status = NORMAL;
 	while(NORMAL == status)
@@ -34,16 +31,11 @@ Status main_menu_loop(SDL_Renderer* renderer)
 	}
 
 	/* Clean up and return to the main function. */
-	for(int i = 0; i < drawable_count; i++)
-	{
-		free(drawables[i].name);
-		SDL_DestroyTexture(drawables[i].texture);
-	}
-	free(drawables);
+	destroy_drawables(&drawables, drawable_count);
 	return status;
 }
 
-static Status main_menu_event_loop(Drawable drawables[], int drawable_count)
+static Status main_menu_event_loop()
 {
 	SDL_Event event;
 	while(1 == SDL_PollEvent(&event))
