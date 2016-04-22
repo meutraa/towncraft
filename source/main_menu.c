@@ -21,7 +21,7 @@ Status main_menu_loop(SDL_Renderer* renderer)
 	while(NORMAL == status)
 	{
 		/* If there are events in the event queue, process them. */
-		status = main_menu_event_loop(drawables, drawable_count);
+		status = main_menu_event_loop();
 
 		/* Copy all the scalables to the window. */
 		render_drawables(renderer, drawables, drawable_count);
