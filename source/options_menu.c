@@ -37,9 +37,6 @@ Status options_menu_loop(SDL_Renderer* renderer)
 		/* If there are events in the event queue, process them. */
 		status = options_menu_event_loop();
 
-		/* Fill the screen with the background color. */
-		SDL_RenderClear(renderer);
-
 		/* Copy all the scalables to the window. */
 		for(int i = 0; i < DRAWABLE_ARRAYS; i++)
 		{
