@@ -57,7 +57,6 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 		IMG_COUNT   = count_params(IMG_FORMAT);
 		COLOR_COUNT = count_params(COLOR_FORMAT);
 	}
-	printf("%d, %d, %d\n", TEXT_COUNT, IMG_COUNT, COLOR_COUNT);
 	FILE* file = fopen(layout_file, "r");
 	if(NULL == file)
 	{
