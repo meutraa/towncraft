@@ -5,6 +5,11 @@
 #ifndef OUR_CONSTANTS_H
 #define OUR_CONSTANTS_H
 
+/*! def GAME_NAME
+	\brief the name of the game.
+*/
+#define GAME_NAME "Towncraft"
+
 /*! def MAX_LINE_LENGTH
 	\brief the maximum number of chars that will be read from a line on a layout file.
 */

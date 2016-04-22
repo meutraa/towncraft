@@ -5,10 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "constants.h"
 #include "SDL_ttf.h"
 #include "SDL_mixer.h"
-
-#define GAME_NAME "Towncraft"
 
 int main(/*int argc, char** argv*/)
 {

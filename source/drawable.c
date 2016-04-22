@@ -13,13 +13,22 @@
 
 /* font placed at (x,y), then (x - 15, y - 5), width(int n) = 24*7 + 30 , height(32) = 45 */
 
-#define TEXT_COUNT  12
-#define IMG_COUNT   6
-#define COLOR_COUNT 11
-
 #define TEXT_FORMAT  "text%*[^\"]\"%256[^\"]\"%*[ \t]%256[^:]:%d:%d%*[^(](%d,%d,%d,%d)%*[^(](%d,%d)%*[^(](%d,%d)"
 #define IMG_FORMAT   "image%*[^\"]\"%256[^\"]\"%*[ \t]%256[^ \t]%*[^(](%d,%d)%*[^(](%d,%d)"
 #define COLOR_FORMAT "color%*[^\"]\"%256[^\"]\"%*[^(](%d,%d)%*[^(](%d,%d,%d,%d)%*[^(](%d,%d)%*[^(](%d,%d)"
+
+static int count_params(char* format)
+{
+	int i = 0, count = 0;
+	while(format[i + 1] != '\0')
+	{
+		if(format[i] == '%' && format[i + 1] != '*') count++;
+		i++;
+	}
+	return count;
+}
+
+static int TEXT_COUNT, IMG_COUNT, COLOR_COUNT;
 
 void destroy_drawables(Drawable** drawables, int count)
 {
@@ -41,6 +50,14 @@ void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count)
 
 int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_file)
 {
+	/* Count the correct number of parameters in the format strings. */
+	if(0 == TEXT_COUNT)
+	{
+		TEXT_COUNT  = count_params(TEXT_FORMAT);
+		IMG_COUNT   = count_params(IMG_FORMAT);
+		COLOR_COUNT = count_params(COLOR_FORMAT);
+	}
+	printf("%d, %d, %d\n", TEXT_COUNT, IMG_COUNT, COLOR_COUNT);
 	FILE* file = fopen(layout_file, "r");
 	if(NULL == file)
 	{
@@ -48,7 +65,13 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 		return 0;
 	}
 
-	(*drawables) = (Drawable*) calloc(MAX_DRAWABLES, sizeof(Drawable));
+	*drawables = malloc(MAX_DRAWABLES*sizeof(Drawable));
+	if(NULL == drawables)
+	{
+		fprintf(stderr, "%s: could not assign memory for drawables.\n\n", layout_file);
+		fclose(file);
+		return 0;
+	}
 
 	int len = MAX_LINE_LENGTH + 1;   // +1 for the terminating null-character.
 	int i = 0;
@@ -80,7 +103,7 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 
 			TTF_Font* font = TTF_OpenFont(path, font_size);
 			SDL_Color color = { r, g, b, a };
-			surface = (0 == mode) ? TTF_RenderText_Solid(font, name, color) :
+			surface = (0 == mode) ? TTF_RenderText_Solid(font, name, color):
 								  TTF_RenderText_Blended(font, name, color);
 			TTF_CloseFont(font);
 		}
@@ -119,7 +142,18 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 	}
 
 	/* Shrink the array to the size we used. */
-	(*drawables) = (Drawable*) realloc((*drawables), i*sizeof(Drawable));
+	Drawable** new = malloc(i*sizeof(Drawable));
+	if(NULL == new)
+	{
+		fprintf(stderr, "%s: could not reassign memory for drawables.\n\n", layout_file);
+		destroy_drawables(drawables, i);
+		i = 0;
+	}
+	else
+	{
+		memmove(new, drawables, i*sizeof(Drawable));
+	}
+	drawables = new;
 
 	/* Close file. */
 	fclose(file);
