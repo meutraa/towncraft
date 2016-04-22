@@ -58,7 +58,7 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 	int mode, r, g, b, a, font_size;
 	SDL_Surface* surface;
 
-	while(NULL != fgets(line, len, file))
+	while(NULL != fgets(line, len, file) && i < MAX_DRAWABLES)
 	{
 		if(IMG_COUNT == sscanf(line, IMG_FORMAT, name, path, &wx, &wy, &mx, &my))
 		{
@@ -111,6 +111,11 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 
 		SDL_FreeSurface(surface);
 		i++;
+	}
+
+	if(MAX_DRAWABLES == i)
+	{
+		fprintf(stderr, "%s: MAX_DRAWABLES(%d) limit exceed.\n", layout_file, MAX_DRAWABLES);
 	}
 
 	/* Shrink the array to the size we used. */
