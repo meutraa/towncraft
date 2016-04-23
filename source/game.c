@@ -6,6 +6,7 @@
 #include "constants.h"
 #include "file.h"
 #include "math.h"
+#include "options.h"
 #include "SDL_mixer.h"
 
 static void game_event_loop();
@@ -73,6 +74,10 @@ Status game_loop(SDL_Renderer* renderer)
 		/* If there are events in the event queue, process them. */
 		game_event_loop();
 
+		int x, y;
+		SDL_GetMouseState(&x, &y);
+		printf("%d, %d\n", x, y);
+
 		if(1 == key_status[41])	// ESC - Close the program.
 		{
 			status = QUIT_PROGRAM;
@@ -86,6 +91,18 @@ Status game_loop(SDL_Renderer* renderer)
 			camera.y -= tile_height >> 1;
 		if(1 == key_status[81]) // down
 			camera.y += tile_height >> 1;
+
+		if(0 != fullscreen)
+		{
+			if(0 == x) // left
+				camera.x -= tile.w >> 1;
+			if(1279 == x) // right
+				camera.x += tile.w >> 1;
+			if(0 == y) // up
+				camera.y -= tile.h >> 1;
+			if(719 == y) // down
+				camera.y += tile.h >> 1;
+		}
 
 
 		/* Clear the screen for areas that do not have textures mapped to them. */

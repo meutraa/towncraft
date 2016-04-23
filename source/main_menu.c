@@ -46,6 +46,10 @@ static Status main_menu_event_loop()
 				return QUIT_PROGRAM;
 			if(40 == event.key.keysym.scancode)
 				return SWITCHTO_GAME;
+			if(82 == event.key.keysym.scancode)
+				Mix_VolumeMusic(MIX_MAX_VOLUME);
+			if(81 == event.key.keysym.scancode)
+				Mix_VolumeMusic(0);
 			else
 				printf("Key %d pressed\n", event.key.keysym.scancode);
 		}
