@@ -1,6 +1,7 @@
 #include "options.h"
 #include "main_menu.h"
 #include "options_menu.h"
+#include "game.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,13 +70,6 @@ int main(/*int argc, char** argv*/)
 		return 1;
 	}
 
-	/* Set the virtual resolution used for scaling. */
-	SDL_RenderSetLogicalSize(renderer, resolution_width, resolution_height);
-
-	/* Set renderer colour to black and clear window. */
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-	SDL_RenderClear(renderer);
-
 	Status status = SWITCHTO_MAINMENU;
 	Mix_Music* chiptune = Mix_LoadMUS("resources/audio/music/rolemusic_the_pirate_and_the_dancer.ogg");
 
@@ -91,6 +85,10 @@ int main(/*int argc, char** argv*/)
 			case SWITCHTO_OPTIONS:
 				Mix_FadeOutMusic(1000);
 				status = options_menu_loop(renderer);
+				break;
+			case SWITCHTO_GAME:
+				Mix_FadeOutMusic(100);
+				status = game_loop(renderer);
 				break;
 			default:
 				break;

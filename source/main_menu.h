@@ -1,5 +1,5 @@
 /*! \file main_menu.h
-	\brief function return codes to be used program-wide.
+	\brief Access to the main_menu loop.
 */
 
 #ifndef MAIN_MENU_H

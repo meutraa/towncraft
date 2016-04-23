@@ -44,6 +44,8 @@ static Status main_menu_event_loop()
 		{
 			if(41 == event.key.keysym.scancode) // ESC - Close the program.
 				return QUIT_PROGRAM;
+			if(40 == event.key.keysym.scancode)
+				return SWITCHTO_GAME;
 			else
 				printf("Key %d pressed\n", event.key.keysym.scancode);
 		}

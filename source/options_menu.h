@@ -1,5 +1,5 @@
 /*! \file options_menu.h
-	\brief function return codes to be used program-wide.
+	\brief Access to the options_menu loop.
 */
 
 #ifndef OPTIONS_MENU_H
