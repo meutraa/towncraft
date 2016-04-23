@@ -11,9 +11,11 @@
 static Status game_event_loop();
 
 #define GRID_SIZE 128
+#define SCANCODE_COUNT 283
 static Drawable chunk[GRID_SIZE][GRID_SIZE];
 static SDL_Rect tile;
 static SDL_Rect camera;
+static int key_status[SCANCODE_COUNT];
 
 Status game_loop(SDL_Renderer* renderer)
 {
@@ -98,26 +100,28 @@ static Status game_event_loop()
 	SDL_Event event;
 	while(1 == SDL_PollEvent(&event))
 	{
+		int scancode = event.key.keysym.scancode;
+
 		if(SDL_KEYDOWN == event.type)
 		{
-			int scancode = event.key.keysym.scancode;
-			if(41 == event.key.keysym.scancode) // ESC - Close the program.
-				return QUIT_PROGRAM;
-			else if(scancode <= 82 && scancode >= 79)
-			{
-				/* >> 1 (move half a tile at a time). */
-				if(80 == scancode) // left
-					camera.x -= tile.w >> 1;
-				else if(79 == scancode) // right
-					camera.x += tile.w >> 1;
-				else if(82 == scancode) // up
-					camera.y -= tile.h >> 1;
-				else if(81 == scancode) // down
-					camera.y += tile.h >> 1;
-			}
-			else
-				printf("Key %d pressed\n", event.key.keysym.scancode);
+			key_status[scancode] = 1;
 		}
+		else if(SDL_KEYUP == event.type)
+		{
+			key_status[scancode] = 0;
+		}
+
+		if(1 == key_status[41]) // ESC - Close the program.
+			return QUIT_PROGRAM;
+		if(1 == key_status[80]) // left
+			camera.x -= tile.w >> 1;
+		if(1 == key_status[79]) // right
+			camera.x += tile.w >> 1;
+		if(1 == key_status[82]) // up
+			camera.y -= tile.h >> 1;
+		if(1 == key_status[81]) // down
+			camera.y += tile.h >> 1;
+		printf("Key %d pressed\n", event.key.keysym.scancode);
 	}
 	return NORMAL;
 }
