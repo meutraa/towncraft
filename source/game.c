@@ -8,7 +8,7 @@
 #include "math.h"
 #include "SDL_mixer.h"
 
-static Status game_event_loop(SDL_Renderer* renderer);
+static Status game_event_loop();
 
 #define GRID_SIZE 128
 static Drawable chunk[GRID_SIZE][GRID_SIZE];
@@ -58,7 +58,7 @@ Status game_loop(SDL_Renderer* renderer)
 	while(NORMAL == status)
 	{
 		/* If there are events in the event queue, process them. */
-		status = game_event_loop(renderer);
+		status = game_event_loop();
 
 		/* Clear the screen for areas that do not have textures mapped to them. */
 		/* Comment out for windows 95 mode. */
@@ -93,7 +93,7 @@ Status game_loop(SDL_Renderer* renderer)
 	return status;
 }
 
-static Status game_event_loop(SDL_Renderer* renderer)
+static Status game_event_loop()
 {
 	SDL_Event event;
 	while(1 == SDL_PollEvent(&event))
