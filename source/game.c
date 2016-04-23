@@ -8,7 +8,7 @@
 #include "math.h"
 #include "SDL_mixer.h"
 
-static Status game_event_loop();
+static void game_event_loop();
 
 #define SCANCODE_COUNT 283
 #define GRID_SIZE 1024
@@ -68,7 +68,22 @@ Status game_loop(SDL_Renderer* renderer)
 	while(NORMAL == status)
 	{
 		/* If there are events in the event queue, process them. */
-		status = game_event_loop();
+		game_event_loop();
+
+		if(1 == key_status[41])	// ESC - Close the program.
+		{
+			status = QUIT_PROGRAM;
+			break;
+		}
+		if(1 == key_status[80]) // left
+			camera.x -= tile.w >> 1;
+		if(1 == key_status[79]) // right
+			camera.x += tile.w >> 1;
+		if(1 == key_status[82]) // up
+			camera.y -= tile.h >> 1;
+		if(1 == key_status[81]) // down
+			camera.y += tile.h >> 1;
+
 
 		/* Clear the screen for areas that do not have textures mapped to them. */
 		/* Comment out for windows 95 mode. */
@@ -103,7 +118,7 @@ Status game_loop(SDL_Renderer* renderer)
 	return status;
 }
 
-static Status game_event_loop()
+static void game_event_loop()
 {
 	SDL_Event event;
 	while(1 == SDL_PollEvent(&event))
@@ -113,23 +128,11 @@ static Status game_event_loop()
 		if(SDL_KEYDOWN == event.type)
 		{
 			key_status[scancode] = 1;
+			printf("Key %d pressed\n", event.key.keysym.scancode);
 		}
 		else if(SDL_KEYUP == event.type)
 		{
 			key_status[scancode] = 0;
 		}
-
-		if(1 == key_status[41]) // ESC - Close the program.
-			return QUIT_PROGRAM;
-		if(1 == key_status[80]) // left
-			camera.x -= tile.w >> 1;
-		if(1 == key_status[79]) // right
-			camera.x += tile.w >> 1;
-		if(1 == key_status[82]) // up
-			camera.y -= tile.h >> 1;
-		if(1 == key_status[81]) // down
-			camera.y += tile.h >> 1;
-		printf("Key %d pressed\n", event.key.keysym.scancode);
 	}
-	return NORMAL;
 }
