@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "drawable.h"
+#include "tile.h"
 #include "status.h"
 #include "constants.h"
 #include "file.h"
@@ -13,26 +13,34 @@ static void game_event_loop();
 #define SCANCODE_COUNT 283
 #define GRID_SIZE 1024
 #define SQUISH_FACTOR 0.65
-#define DEFAULT_ZOOM 16.0f
+static float zoom_factor = 16.0f;
 
-static Drawable chunk[GRID_SIZE][GRID_SIZE];
-static SDL_Rect tile;
+static Tile chunk[GRID_SIZE][GRID_SIZE];
 static SDL_Rect camera;
 static int key_status[SCANCODE_COUNT];
 
+static int tile_width;
+static int tile_height;
+
 static void zoom(float zoom)
 {
-	tile.w = ((int) (((float) DESIGN_WIDTH)/((float) GRID_SIZE))*zoom);
-	tile.h = tile.w*SQUISH_FACTOR;
+	tile_width = (int) ((((float) DESIGN_WIDTH)/((float) GRID_SIZE))*zoom);
+	tile_height = tile_width*SQUISH_FACTOR;
+
+	for(int i = 0; i < GRID_SIZE; i++)
+	{
+		for(int j = 0; j < GRID_SIZE; j++)
+		{
+			chunk[i][j].x = i*tile_width;
+			chunk[i][j].y = j*tile_height;
+		}
+	}
 }
 
 Status game_loop(SDL_Renderer* renderer)
 {
-	/* Camera should cover half (*2) of the full map. */
-	zoom(DEFAULT_ZOOM);
-
 	/* Create three generic color textures. */
-	SDL_Surface* surface = SDL_CreateRGBSurface(0, tile.w, tile.h, 8, 0, 0, 0, 0);
+	SDL_Surface* surface = SDL_CreateRGBSurface(0, 1, 1, 8, 0, 0, 0, 0);
 	SDL_SetSurfaceColorMod(surface, 128, 255, 64);
 	SDL_Texture* tex1 = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_SetSurfaceColorMod(surface, 128, 64, 255);
@@ -46,16 +54,11 @@ Status game_loop(SDL_Renderer* renderer)
 	{
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
-			SDL_Rect wide;
-			wide.w = tile.w;
-			wide.h = tile.h;
-			wide.x = i*tile.w;
-			wide.y = j*tile.h;
-			chunk[i][j].widescreen = wide;
-			chunk[i][j].rect = &chunk[i][j].widescreen;
 			chunk[i][j].texture = ((i*j) % 3 == 0) ? tex1 : ((i*j) % 2 == 0) ? tex2: tex3;
 		}
 	}
+
+	zoom(zoom_factor);
 
 	camera.w = DESIGN_WIDTH;
 	camera.h = DESIGN_HEIGHT;
@@ -76,13 +79,13 @@ Status game_loop(SDL_Renderer* renderer)
 			break;
 		}
 		if(1 == key_status[80]) // left
-			camera.x -= tile.w >> 1;
+			camera.x -= tile_width >> 1;
 		if(1 == key_status[79]) // right
-			camera.x += tile.w >> 1;
+			camera.x += tile_width >> 1;
 		if(1 == key_status[82]) // up
-			camera.y -= tile.h >> 1;
+			camera.y -= tile_height >> 1;
 		if(1 == key_status[81]) // down
-			camera.y += tile.h >> 1;
+			camera.y += tile_height >> 1;
 
 
 		/* Clear the screen for areas that do not have textures mapped to them. */
@@ -94,13 +97,14 @@ Status game_loop(SDL_Renderer* renderer)
 			for(int j = 0; j < GRID_SIZE; j++)
 			{
 				/* Only render the drawable if it intersects with the current camera rect. */
-				if(SDL_TRUE == SDL_HasIntersection(chunk[i][j].rect, &camera))
+				if(1 == bounded_by(chunk[i][j].x, chunk[i][j].y, &camera)
+				|| 1 == bounded_by(chunk[i][j].x + tile_width, chunk[i][j].y + tile_height, &camera))
 				{
 					SDL_Rect new = {
-						chunk[i][j].rect->x - camera.x,
-						chunk[i][j].rect->y - camera.y,
-						chunk[i][j].rect->w,
-						chunk[i][j].rect->h
+						chunk[i][j].x - camera.x,
+						chunk[i][j].y - camera.y,
+						tile_width,
+						tile_height
 					};
 					SDL_RenderCopy(renderer, chunk[i][j].texture, NULL, &new);
 				}
@@ -133,6 +137,11 @@ static void game_event_loop()
 		else if(SDL_KEYUP == event.type)
 		{
 			key_status[scancode] = 0;
+		}
+		if(SDL_MOUSEWHEEL == event.type)// && SDL_BUTTON_LEFT == event.button.button)
+		{
+			zoom_factor *= event.wheel.y < 0 ? 0.8 : 1.2;
+			zoom(zoom_factor);
 		}
 	}
 }
