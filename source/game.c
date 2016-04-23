@@ -10,18 +10,26 @@
 
 static Status game_event_loop();
 
-#define GRID_SIZE 128
 #define SCANCODE_COUNT 283
+#define GRID_SIZE 1024
+#define SQUISH_FACTOR 0.65
+#define DEFAULT_ZOOM 16.0f
+
 static Drawable chunk[GRID_SIZE][GRID_SIZE];
 static SDL_Rect tile;
 static SDL_Rect camera;
 static int key_status[SCANCODE_COUNT];
 
+static void zoom(float zoom)
+{
+	tile.w = ((int) (((float) DESIGN_WIDTH)/((float) GRID_SIZE))*zoom);
+	tile.h = tile.w*SQUISH_FACTOR;
+}
+
 Status game_loop(SDL_Renderer* renderer)
 {
 	/* Camera should cover half (*2) of the full map. */
-	tile.w = ((int) ((float) DESIGN_WIDTH)/((float) GRID_SIZE))*2;
-	tile.h = tile.w;
+	zoom(DEFAULT_ZOOM);
 
 	/* Create three generic color textures. */
 	SDL_Surface* surface = SDL_CreateRGBSurface(0, tile.w, tile.h, 8, 0, 0, 0, 0);
