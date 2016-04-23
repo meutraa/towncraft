@@ -83,26 +83,14 @@ Status game_loop(SDL_Renderer* renderer)
 			status = QUIT_PROGRAM;
 			break;
 		}
-		if(1 == key_status[80]) // left
+		if(1 == key_status[80] || (0 != fullscreen && 0 == x)) // left
 			camera.x -= tile_width >> 1;
-		if(1 == key_status[79]) // right
+		if(1 == key_status[79] || (0 != fullscreen && 1279 == x)) // right
 			camera.x += tile_width >> 1;
-		if(1 == key_status[82]) // up
+		if(1 == key_status[82] || (0 != fullscreen && 0 == y)) // up
 			camera.y -= tile_height >> 1;
-		if(1 == key_status[81]) // down
+		if(1 == key_status[81] || (0 != fullscreen && 719 == y)) // down
 			camera.y += tile_height >> 1;
-
-		if(0 != fullscreen)
-		{
-			if(0 == x) // left
-				camera.x -= tile.w >> 1;
-			if(1279 == x) // right
-				camera.x += tile.w >> 1;
-			if(0 == y) // up
-				camera.y -= tile.h >> 1;
-			if(719 == y) // down
-				camera.y += tile.h >> 1;
-		}
 
 
 		/* Clear the screen for areas that do not have textures mapped to them. */
