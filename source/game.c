@@ -76,7 +76,6 @@ Status game_loop(SDL_Renderer* renderer)
 
 		int x, y;
 		SDL_GetMouseState(&x, &y);
-		printf("%d, %d\n", x, y);
 
 		if(1 == key_status[41])	// ESC - Close the program.
 		{
@@ -132,16 +131,14 @@ static void game_event_loop()
 	SDL_Event event;
 	while(1 == SDL_PollEvent(&event))
 	{
-		int scancode = event.key.keysym.scancode;
-
 		if(SDL_KEYDOWN == event.type)
 		{
-			key_status[scancode] = 1;
+			key_status[event.key.keysym.scancode] = 1;
 			printf("Key %d pressed\n", event.key.keysym.scancode);
 		}
 		else if(SDL_KEYUP == event.type)
 		{
-			key_status[scancode] = 0;
+			key_status[event.key.keysym.scancode] = 0;
 		}
 		if(SDL_MOUSEWHEEL == event.type)// && SDL_BUTTON_LEFT == event.button.button)
 		{
