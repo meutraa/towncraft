@@ -38,10 +38,6 @@ int main(/*int argc, char** argv*/)
 	{
 		fprintf(stderr, "\nUnable to open audio mixer: %s\n", Mix_GetError());
 	}
-	int freq, channels;
-	Uint16 format;
-	Mix_QuerySpec(&freq, &format, &channels);
-	printf("Device: frequency=%d, format=%d, channels=%d\n", freq, format, channels);
 
 	/* Create window */
 	SDL_Window* window = SDL_CreateWindow(
