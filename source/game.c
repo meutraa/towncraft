@@ -141,7 +141,7 @@ Status game_loop(SDL_Renderer* renderer)
 
 		char text_string[128];
 		sprintf(text_string, "%d, %d", camera_x, camera_y);
-		render_text(renderer, text_string, 16, text_color, 150, 0);
+		render_text(renderer, text_string, 16, text_color, 150, 1);
 
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
