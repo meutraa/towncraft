@@ -40,6 +40,7 @@ static int count;
 static char* layout = "resources/layouts/game_ui.csv";
 
 static SDL_Color text_color = {255,255,255,0};
+static char fps_string[128];
 
 static void zoom(float zoom)
 {
@@ -72,6 +73,8 @@ Status game_loop(SDL_Renderer* renderer)
 	SDL_Texture* tex2 = SDL_CreateTextureFromSurface(renderer, green);
 	SDL_FreeSurface(blue);
 	SDL_FreeSurface(green);
+
+	sprintf(fps_string, "%d", 0);
 
 	srand(time(NULL));
 
@@ -152,7 +155,6 @@ Status game_loop(SDL_Renderer* renderer)
 		sprintf(centre_string, "%d, %d", centre_x , centre_y);
 		render_text(renderer, centre_string, 16, text_color, 450, 1);
 
-		char fps_string[128];
 		render_text(renderer, fps_string, 16, text_color, 1200, 1);
 
 		/* Draw the renderer. */
