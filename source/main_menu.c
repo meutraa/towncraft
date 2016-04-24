@@ -44,8 +44,6 @@ static Status main_menu_event_loop()
 		{
 			if(41 == event.key.keysym.scancode) // ESC - Close the program.
 				return QUIT_PROGRAM;
-			if(40 == event.key.keysym.scancode)
-				return SWITCHTO_GAME;
 			if(82 == event.key.keysym.scancode)
 				Mix_VolumeMusic(MIX_MAX_VOLUME);
 			if(81 == event.key.keysym.scancode)
@@ -63,6 +61,8 @@ static Status main_menu_event_loop()
 						return QUIT_PROGRAM;
 					if(0 == strcmp(drawables[i].name, "button_options"))
 						return SWITCHTO_OPTIONS;
+					if(0 == strcmp(drawables[i].name, "button_new"))
+						return SWITCHTO_GAME;
 				}
 			}
 		}
