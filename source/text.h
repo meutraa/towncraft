@@ -7,7 +7,7 @@
 
 #include "SDL.h"
 
-/*! \fn void render_text(SDL_Renderer* renderer, char* text, int size, SDL_Color color, int pos_x, int pos_y)
+/*! \fn void render_text(SDL_Renderer* renderer, char text[], int size, SDL_Color color, int pos_x, int pos_y)
 	\brief Render text to screen with given parameters.
 	\param renderer	current SDL_Renderer.
 	\param text text to render.
