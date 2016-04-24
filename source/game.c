@@ -39,7 +39,8 @@ static Drawable* drawables;
 static int count;
 static char* layout = "resources/layouts/game_ui.csv";
 
-static SDL_Color text_color = {255,255,255,0};
+static TTF_Font* debug_font;
+static const SDL_Color white = {255,255,255,0};
 
 static void zoom(float zoom)
 {
@@ -74,6 +75,8 @@ Status game_loop(SDL_Renderer* renderer)
 	SDL_FreeSurface(green);
 
 	srand(time(NULL));
+
+	debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
 
 	/* Create the grid. */
 	for(int i = 0; i < GRID_SIZE; i++)
@@ -144,16 +147,16 @@ Status game_loop(SDL_Renderer* renderer)
 
 		char camera_string[128];
 		sprintf(camera_string, "%d, %d", camera_x, camera_y);
-		render_text(renderer, camera_string, 16, text_color, 150, 1);
+		render_text(renderer, debug_font, camera_string, white, 150, 1);
 
 		char centre_string[128];
 		int centre_x = (int) (camera_x + DESIGN_WIDTH/2.0);
 		int centre_y = (int) (camera_y + DESIGN_HEIGHT/2.0);
 		sprintf(centre_string, "%d, %d", centre_x , centre_y);
-		render_text(renderer, centre_string, 16, text_color, 450, 1);
+		render_text(renderer, debug_font, centre_string, white, 450, 1);
 
 		char fps_string[128];
-		render_text(renderer, fps_string, 16, text_color, 1200, 1);
+		render_text(renderer, debug_font, fps_string, white, 1200, 1);
 
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
@@ -178,6 +181,7 @@ Status game_loop(SDL_Renderer* renderer)
 	/* Clean up and return to the main function. */
 	SDL_DestroyTexture(tex1);
 	SDL_DestroyTexture(tex2);
+	TTF_CloseFont(debug_font);
 
 	destroy_drawables(&drawables, count);
 
