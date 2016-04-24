@@ -15,12 +15,11 @@
 
 static void game_event_loop();
 
-#define round(x) ((x)>=0?(int)((x)+0.5):(int)((x)-0.5))
-
 /* Milliseconds per frame .*/
 static const unsigned int MSPF = (int) (((float) 1000) / ((float) 60));
 
 #define SCANCODE_COUNT 283
+#define SCALE 0.5
 #define GRID_SIZE 1024
 #define SQUISH_FACTOR 0.65
 static float zoom_factor = 16.0f;
@@ -31,8 +30,8 @@ static int key_status[SCANCODE_COUNT];
 static int tile_width;
 static int tile_height;
 
-static float camera_x = 0;
-static float camera_y = 0;
+static int camera_x = 0;
+static int camera_y = 0;
 
 static Drawable* drawables;
 static int count;
@@ -43,23 +42,22 @@ static SDL_Color text_color = {255,255,255,0};
 static void zoom(float zoom)
 {
 	zoom_factor *= zoom;
-	tile_width = round((((float) DESIGN_WIDTH)/((float) GRID_SIZE))*zoom_factor);
-	tile_height = round(tile_width*SQUISH_FACTOR);
+	tile_width = (int) ((((float) DESIGN_WIDTH)/((float) GRID_SIZE))*zoom_factor);
+	tile_height = (int) (((float) tile_width)*SQUISH_FACTOR);
 
 	for(int i = 0; i < GRID_SIZE; i++)
 	{
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
-			float scale = 0.5;
-			chunk[i][j].x = (int) ((j*tile_width*scale) - (i*tile_width*scale));
-			chunk[i][j].y = (int) ((j*tile_height*scale) + (i*tile_height*scale));
+			chunk[i][j].x = (int) ((j*tile_width*SCALE) - (i*tile_width*SCALE));
+			chunk[i][j].y = (int) ((j*tile_height*SCALE) + (i*tile_height*SCALE));
 		}
 	}
 
 	if(0 == zoom_mode)
 	{
-		camera_x += DESIGN_WIDTH * (zoom - 1) * 0.25;
-		camera_y += DESIGN_HEIGHT * (zoom - 1) * 0.25;
+		camera_x += DESIGN_WIDTH * (zoom - 1) * 0.1;
+		camera_y += DESIGN_HEIGHT * (zoom - 1)* 0.1 ;
 	}
 }
 
@@ -133,8 +131,8 @@ Status game_loop(SDL_Renderer* renderer)
 				   chunk[i][j].y >= camera_y - tile_height &&
 				   chunk[i][j].y <= camera_y + DESIGN_HEIGHT + tile_width)
 				{
-					new.x = round(chunk[i][j].x - camera_x);
-					new.y = round(chunk[i][j].y - camera_y);
+					new.x = chunk[i][j].x - camera_x;
+					new.y = chunk[i][j].y - camera_y;
 					SDL_RenderCopy(renderer, chunk[i][j].texture, NULL, &new);
 				}
 			}
@@ -142,7 +140,7 @@ Status game_loop(SDL_Renderer* renderer)
 		render_drawables(renderer, drawables, count);
 
 		char text_string[128];
-		sprintf(text_string, "%.1f, %.1f", camera_x, camera_y);
+		sprintf(text_string, "%d, %d", camera_x, camera_y);
 		render_text(renderer, text_string, 16, text_color, 150, 0);
 
 		/* Draw the renderer. */
