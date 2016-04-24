@@ -11,17 +11,22 @@
 
 static void game_event_loop();
 
+/* Milliseconds per frame .*/
+static const int MSPF = (int) (((float) 1000) / ((float) 60));
+
 #define SCANCODE_COUNT 283
 #define GRID_SIZE 1024
 #define SQUISH_FACTOR 0.65
 static float zoom_factor = 16.0f;
 
 static Tile chunk[GRID_SIZE][GRID_SIZE];
-static SDL_Rect camera;
 static int key_status[SCANCODE_COUNT];
 
 static int tile_width;
 static int tile_height;
+
+static int camera_x = 0;
+static int camera_y = 0;
 
 static void zoom(float zoom)
 {
@@ -61,16 +66,13 @@ Status game_loop(SDL_Renderer* renderer)
 
 	zoom(zoom_factor);
 
-	camera.w = DESIGN_WIDTH;
-	camera.h = DESIGN_HEIGHT;
-	camera.x = 0;
-	camera.y = 0;
-
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
 	Status status = NORMAL;
+	unsigned int start_time, time;
 	while(NORMAL == status)
 	{
+		start_time = SDL_GetTicks();
 		/* If there are events in the event queue, process them. */
 		game_event_loop();
 
@@ -83,33 +85,33 @@ Status game_loop(SDL_Renderer* renderer)
 			break;
 		}
 		if(1 == key_status[80] || (0 != fullscreen && 0 == x)) // left
-			camera.x -= tile_width >> 1;
+			camera_x -= tile_width >> 1;
 		if(1 == key_status[79] || (0 != fullscreen && 1279 == x)) // right
-			camera.x += tile_width >> 1;
+			camera_x += tile_width >> 1;
 		if(1 == key_status[82] || (0 != fullscreen && 0 == y)) // up
-			camera.y -= tile_height >> 1;
+			camera_y -= tile_height >> 1;
 		if(1 == key_status[81] || (0 != fullscreen && 719 == y)) // down
-			camera.y += tile_height >> 1;
+			camera_y += tile_height >> 1;
 
 
 		/* Clear the screen for areas that do not have textures mapped to them. */
 		/* Comment out for windows 95 mode. */
 		SDL_RenderClear(renderer);
 
+		SDL_Rect new = { 0, 0, tile_width, tile_height };
+
 		for(int i = 0; i < GRID_SIZE; i++)
 		{
 			for(int j = 0; j < GRID_SIZE; j++)
 			{
 				/* Only render the drawable if it intersects with the current camera rect. */
-				if(1 == bounded_by(chunk[i][j].x, chunk[i][j].y, &camera)
-				|| 1 == bounded_by(chunk[i][j].x + tile_width, chunk[i][j].y + tile_height, &camera))
+				if(chunk[i][j].x >= camera_x - tile_width &&
+				   chunk[i][j].x <= camera_x + DESIGN_WIDTH + tile_width &&
+				   chunk[i][j].y >= camera_y - tile_height &&
+				   chunk[i][j].y <= camera_y + DESIGN_HEIGHT + tile_width)
 				{
-					SDL_Rect new = {
-						chunk[i][j].x - camera.x,
-						chunk[i][j].y - camera.y,
-						tile_width,
-						tile_height
-					};
+					new.x = chunk[i][j].x - camera_x;
+					new.y = chunk[i][j].y - camera_y;
 					SDL_RenderCopy(renderer, chunk[i][j].texture, NULL, &new);
 				}
 			}
@@ -117,6 +119,13 @@ Status game_loop(SDL_Renderer* renderer)
 
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
+
+		time = SDL_GetTicks() - start_time;
+        if(time < MSPF)
+        {
+			printf("Finished frame early (%d/%d)\n", time, MSPF);
+            SDL_Delay(MSPF - time);
+        }
 	}
 
 	/* Clean up and return to the main function. */
