@@ -6,6 +6,8 @@ int vsync = 1;
 
 int fullscreen = 0;
 
+float scroll_speed = 0.018;
+
 int resolution_width = DESIGN_WIDTH;
 
 int resolution_height = DESIGN_HEIGHT;

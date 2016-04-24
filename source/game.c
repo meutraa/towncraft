@@ -106,13 +106,13 @@ Status game_loop(SDL_Renderer* renderer)
 			break;
 		}
 		if(1 == key_status[80] || (0 != fullscreen && 0 == x)) // left
-			camera_x -= tile_width * 0.5;
+			camera_x -= DESIGN_WIDTH * scroll_speed;
 		if(1 == key_status[79] || (0 != fullscreen && 1279 == x)) // right
-			camera_x += tile_width * 0.5;
+			camera_x += DESIGN_WIDTH * scroll_speed;
 		if(1 == key_status[82] || (0 != fullscreen && 0 == y)) // up
-			camera_y -= tile_height * 0.5;
+			camera_y -= DESIGN_HEIGHT * scroll_speed;
 		if(1 == key_status[81] || (0 != fullscreen && 719 == y)) // down
-			camera_y += tile_height * 0.5;
+			camera_y += DESIGN_HEIGHT * scroll_speed;
 
 
 		/* Clear the screen for areas that do not have textures mapped to them. */
