@@ -13,7 +13,7 @@
 static void game_event_loop();
 
 /* Milliseconds per frame .*/
-static const int MSPF = (int) (((float) 1000) / ((float) 60));
+static const unsigned int MSPF = (int) (((float) 1000) / ((float) 60));
 
 #define SCANCODE_COUNT 283
 #define GRID_SIZE 1024
@@ -128,7 +128,7 @@ Status game_loop(SDL_Renderer* renderer)
 		dt = SDL_GetTicks() - start_time;
         if(dt < MSPF)
         {
-			printf("Finished frame early (%d/%d)\n", dt, MSPF);
+			//printf("Finished frame early (%d/%d)\n", dt, MSPF);
             SDL_Delay(MSPF - dt);
         }
 	}
@@ -156,7 +156,7 @@ static void game_event_loop()
 		}
 		if(SDL_MOUSEWHEEL == event.type)
 		{
-			zoom_factor *= event.wheel.y < 0 ? 0.8 : 1.2;
+			zoom_factor *= event.wheel.y < 0 ? 0.9 : 1.1;
 			zoom(zoom_factor);
 		}
 	}
