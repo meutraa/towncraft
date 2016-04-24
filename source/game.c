@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "tile.h"
 #include "status.h"
@@ -55,12 +56,16 @@ Status game_loop(SDL_Renderer* renderer)
 	SDL_Texture* tex3 = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_FreeSurface(surface);
 
+
+	srand(time(NULL));
+
 	/* Create the grid. */
 	for(int i = 0; i < GRID_SIZE; i++)
 	{
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
-			chunk[i][j].texture = ((i*j) % 3 == 0) ? tex1 : ((i*j) % 2 == 0) ? tex2: tex3;
+			int k = rand() % 3;
+			chunk[i][j].texture = k == 0 ? tex1 : k == 1 ? tex2 : tex3;
 		}
 	}
 
@@ -69,7 +74,7 @@ Status game_loop(SDL_Renderer* renderer)
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
 	Status status = NORMAL;
-	unsigned int start_time, time;
+	unsigned int start_time, dt;
 	while(NORMAL == status)
 	{
 		start_time = SDL_GetTicks();
@@ -120,11 +125,11 @@ Status game_loop(SDL_Renderer* renderer)
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
 
-		time = SDL_GetTicks() - start_time;
-        if(time < MSPF)
+		dt = SDL_GetTicks() - start_time;
+        if(dt < MSPF)
         {
-			printf("Finished frame early (%d/%d)\n", time, MSPF);
-            SDL_Delay(MSPF - time);
+			printf("Finished frame early (%d/%d)\n", dt, MSPF);
+            SDL_Delay(MSPF - dt);
         }
 	}
 
@@ -143,13 +148,13 @@ static void game_event_loop()
 		if(SDL_KEYDOWN == event.type)
 		{
 			key_status[event.key.keysym.scancode] = 1;
-			printf("Key %d pressed\n", event.key.keysym.scancode);
+			//printf("Key %d pressed\n", event.key.keysym.scancode);
 		}
 		else if(SDL_KEYUP == event.type)
 		{
 			key_status[event.key.keysym.scancode] = 0;
 		}
-		if(SDL_MOUSEWHEEL == event.type)// && SDL_BUTTON_LEFT == event.button.button)
+		if(SDL_MOUSEWHEEL == event.type)
 		{
 			zoom_factor *= event.wheel.y < 0 ? 0.8 : 1.2;
 			zoom(zoom_factor);
