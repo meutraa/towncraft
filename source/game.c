@@ -8,6 +8,8 @@
 #include "file.h"
 #include "math.h"
 #include "options.h"
+#include "drawable.h"
+#include "text.h"
 #include "SDL_mixer.h"
 #include "SDL_image.h"
 
@@ -31,6 +33,12 @@ static int tile_height;
 
 static float camera_x = 0;
 static float camera_y = 0;
+
+static Drawable* drawables;
+static int count;
+static char* layout = "resources/layouts/game_ui.csv";
+
+static SDL_Color text_color = {255,255,255,0};
 
 static void zoom(float zoom)
 {
@@ -81,6 +89,8 @@ Status game_loop(SDL_Renderer* renderer)
 
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
+	count = load_drawables(renderer, &drawables, layout);
+
 	Status status = NORMAL;
 	unsigned int start_time, dt;
 	while(NORMAL == status)
@@ -129,6 +139,11 @@ Status game_loop(SDL_Renderer* renderer)
 				}
 			}
 		}
+		render_drawables(renderer, drawables, count);
+
+		char text_string[128];
+		sprintf(text_string, "%.1f, %.1f", camera_x, camera_y);
+		render_text(renderer, text_string, 16, text_color, 150, 0);
 
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
@@ -144,6 +159,9 @@ Status game_loop(SDL_Renderer* renderer)
 	/* Clean up and return to the main function. */
 	SDL_DestroyTexture(tex1);
 	SDL_DestroyTexture(tex2);
+
+	destroy_drawables(&drawables, count);
+
 	return status;
 }
 
