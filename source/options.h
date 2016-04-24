@@ -24,7 +24,7 @@ extern int vsync;
 */
 extern int fullscreen;
 
-/*!
+/*! /var extern int zoom_mode
 	\brief Defines the zoom mode.
 
 	0 always zoom on the center of the screen.
@@ -32,6 +32,11 @@ extern int fullscreen;
 	2 zoom centered on the mouse pointer.
 */
 extern int zoom_mode;
+
+/*! \var extern float scroll_speed
+	\brief percent of the screen that will scroll each frame.
+*/
+extern float scroll_speed;
 
 /*! \var extern int resolution_width
 	\brief Screen width resolution for use in fullscreen 0 & 1

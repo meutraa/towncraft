@@ -13,8 +13,8 @@
 typedef struct Tile
 {
 	SDL_Texture* texture;   /*!< a pointer to an SDL_Texture */
-	int x;
-	int y;
+	int x;					/*!< x position of tile. */
+	int y;					/*!< y position of tile. */
 } Tile;
 
 #endif
