@@ -90,7 +90,8 @@ Status game_loop(SDL_Renderer* renderer)
 	count = load_drawables(renderer, &drawables, layout);
 
 	Status status = NORMAL;
-	unsigned int start_time, dt;
+	int frames = 0;
+	unsigned int start_time, dt, total_time;
 	while(NORMAL == status)
 	{
 		start_time = SDL_GetTicks();
@@ -147,11 +148,19 @@ Status game_loop(SDL_Renderer* renderer)
 		SDL_RenderPresent(renderer);
 
 		dt = SDL_GetTicks() - start_time;
-        if(dt < MSPF)
+		total_time += dt;
+		if(total_time >= 1000)
+		{
+			// printf frames to screen;
+			frames = 0;
+			total_time = 0;
+		}
+        if(0 == vsync && dt < MSPF)
         {
 			//printf("Finished frame early (%d/%d)\n", dt, MSPF);
             SDL_Delay(MSPF - dt);
         }
+		frames++;
 	}
 
 	/* Clean up and return to the main function. */
