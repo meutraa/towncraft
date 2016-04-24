@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 #include "tile.h"
 #include "status.h"
@@ -18,9 +19,10 @@ static void game_event_loop();
 /* Milliseconds per frame .*/
 static const unsigned int MSPF = (int) (((float) 1000) / ((float) 60));
 
+#define round(x) ((x)>=0?(int)((x)+0.5):(int)((x)-0.5))
+
 #define SCANCODE_COUNT 283
-#define SCALE 0.5
-#define GRID_SIZE 1024
+#define GRID_SIZE 256
 #define SQUISH_FACTOR 0.65
 static float zoom_factor = 16.0f;
 
@@ -49,15 +51,15 @@ static void zoom(float zoom)
 	{
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
-			chunk[i][j].x = (int) ((j*tile_width*SCALE) - (i*tile_width*SCALE));
-			chunk[i][j].y = (int) ((j*tile_height*SCALE) + (i*tile_height*SCALE));
+			chunk[i][j].x = floor((j*(tile_width>>1)) - (i*(tile_width>>1)));
+			chunk[i][j].y = floor((j*(tile_height>>1)) + (i*(tile_height>>1)));
 		}
 	}
 
 	if(0 == zoom_mode)
 	{
-		camera_x += DESIGN_WIDTH * (zoom - 1) * 0.1;
-		camera_y += DESIGN_HEIGHT * (zoom - 1)* 0.1 ;
+		camera_x += round(DESIGN_WIDTH * (zoom - 1.0) * 0.1);
+		camera_y += round(DESIGN_HEIGHT * (zoom - 1.0)* 0.1);
 	}
 }
 
@@ -145,8 +147,8 @@ Status game_loop(SDL_Renderer* renderer)
 		render_text(renderer, camera_string, 16, text_color, 150, 1);
 
 		char centre_string[128];
-		int centre_x = (int) camera_x + DESIGN_WIDTH/2.0;
-		int centre_y = (int) camera_y + DESIGN_HEIGHT/2.0;
+		int centre_x = (int) (camera_x + DESIGN_WIDTH/2.0);
+		int centre_y = (int) (camera_y + DESIGN_HEIGHT/2.0);
 		sprintf(centre_string, "%d, %d", centre_x , centre_y);
 		render_text(renderer, centre_string, 16, text_color, 450, 1);
 

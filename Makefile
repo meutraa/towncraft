@@ -1,4 +1,4 @@
-LDFLAGS=-lSDL2_image -lSDL2_ttf -lSDL2_mixer `pkg-config --cflags --libs sdl2`
+LDFLAGS=-lm -lSDL2_image -lSDL2_ttf -lSDL2_mixer `pkg-config --cflags --libs sdl2`
 CFLAGS=-g -Wfatal-errors -Wall -Wextra -Wpedantic -O3 -std=c99 -Wunused-macros -Wcomments
 
 all: main docs
