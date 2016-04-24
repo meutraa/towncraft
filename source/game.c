@@ -39,13 +39,9 @@ static Drawable* drawables;
 static int count;
 static char* layout = "resources/layouts/game_ui.csv";
 
-<<<<<<< HEAD
 static TTF_Font* debug_font;
 static const SDL_Color white = {255,255,255,0};
-=======
-static SDL_Color text_color = {255,255,255,0};
 static char fps_string[128];
->>>>>>> 520d4c987c391b8d0005dcaf6718b72e92f3ba52
 
 static void zoom(float zoom)
 {
@@ -162,12 +158,7 @@ Status game_loop(SDL_Renderer* renderer)
 		sprintf(centre_string, "%d, %d", centre_x , centre_y);
 		render_text(renderer, debug_font, centre_string, white, 450, 1);
 
-<<<<<<< HEAD
-		char fps_string[128];
 		render_text(renderer, debug_font, fps_string, white, 1200, 1);
-=======
-		render_text(renderer, fps_string, 16, text_color, 1200, 1);
->>>>>>> 520d4c987c391b8d0005dcaf6718b72e92f3ba52
 
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
