@@ -140,9 +140,15 @@ Status game_loop(SDL_Renderer* renderer)
 		}
 		render_drawables(renderer, drawables, count);
 
-		char text_string[128];
-		sprintf(text_string, "%d, %d", camera_x, camera_y);
-		render_text(renderer, text_string, 16, text_color, 150, 1);
+		char camera_string[128];
+		sprintf(camera_string, "%d, %d", camera_x, camera_y);
+		render_text(renderer, camera_string, 16, text_color, 150, 1);
+
+		char centre_string[128];
+		int centre_x = (int) camera_x + DESIGN_WIDTH/2.0;
+		int centre_y = (int) camera_y + DESIGN_HEIGHT/2.0;
+		sprintf(centre_string, "%d, %d", centre_x , centre_y);
+		render_text(renderer, centre_string, 16, text_color, 450, 1);
 
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
