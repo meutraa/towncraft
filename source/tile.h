@@ -13,8 +13,8 @@
 typedef struct Tile
 {
 	SDL_Texture* texture;   /*!< a pointer to an SDL_Texture */
-	float x;
-	float y;
+	int x;
+	int y;
 } Tile;
 
 #endif

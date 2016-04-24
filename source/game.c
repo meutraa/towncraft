@@ -26,8 +26,8 @@ static float zoom_factor = 16.0f;
 static Tile chunk[GRID_SIZE][GRID_SIZE];
 static int key_status[SCANCODE_COUNT];
 
-static float tile_width;
-static float tile_height;
+static int tile_width;
+static int tile_height;
 
 static float camera_x = 0;
 static float camera_y = 0;
@@ -35,15 +35,16 @@ static float camera_y = 0;
 static void zoom(float zoom)
 {
 	zoom_factor *= zoom;
-	tile_width = (((float) DESIGN_WIDTH)/((float) GRID_SIZE))*zoom_factor;
-	tile_height = tile_width*SQUISH_FACTOR;
+	tile_width = round((((float) DESIGN_WIDTH)/((float) GRID_SIZE))*zoom_factor);
+	tile_height = round(tile_width*SQUISH_FACTOR);
 
 	for(int i = 0; i < GRID_SIZE; i++)
 	{
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
-			chunk[i][j].x = (j*tile_width*0.46) - (i*tile_width*0.46);
-			chunk[i][j].y = (j*tile_height*0.46) + (i*tile_height*0.46);
+			float scale = 0.5;
+			chunk[i][j].x = (j*tile_width*scale) - (i*tile_width*scale);
+			chunk[i][j].y = (j*tile_height*scale) + (i*tile_height*scale);
 		}
 	}
 
@@ -110,7 +111,7 @@ Status game_loop(SDL_Renderer* renderer)
 		/* Comment out for windows 95 mode. */
 		SDL_RenderClear(renderer);
 
-		SDL_Rect new = { 0, 0, round(tile_width), round(tile_height) };
+		SDL_Rect new = { 0, 0, tile_width, tile_height };
 
 		for(int i = 0; i < GRID_SIZE; i++)
 		{
