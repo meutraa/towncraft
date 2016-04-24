@@ -43,15 +43,15 @@ static void zoom(float zoom)
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
 			float scale = 0.5;
-			chunk[i][j].x = (j*tile_width*scale) - (i*tile_width*scale);
-			chunk[i][j].y = (j*tile_height*scale) + (i*tile_height*scale);
+			chunk[i][j].x = (int) ((j*tile_width*scale) - (i*tile_width*scale));
+			chunk[i][j].y = (int) ((j*tile_height*scale) + (i*tile_height*scale));
 		}
 	}
 
 	if(0 == zoom_mode)
 	{
-		camera_x += DESIGN_WIDTH * (zoom - 1) * 0.5;
-		camera_y += DESIGN_HEIGHT * (zoom - 1) * 0.5;
+		camera_x += DESIGN_WIDTH * (zoom - 1) * 0.25;
+		camera_y += DESIGN_HEIGHT * (zoom - 1) * 0.25;
 	}
 }
 
