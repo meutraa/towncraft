@@ -75,7 +75,7 @@ Status game_loop(SDL_Renderer* renderer)
 	SDL_FreeSurface(blue);
 	SDL_FreeSurface(green);
 
-	sprintf(fps_string, "%d", 0);
+	strncpy(fps_string, "0", 1);
 
 	srand(time(NULL));
 
