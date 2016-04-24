@@ -16,9 +16,9 @@ OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))
 OBJPATHS := $(patsubst %,$(OBJDIR)/%,$(OBJFILES))
 DEPPATHS := $(patsubst %.o,%.d,$(OBJPATHS))
 
-.PHONY: all clean
+.PHONY: all clean dirs
 
-all: main docs
+all: dirs main docs
 
 main: $(OBJPATHS)
 	$(CC) -o towncraft $(OBJPATHS) $(LDFLAGS)
@@ -37,6 +37,9 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c Makefile
 
 clean:
 	-$(RM) -r $(OBJDIR)/* towncraft documentation/html documentation/latex
+
+dirs:
+	@mkdir -p $(OBJDIR)
 
 docs:
 	doxygen documentation/doxygen.cfg
