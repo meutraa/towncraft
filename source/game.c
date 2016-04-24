@@ -152,6 +152,9 @@ Status game_loop(SDL_Renderer* renderer)
 		sprintf(centre_string, "%d, %d", centre_x , centre_y);
 		render_text(renderer, centre_string, 16, text_color, 450, 1);
 
+		char fps_string[128];
+		render_text(renderer, fps_string, 16, text_color, 1200, 1);
+
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
 
@@ -160,6 +163,7 @@ Status game_loop(SDL_Renderer* renderer)
 		if(total_time >= 1000)
 		{
 			// printf frames to screen;
+			sprintf(fps_string, "%d", frames);
 			frames = 0;
 			total_time = 0;
 		}
