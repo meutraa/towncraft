@@ -1,16 +1,16 @@
+#include "options_menu.h"
+
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
 
 #include "drawable.h"
-#include "file.h"
-#include "math.h"
 #include "status.h"
 
 /* This function is unpure and accesses global drawable arrays and counts! */
-static Status options_menu_event_loop();
+static Status options_menu_event_loop(void);
 
 #define DRAWABLE_ARRAYS 4
-static char *layouts[DRAWABLE_ARRAYS] = {
+static const char *layouts[DRAWABLE_ARRAYS] = {
 	"resources/layouts/options_menu.csv",
 	"resources/layouts/options_video.csv",
 	"resources/layouts/options_audio.csv",

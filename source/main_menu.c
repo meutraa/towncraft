@@ -1,15 +1,15 @@
+#include "main_menu.h"
+
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
 
 #include "drawable.h"
 #include "status.h"
-#include "file.h"
-#include "math.h"
 #include "SDL_mixer.h"
 
-static Status main_menu_event_loop();
+static Status main_menu_event_loop(void);
 
-static char *layout_file = "resources/layouts/main_menu.csv";
+static const char *layout_file = "resources/layouts/main_menu.csv";
 static int count;
 static Drawable* drawables;
 

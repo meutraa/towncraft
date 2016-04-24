@@ -1,25 +1,22 @@
+#include "game.h"
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
-#include <math.h>
 
+#include "SDL_image.h"
 #include "tile.h"
 #include "status.h"
 #include "constants.h"
-#include "file.h"
-#include "math.h"
 #include "options.h"
 #include "drawable.h"
 #include "text.h"
-#include "SDL_mixer.h"
-#include "SDL_image.h"
 
-static void game_event_loop();
+static void game_event_loop(void);
 
 /* Milliseconds per frame .*/
 static const unsigned int MSPF = (int) (((float) 1000) / ((float) 60));
-
-#define round(x) ((x)>=0?(int)((x)+0.5):(int)((x)-0.5))
 
 #define SCANCODE_COUNT 283
 #define GRID_SIZE 256
@@ -37,7 +34,7 @@ static int camera_y = 0;
 
 static Drawable* drawables;
 static int count;
-static char* layout = "resources/layouts/game_ui.csv";
+static const char* layout = "resources/layouts/game_ui.csv";
 
 static TTF_Font* debug_font;
 static const SDL_Color white = {255,255,255,0};
@@ -53,8 +50,8 @@ static void zoom(float zoom)
 	{
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
-			chunk[i][j].x = floor((j*(tile_width>>1)) - (i*(tile_width>>1)));
-			chunk[i][j].y = floor((j*(tile_height>>1)) + (i*(tile_height>>1)));
+			chunk[i][j].x = (int) floor((j*(tile_width>>1)) - (i*(tile_width>>1)));
+			chunk[i][j].y = (int) floor((j*(tile_height>>1)) + (i*(tile_height>>1)));
 		}
 	}
 
@@ -77,7 +74,7 @@ Status game_loop(SDL_Renderer* renderer)
 
 	strncpy(fps_string, "0", 1);
 
-	srand(time(NULL));
+	srand((unsigned int) time(NULL));
 
 	debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
 
@@ -99,7 +96,7 @@ Status game_loop(SDL_Renderer* renderer)
 
 	Status status = NORMAL;
 	int frames = 0;
-	unsigned int start_time, dt, total_time;
+	unsigned int start_time, dt, total_time = 0;
 	while(NORMAL == status)
 	{
 		start_time = SDL_GetTicks();
@@ -206,7 +203,7 @@ static void game_event_loop()
 		}
 		if(SDL_MOUSEWHEEL == event.type)
 		{
-			zoom(event.wheel.y < 0 ? 0.9 : 1.1);
+			zoom(event.wheel.y < 0 ? 0.8f : 1.25f);
 		}
 	}
 }

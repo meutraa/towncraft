@@ -1,3 +1,5 @@
+#include "text.h"
+
 #include "SDL_ttf.h"
 
 void render_text(SDL_Renderer* renderer, TTF_Font* font, char text[], SDL_Color color, int pos_x, int pos_y)

@@ -1,5 +1,6 @@
+#include "file.h"
+
 #include <stdio.h>
-#include <string.h>
 
 int file_exists(char* path)
 {

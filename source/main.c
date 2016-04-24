@@ -7,10 +7,11 @@
 #include <stdlib.h>
 
 #include "constants.h"
-#include "SDL_ttf.h"
 #include "SDL_mixer.h"
+#include "SDL_ttf.h"
+#include "SDL.h"
 
-int main(/*int argc, char** argv*/)
+int main(void)
 {
 	/* Ensures any return will call SDL_Quit first. */
 	atexit(SDL_Quit);

@@ -1,23 +1,30 @@
 #include "drawable.h"
-#include "file.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "constants.h"
-#include "SDL_image.h"
 #include "SDL_ttf.h"
+#include "file.h"
+#include "SDL_image.h"
 
 #define MAX_DRAWABLES 32
 
 /* font placed at (x,y), then (x - 15, y - 5), width(int n) = 24*7 + 30 , height(32) = 45 */
 
-#define TEXT_FORMAT  "%d%*[ \t]text%*[^\"]\"%256[^\"]\"%*[ \t]%256[^:]:%d:%d%*[^(](%d,%d,%d,%d)%*[^(](%d,%d)%*[^(](%d,%d)"
+#define TEXT_FORMAT "%d%*[ \t]text%*[^\"]\"%256[^\"]\"%*[ \t]%256[^:]:%d:%d%*[^(](%hhu,%hhu,%hhu,%hhu)%*[^(](%d,%d)%*[^(](%d,%d)"
 #define IMG_FORMAT   "%d%*[ \t]image%*[^\"]\"%256[^\"]\"%*[ \t]%256[^ \t]%*[^(](%d,%d)%*[^(](%d,%d)"
-#define COLOR_FORMAT "%d%*[ \t]color%*[^\"]\"%256[^\"]\"%*[^(](%d,%d)%*[^(](%d,%d,%d,%d)%*[^(](%d,%d)%*[^(](%d,%d)"
+#define COLOR_FORMAT "%d%*[ \t]color%*[^\"]\"%256[^\"]\"%*[^(](%d,%d)%*[^(](%hhu,%hhu,%hhu,%hhu)%*[^(](%d,%d)%*[^(](%d,%d)"
 
-static int count_params(char* format)
+int bounded_by(int x, int y, SDL_Rect* r)
+{
+	if((x > r->x && x < r->x + r->w) && (y > r->y && y < r->y + r->h))
+		return 1;
+	return 0;
+}
+
+static int count_params(const char format[])
 {
 	int i = 0, count = 0;
 	while(format[i + 1] != '\0')
@@ -59,7 +66,7 @@ void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count)
 	}
 }
 
-int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_file)
+int load_drawables(SDL_Renderer* renderer, Drawable** drawables, const char* layout_file)
 {
 	/* Count the correct number of parameters in the format strings. */
 	if(0 == TEXT_COUNT)
@@ -88,7 +95,8 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 
 	char line[len], name[len], path[len];
 	int wx, wy, mx, my, width, height, visible;
-	int mode, r, g, b, a, font_size;
+	int mode, font_size;
+	unsigned char r, g, b, a;
 	SDL_Surface* surface;
 
 	while(NULL != fgets(line, len, file) && i < MAX_DRAWABLES)
@@ -158,7 +166,7 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 	}
 
 	/* Shrink the array to the size we used. */
-	Drawable** new = malloc(i*sizeof(Drawable));
+	Drawable** new = malloc(((unsigned long) i)*sizeof(Drawable));
 	if(NULL == new)
 	{
 		fprintf(stderr, "%s: could not reassign memory for drawables.\n\n", layout_file);
@@ -167,7 +175,7 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_fi
 	}
 	else
 	{
-		memmove(new, drawables, i*sizeof(Drawable));
+		memmove(new, drawables, ((unsigned long) i)*sizeof(Drawable));
 	}
 	drawables = new;
 

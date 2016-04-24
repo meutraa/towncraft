@@ -24,6 +24,16 @@ typedef struct Drawable
 	SDL_Rect monitor;		/*!< an SDL_Rect containing positions for a 16:10 aspect ratio. */
 } Drawable;
 
+/*! \fn int bounded_by(int x, int y, SDL_Rect* r)
+	\note This function is made redundant in SDL 2.0.4 with SDL_PointInRect()
+	\brief Checks if a 2d point is inside a rectangle (SDL_Rect)
+	\param x an integer value for the horizontal position.
+	\param y an integer value for the vertical position.
+	\param r an SDL_Rect for bounds.
+	\return 0 if point is outside bounds, 1 else.
+*/
+int bounded_by(int x, int y, SDL_Rect* r);
+
 /*! \fn void destroy_drawables(Drawable** drawables, int count)
 	\brief Frees all memory contained in the Drawable.
 
@@ -50,7 +60,7 @@ void show_drawables(Drawable** drawables, int count, int show);
 */
 void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count);
 
-/*! \fn void load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_file)
+/*! \fn void load_drawables(SDL_Renderer* renderer, Drawable** drawables, const char* layout_file)
 	\brief Takes a layout file and fills the drawables array.
 
 	\param renderer the SDL_Renderer used to render textures.
@@ -58,6 +68,6 @@ void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count);
 	\param layout_file a relative path to the resource file as a string.
 	\return the number of loaded drawables, 0 if error.
 */
-int load_drawables(SDL_Renderer* renderer, Drawable** drawables, char* layout_file);
+int load_drawables(SDL_Renderer* renderer, Drawable** drawables, const char* layout_file);
 
 #endif
