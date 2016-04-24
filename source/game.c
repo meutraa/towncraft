@@ -150,15 +150,15 @@ Status game_loop(SDL_Renderer* renderer)
 
 		char camera_string[128];
 		sprintf(camera_string, "%d, %d", camera_x, camera_y);
-		render_text(renderer, debug_font, camera_string, white, 150, 1);
+		render_text(renderer, debug_font, camera_string, white, 150, 3);
 
 		char centre_string[128];
 		int centre_x = (int) (camera_x + DESIGN_WIDTH/2.0);
 		int centre_y = (int) (camera_y + DESIGN_HEIGHT/2.0);
 		sprintf(centre_string, "%d, %d", centre_x , centre_y);
-		render_text(renderer, debug_font, centre_string, white, 450, 1);
+		render_text(renderer, debug_font, centre_string, white, 450, 3);
 
-		render_text(renderer, debug_font, fps_string, white, 1200, 1);
+		render_text(renderer, debug_font, fps_string, white, 1200, 3);
 
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
