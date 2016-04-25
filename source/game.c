@@ -92,7 +92,7 @@ Status game_loop(SDL_Renderer* renderer)
 	{
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
-			int k = rand() % (length + 8);
+			int k = rand() % (length << 1);
 			tiles[i][j].texture = k < length ? textures[k] : NULL;
 		}
 	}
