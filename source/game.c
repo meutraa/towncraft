@@ -93,7 +93,7 @@ Status game_loop(SDL_Renderer* renderer)
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
 			int k = rand() % (length << 1);
-			tiles[i][j].texture = k < length ? textures[k] : NULL;
+			tiles[i][j].sprite_texture = k < length ? textures[k] : NULL;
 		}
 	}
 
@@ -171,11 +171,11 @@ Status game_loop(SDL_Renderer* renderer)
 			for(int j = 0; j < GRID_SIZE; j++)
 			{
 				/* Only render the drawable if it intersects with the current camera rect. */
-				if(NULL != tiles[i][j].texture && 1 == inside_screen(tiles[i][j].x, tiles[i][j].y, px, py, tw, th))
+				if(NULL != tiles[i][j].sprite_texture && 1 == inside_screen(tiles[i][j].x, tiles[i][j].y, px, py, tw, th))
 				{
 					new.x = (int) floor(tiles[i][j].x - px);
 					new.y = (int) floor(tiles[i][j].y - py);
-					SDL_RenderCopy(renderer, tiles[i][j].texture, NULL, &new);
+					SDL_RenderCopy(renderer, tiles[i][j].sprite_texture, NULL, &new);
 				}
 			}
 		}
