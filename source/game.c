@@ -36,7 +36,7 @@ static float cal_py(float grid_offset_tiles, float th, float screen_offset_tiles
 /* Milliseconds per frame .*/
 #define MSPF 1000 / 60
 
-#define SQUISH_FACTOR 0.7f
+#define SQUISH_FACTOR 0.808f
 
 Status game_loop(SDL_Renderer* renderer)
 {
@@ -67,18 +67,9 @@ Status game_loop(SDL_Renderer* renderer)
 	float px = 0.0f, py = 0.0f;
 
 	/* Create two generic color textures. */
-	SDL_Surface* blue = IMG_Load("resources/images/rhombus-blue.tga");
-	SDL_Surface* green = IMG_Load("resources/images/rhombus-green.tga");
-	SDL_Texture* tex1 = SDL_CreateTextureFromSurface(renderer, blue);
-	SDL_Texture* tex2 = SDL_CreateTextureFromSurface(renderer, green);
-	SDL_FreeSurface(blue);
-	SDL_FreeSurface(green);
-
 	SDL_Surface* castle = IMG_Load("resources/images/castle.tga");
 	SDL_Texture* castle_tex = SDL_CreateTextureFromSurface(renderer, castle);
 	SDL_FreeSurface(castle);
-
-	tex1 = castle_tex;
 
 	/* Enable to see how outside of camera borders is rendered. */
 	//SDL_RenderSetLogicalSize(renderer, resolution_width*1.2, resolution_height*1.2);
@@ -91,11 +82,11 @@ Status game_loop(SDL_Renderer* renderer)
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
 			int k = rand() % 2;
-			tiles[i][j].texture = k == 0 ? tex1 : tex2;
+			tiles[i][j].texture = k == 0 ? castle_tex : NULL;
 		}
 	}
 
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	SDL_SetRenderDrawColor(renderer, 186, 201, 95, 255);
 
 	count = load_drawables(renderer, &drawables, layout);
 
@@ -169,7 +160,7 @@ Status game_loop(SDL_Renderer* renderer)
 			for(int j = 0; j < GRID_SIZE; j++)
 			{
 				/* Only render the drawable if it intersects with the current camera rect. */
-				if(1 == inside_screen(tiles[i][j].x, tiles[i][j].y, px, py, tw, th))
+				if(NULL != tiles[i][j].texture && 1 == inside_screen(tiles[i][j].x, tiles[i][j].y, px, py, tw, th))
 				{
 					new.x = (int) floor(tiles[i][j].x - px);
 					new.y = (int) floor(tiles[i][j].y - py);
@@ -220,8 +211,7 @@ Status game_loop(SDL_Renderer* renderer)
 	}
 
 	/* Clean up and return to the main function. */
-	SDL_DestroyTexture(tex1);
-	SDL_DestroyTexture(tex2);
+	SDL_DestroyTexture(castle_tex);
 	TTF_CloseFont(debug_font);
 
 	destroy_drawables(&drawables, count);
