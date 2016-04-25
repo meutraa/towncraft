@@ -194,6 +194,18 @@ Status game_loop(SDL_Renderer* renderer)
 					new.x = (int) floor(tiles[i][j].x - px);
 					new.y = (int) floor(tiles[i][j].y - py);
 					SDL_RenderCopy(renderer, tiles[i][j].tile_texture, NULL, &new);
+				}
+			}
+		}
+		for(int i = 0; i < GRID_SIZE; i++)
+		{
+			for(int j = 0; j < GRID_SIZE; j++)
+			{
+				/* Only render the drawable if it intersects with the current camera rect. */
+				if(1 == inside_screen(tiles[i][j].x, tiles[i][j].y, px, py, tw, th))
+				{
+					new.x = (int) floor(tiles[i][j].x - px);
+					new.y = (int) floor(tiles[i][j].y - py);
 					if(NULL != tiles[i][j].sprite_texture) SDL_RenderCopy(renderer, tiles[i][j].sprite_texture, NULL, &new);
 				}
 			}
