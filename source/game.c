@@ -179,7 +179,7 @@ Status game_loop(SDL_Renderer* renderer)
 		SDL_RenderClear(renderer);
 
 		/* Adding is a quick hack that seems to work. */
-		SDL_Rect new = { 0, 0, (int) (tw + 1.5), (int) (th + 1.5) };
+		SDL_Rect new = { 0, 0, (int) (tw + 2.0), (int) (th + 2.0) };
 
 		for(int i = 0; i < GRID_SIZE; i++)
 		{
@@ -188,8 +188,8 @@ Status game_loop(SDL_Renderer* renderer)
 				/* Only render the drawable if it intersects with the current camera rect. */
 				if(1 == inside_screen(tiles[i][j].x, tiles[i][j].y, px, py, tw, th))
 				{
-					new.x = (int) round(tiles[i][j].x - px);
-					new.y = (int) round(tiles[i][j].y - py);
+					new.x = (int) floor(tiles[i][j].x - px);
+					new.y = (int) floor(tiles[i][j].y - py);
 					SDL_RenderCopy(renderer, tiles[i][j].texture, NULL, &new);
 				}
 			}
