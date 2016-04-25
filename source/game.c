@@ -22,28 +22,16 @@ static const char* layout = "resources/layouts/game_ui.csv";
 
 /* The grid of tiles. */
 #define GRID_SIZE 256
-#define TILE_WIDTH DESIGN_WIDTH / GRID_SIZE
 
 /* Function prototypes. */
 static int inside_screen(float x, float y, float cam_x, float cam_y, float tw, float th);
 static float cal_tw(float scale);
 static float cal_th(float scale);
-static float cal_cpx(float px);
-static float cal_cpy(float py);
-static float cal_ctx(float cx, float tw);
-static float cal_cty(float px, float tw);
+static float cal_tx(float px, float tw, float offset);
+static float cal_ty(float py, float tw, float offset);
 static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, float th);
-static float cal_px(float ctx, float tw);
-static float cal_py(float cty, float tw);
-
-/*! If you would like not to kill yourself in this file.
-    Cx = Tcx * Tw - (0.5 * Dw)
-
-    Cx is camera_x is the pixel offset from 0,0 on the grid.
-    Tcx is the tile [0-256][0-256] at the center of the screen.
-    Tw is tile_width is the width of each tile in pixels.
-    Dw is DESIGN_WIDTH is the virtual co-ordinate system.
-*/
+static float cal_px(float offset_tiles, float tw, float offset);
+static float cal_py(float offset_tiles, float th, float offset);
 
 /* Milliseconds per frame .*/
 #define MSPF 1000 / 60
@@ -134,37 +122,22 @@ Status game_loop(SDL_Renderer* renderer)
 				if(new_scale > 4.0f && new_scale < 75.0f)
 				{
 					scale = new_scale;
-					float ctx, cty, tx, ty;
+					float offset_x = (0 == zoom_mode) ? DESIGN_WIDTH >> 1 : (float)mouse_x;
+					float offset_y = (0 == zoom_mode) ? DESIGN_HEIGHT >> 1 : (float)mouse_y;
 
-					/* Centre position in tiles (ctX) we want to retain. */
-					if(0 == zoom_mode)
-					{
-						ctx = cal_ctx(px, tw);
-						cty = cal_cty(py, th);
-					}
-					else if(1 == zoom_mode)
-					{
-						tx = ((float)mouse_x + px) / tw;
-						ty = ((float)mouse_y + py) / th;
-					}
+					/* Position in tiles we want to retain. */
+					float tx = cal_tx(px, tw, offset_x);
+					float ty = cal_ty(py, th, offset_y);
 
 					/* Calculate new tile dimensions and positions. */
-					tw  = cal_tw(scale);
+					tw = cal_tw(scale);
 					th = cal_th(scale);
 
 					calculate_tile_positions(tiles, tw, th);
 
-					if(0 == zoom_mode)
-					{
-						/* Calculate the new top left corner in pixels. */
-						px = cal_px(ctx, tw);
-						py = cal_py(cty, th);
-					}
-					else if(1 == zoom_mode)
-					{
-						px = (tx * tw) - (float)mouse_x;
-						py = (ty * th) - (float)mouse_y;
-					}
+					/* Calculate the new top left corner in pixels. */
+					px = cal_px(tx, tw, offset_x);
+					py = cal_py(ty, th, offset_y);
 				}
 			}
 		}
@@ -207,11 +180,11 @@ Status game_loop(SDL_Renderer* renderer)
 		render_drawables(renderer, drawables, count);
 
 		/* Calculate the tile (x,y) in grid that is at the top left of the window. */
-		sprintf(grid_pos, "%.1f, %.1f", px / tw, py / th);
+		sprintf(grid_pos, "%.1f, %.1f", cal_tx(px, tw, 0), cal_ty(py, th, 0));
 		render_text(renderer, debug_font, grid_pos, white, 150, 4);
 
 		/* Calculate the tile (x,y) in grid that is centered on screen. */
-		sprintf(centre_string, "%.1f, %.1f", cal_ctx(px, th), cal_cty(py, th));
+		sprintf(centre_string, "%.1f, %.1f", cal_tx(px, tw, DESIGN_WIDTH >> 1), cal_ty(py, th, DESIGN_HEIGHT >> 1));
 		render_text(renderer, debug_font, centre_string, white, 450, 4);
 
 		sprintf(mouse_string, "%d, %d", mouse_x, mouse_y);
@@ -266,39 +239,12 @@ static int inside_screen(float x, float y, float cam_x, float cam_y, float tw, f
 
 static float cal_tw(float scale)
 {
-	return TILE_WIDTH * scale;
+	return DESIGN_WIDTH / GRID_SIZE * scale;
 }
 
 static float cal_th(float scale)
 {
-	return TILE_WIDTH * scale * SQUISH_FACTOR;
-}
-
-static float cal_cpx(float px)
-{
-	return px + (DESIGN_WIDTH >> 1);
-}
-
-static float cal_cpy(float py)
-{
-	return py + (DESIGN_HEIGHT >> 1);
-}
-
-/*! \fun static float centre_tile_x(float left_pixel, float tile_w)
-	\brief calculates the middle position of the grid in units of tiles.
-
-	\param left_pixel the current pixel of the grid that is rendered at x = 0
-	\param tile_w the width of a tile.
-	\return the grid position at the centre of the screen measured in tiles.
-*/
-static float cal_ctx(float px, float tw)
-{
-	return cal_cpx(px) / tw;
-}
-
-static float cal_cty(float py, float th)
-{
-	return cal_cpy(py) / th;
+	return DESIGN_WIDTH / GRID_SIZE * scale * SQUISH_FACTOR;
 }
 
 static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, float th)
@@ -315,12 +261,22 @@ static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, flo
 	}
 }
 
-static float cal_px(float ctx, float tw)
+static float cal_tx(float px, float tw, float offset)
 {
-	return ctx*tw - (DESIGN_WIDTH >> 1);
+	return (offset + px) / tw;
 }
 
-static float cal_py(float cty, float th)
+static float cal_ty(float py, float th, float offset)
 {
-	return cty*th - (DESIGN_HEIGHT >> 1);
+	return (offset + py) / th;
+}
+
+static float cal_px(float offset_tiles, float tw, float offset)
+{
+	return offset_tiles*tw - offset;
+}
+
+static float cal_py(float offset_tiles, float th, float offset)
+{
+	return offset_tiles*th - offset;
 }
