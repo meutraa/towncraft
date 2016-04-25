@@ -33,15 +33,6 @@ static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, flo
 static float cal_px(float offset_tiles, float tw, float offset);
 static float cal_py(float offset_tiles, float th, float offset);
 
-/*! If you would like not to kill yourself in this file.
-    Cx = Tcx * Tw - (0.5 * Dw)
-
-    Cx is camera_x is the pixel offset from 0,0 on the grid.
-    Tcx is the tile [0-256][0-256] at the center of the screen.
-    Tw is tile_width is the width of each tile in pixels.
-    Dw is DESIGN_WIDTH is the virtual co-ordinate system.
-*/
-
 /* Milliseconds per frame .*/
 #define MSPF 1000 / 60
 
