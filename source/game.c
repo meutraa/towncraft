@@ -37,7 +37,7 @@ static float cal_py(float grid_offset_tiles, float th, float screen_offset_tiles
 /* Milliseconds per frame .*/
 #define MSPF 1000 / 60
 
-#define SQUISH_FACTOR 0.808f
+#define SQUISH_FACTOR 0.5f
 
 Status game_loop(SDL_Renderer* renderer)
 {
@@ -76,7 +76,7 @@ Status game_loop(SDL_Renderer* renderer)
 	};
 
 	const char* tile_images[] = {
-		"resources/images/rhombus-blue.tga",
+		"resources/images/rhombus-test.tga",
 		"resources/images/rhombus-green.tga",
 	};
 	int sprite_length = 4;
@@ -206,7 +206,7 @@ Status game_loop(SDL_Renderer* renderer)
 				{
 					new.x = (int) floor(tiles[i][j].x - px);
 					new.y = (int) floor(tiles[i][j].y - py);
-					if(NULL != tiles[i][j].sprite_texture) SDL_RenderCopy(renderer, tiles[i][j].sprite_texture, NULL, &new);
+					//if(NULL != tiles[i][j].sprite_texture) SDL_RenderCopy(renderer, tiles[i][j].sprite_texture, NULL, &new);
 				}
 			}
 		}
@@ -302,7 +302,7 @@ static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, flo
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
 			t[i][j].x = w*(float)(j - i);
-			t[i][j].y = h*(float)(j + i);
+			t[i][j].y = h*0.5*(float)(j + i);
 		}
 	}
 }
