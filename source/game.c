@@ -29,6 +29,7 @@ static Tile tiles[GRID_SIZE][GRID_SIZE];
 
 /* Function prototypes. */
 static void game_event_loop(void);
+static int inside_screen(float x, float y, float cam_x, float cam_y, float tw, float th);
 static float calculate_tile_width(float scale);
 static float calculate_tile_height(float scale);
 static float centre_pixel_x(float left);
@@ -50,7 +51,7 @@ static void zoom(float zoom);
 */
 
 /* Milliseconds per frame .*/
-static const unsigned int MSPF = (int) (((float) 1000) / ((float) 60));
+#define MSPF 1000 / 60
 
 #define SQUISH_FACTOR 0.7f
 static float current_scale = 16.0f;
@@ -61,12 +62,14 @@ static float tile_height;
 static float camera_x = 0.0f;
 static float camera_y = 0.0f;
 
-static TTF_Font* debug_font;
-static const SDL_Color white = { 255, 255, 255, 0 };
-static char fps_string[128] = { [0] = '6', [1] = '0', [2] = '\0' };
-
 Status game_loop(SDL_Renderer* renderer)
 {
+	char fps_string[128] = { [0] = '6', [1] = '0', [2] = '\0' };
+	const SDL_Color white = { 255, 255, 255, 0 };
+
+	TTF_Font* debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
+	int fps = 0;
+
 	/* Create three generic color textures. */
 	SDL_Surface* blue = IMG_Load("resources/images/rhombus-blue.tga");
 	SDL_Surface* green = IMG_Load("resources/images/rhombus-green.tga");
@@ -75,9 +78,10 @@ Status game_loop(SDL_Renderer* renderer)
 	SDL_FreeSurface(blue);
 	SDL_FreeSurface(green);
 
-	srand((unsigned int) time(NULL));
+	/* Enable to see how outside of camera borders is rendered. */
+	//SDL_RenderSetLogicalSize(renderer, resolution_width*1.2, resolution_height*1.2);
 
-	debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
+	srand((unsigned int) time(NULL));
 
 	/* Create the grid. */
 	for(int i = 0; i < GRID_SIZE; i++)
@@ -133,10 +137,7 @@ Status game_loop(SDL_Renderer* renderer)
 			for(int j = 0; j < GRID_SIZE; j++)
 			{
 				/* Only render the drawable if it intersects with the current camera rect. */
-				if(tiles[i][j].x >= camera_x - tile_width &&
-				   tiles[i][j].x <= camera_x + DESIGN_WIDTH + tile_width &&
-				   tiles[i][j].y >= camera_y - tile_height &&
-				   tiles[i][j].y <= camera_y + DESIGN_HEIGHT + tile_width)
+				if(1 == inside_screen(tiles[i][j].x, tiles[i][j].y, camera_x, camera_y, tile_width, tile_height))
 				{
 					new.x = (int) round(tiles[i][j].x - camera_x);
 					new.y = (int) round(tiles[i][j].y - camera_y);
@@ -169,8 +170,8 @@ Status game_loop(SDL_Renderer* renderer)
 		total_time += dt;
 		if(total_time >= 1000)
 		{
-			// printf frames to screen;
-			sprintf(fps_string, "%d", frames);
+			fps = frames;
+			sprintf(fps_string, "%d", fps);
 			frames = -1;
 			total_time = 0;
 		}
@@ -215,6 +216,12 @@ static void game_event_loop()
 
 /* These should all be pure functions.
 */
+static int inside_screen(float x, float y, float cam_x, float cam_y, float tw, float th)
+{
+	return x >= cam_x - tw && x <= cam_x + DESIGN_WIDTH &&
+	y >= cam_y - th && y <= cam_y + DESIGN_HEIGHT;
+}
+
 static float calculate_tile_width(float scale)
 {
 	return TILE_WIDTH * scale;

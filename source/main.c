@@ -63,7 +63,6 @@ int main(void)
 		SDL_RENDERER_ACCELERATED|
 		(vsync ? SDL_RENDERER_PRESENTVSYNC : 0) /* http://wiki.libsdl.org/SDL_RendererFlags */
 	);
-	//SDL_RenderSetLogicalSize(renderer, resolution_width*2, resolution_height*2);
 
 	if(NULL == renderer)
 	{
