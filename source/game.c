@@ -70,8 +70,10 @@ Status game_loop(SDL_Renderer* renderer)
 	const char* images[] = {
 		"resources/images/castle.tga",
 		"resources/images/inn.tga",
+		"resources/images/house.tga",
+		"resources/images/house-overgrown.tga",
 	};
-	int length = 2;
+	int length = 4;
 	SDL_Texture* textures[length];
 	for(int i = 0; i < length; i++)
 	{
