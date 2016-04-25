@@ -67,9 +67,18 @@ Status game_loop(SDL_Renderer* renderer)
 	float px = 0.0f, py = 0.0f;
 
 	/* Create two generic color textures. */
-	SDL_Surface* castle = IMG_Load("resources/images/castle.tga");
-	SDL_Texture* castle_tex = SDL_CreateTextureFromSurface(renderer, castle);
-	SDL_FreeSurface(castle);
+	const char* images[] = {
+		"resources/images/castle.tga",
+		"resources/images/inn.tga",
+	};
+	int length = 2;
+	SDL_Texture* textures[length];
+	for(int i = 0; i < length; i++)
+	{
+		SDL_Surface* s = IMG_Load(images[i]);
+		textures[i] = SDL_CreateTextureFromSurface(renderer, s);
+		SDL_FreeSurface(s);
+	}
 
 	/* Enable to see how outside of camera borders is rendered. */
 	//SDL_RenderSetLogicalSize(renderer, resolution_width*1.2, resolution_height*1.2);
@@ -81,8 +90,8 @@ Status game_loop(SDL_Renderer* renderer)
 	{
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
-			int k = rand() % 2;
-			tiles[i][j].texture = k == 0 ? castle_tex : NULL;
+			int k = rand() % (length + 8);
+			tiles[i][j].texture = k < length ? textures[k] : NULL;
 		}
 	}
 
@@ -211,7 +220,10 @@ Status game_loop(SDL_Renderer* renderer)
 	}
 
 	/* Clean up and return to the main function. */
-	SDL_DestroyTexture(castle_tex);
+	for(int i = 0; i < length; i++)
+	{
+		SDL_DestroyTexture(textures[i]);
+	}
 	TTF_CloseFont(debug_font);
 
 	destroy_drawables(&drawables, count);
