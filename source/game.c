@@ -79,8 +79,8 @@ Status game_loop(SDL_Renderer* renderer)
 	};
 
 	const char* tile_images[] = {
-		"resources/images/terrain-water.tga",
-		"resources/images/terrain-grass.tga",
+		"resources/images/terrain-water-test.tga",
+		"resources/images/terrain-grass-test.tga",
 	};
 	int sprite_length = 7;
 	int tile_length = 2;
@@ -113,7 +113,8 @@ Status game_loop(SDL_Renderer* renderer)
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
 			/* If connected to land, and roll was water, reroll. */
-			int l = rand() % tile_length;
+			int l = rand() % (tile_length + 10);
+			l = (l < 9) ? 1 : 0;
 			if(j > 0)
 			{
 				if(l != tiles[i][j - 1].tile_id) l = rand() % tile_length;
@@ -167,8 +168,8 @@ Status game_loop(SDL_Renderer* renderer)
 			}
 			else if(SDL_MOUSEWHEEL == event.type)
 			{
-				float new_scale = scale * ((event.wheel.y < 0) ? 0.8f : 1.25f);
-				if(new_scale > 4.0f && new_scale < 75.0f)
+				float new_scale = scale * ((event.wheel.y < 0) ? 0.5f : 2.0f);
+				if(new_scale >= 4.0f && new_scale <= 64.0f)
 				{
 					scale = new_scale;
 					float offset_x = (0 == zoom_mode) ? DESIGN_WIDTH >> 1 : (float)mouse_x;
@@ -211,7 +212,7 @@ Status game_loop(SDL_Renderer* renderer)
 		SDL_RenderClear(renderer);
 
 		/* Adding is a quick hack that seems to work. */
-		SDL_Rect new = { 0, 0, (int) (tw + 2.0), (int) (th + 2.0) };
+		SDL_Rect new = { 0, 0, (int)tw, (int)th };
 
 		for(int i = 0; i < GRID_SIZE; i++)
 		{
@@ -302,12 +303,12 @@ static int inside_screen(float x, float y, float cam_x, float cam_y, float tw, f
 
 static float cal_tw(float scale)
 {
-	return DESIGN_WIDTH / GRID_SIZE * scale;
+	return scale / 16.0f * 128.0f;
 }
 
 static float cal_th(float scale)
 {
-	return DESIGN_WIDTH / GRID_SIZE * scale * SQUISH_FACTOR;
+	return scale / 16.0f *SQUISH_FACTOR * 128.0f;
 }
 
 static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, float th)
