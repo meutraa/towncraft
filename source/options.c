@@ -10,6 +10,8 @@ int fullscreen = 0;
 
 float scroll_speed = 0.3f;
 
+char render_scale_quality[] = "linear";
+
 int resolution_width = DESIGN_WIDTH;
 
 int resolution_height = DESIGN_HEIGHT;

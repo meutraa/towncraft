@@ -5,12 +5,12 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
-/*! \var extern float ui_scale
+/*!
 	\brief All ui elements will scale their width and height by this value.
 */
 extern float ui_scale;
 
-/*! \var extern int vsync
+/*!
 	\brief Whether or not the renderer should use vsync.
 */
 extern int vsync;
@@ -24,7 +24,16 @@ extern int vsync;
 */
 extern int fullscreen;
 
-/*! /var extern int zoom_mode
+/*!
+	\brief Defines the render scale quality
+
+	"nearest" nearest pixel sampling.
+	"linear" linear filtering (supported by OpenGL and Direct3D).
+	"best" anisotropic filtering (supported by Direct3D).
+*/
+extern char render_scale_quality[];
+
+/*!
 	\brief Defines the zoom mode.
 
 	0 always zoom on the center of the screen.
@@ -33,17 +42,17 @@ extern int fullscreen;
 */
 extern int zoom_mode;
 
-/*! \var extern float scroll_speed
+/*!
 	\brief percent of the screen that will scroll each frame.
 */
 extern float scroll_speed;
 
-/*! \var extern int resolution_width
+/*!
 	\brief Screen width resolution for use in fullscreen 0 & 1
 */
 extern int resolution_width;
 
-/*! \var extern int resolution_height
+/*!
 	\brief Screen height resolution for use in fullscreen 0 & 1
 */
 extern int resolution_height;

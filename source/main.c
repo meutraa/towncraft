@@ -40,7 +40,7 @@ int main(void)
 		fprintf(stderr, "\nUnable to open audio mixer: %s\n", Mix_GetError());
 	}
 
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, render_scale_quality);
 
 	/* Create window */
 	SDL_Window* window = SDL_CreateWindow(
