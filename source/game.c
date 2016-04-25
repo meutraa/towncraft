@@ -46,7 +46,7 @@ Status game_loop(SDL_Renderer* renderer)
 	const SDL_Color white = { 255, 255, 255, 0 };
 
 	char fps_string[16], centre_string[32], mouse_string[32], scale_string[32], grid_pos[32];
-	int key_status[SCANCODE_COUNT] = {};
+	int key_status[SCANCODE_COUNT] = {0};
 	TTF_Font* debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
 
 	int mouse_x, mouse_y;
