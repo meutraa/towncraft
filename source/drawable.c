@@ -137,7 +137,10 @@ int load_drawables(SDL_Renderer* renderer, Drawable** drawables, const char* lay
 		}
 		else
 		{
-			fprintf(stderr, "%s:%d:%s^^ unrecognised layout string ^^\n\n", layout_file, i, line);
+			if(NULL != line && strlen(line) >= 2 && 0 != strncmp(line, "/*", 2))
+			{
+				fprintf(stderr, "%s:%d:%s^^ unrecognised layout string ^^\n\n", layout_file, i, line);
+			}
 			continue;
 		}
 

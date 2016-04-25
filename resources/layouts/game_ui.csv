@@ -1,7 +1,19 @@
-1	color	"ui_upper_bar"	(1280,24) 								(0,0,0,168) 	(0,0)	(0,0)
-1	text	"camera pos:"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(3,3)	(3,3)
-1	text	"centre pos:"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(300,3)	(300,3)
-1	text	"mouse pos:"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(600,3)	(600,3)
-1	text	"mag level:"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(950,3)	(950,3)
-1	text	"fps:"			resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(1150,3)	(1150,3)
-1	color	"ui_lower_bar"	(1280,60) 								(0,0,0,168) 	(0,660) (0,660)
+1	color	"ui_upper_bar"	(1280,24) 								(0,0,0,168) 	(0,0)		(0,0)
+1	color	"ui_lower_bar"	(1280,45) 								(0,0,0,168) 	(0,675) 	(0,675)
+
+/* Top UI. */
+1	text	"scale:"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(1005,3)	(950,3)
+1	text	"fps:"		resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(1150,3)	(1150,3)
+
+/* Bottom UI. */
+1	text	"top left(px,py):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(3,680)		(3,663)
+1	text	"        (tx,ty):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(3,700)		(3,685)
+
+1	text	"centre(pixels):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(400,680)	(310,663)
+1	text	"       (tiles):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(400,700)	(310,685)
+
+1	text	"mouse(pixels):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(800,680)	(600,663)
+1	text	"      (tiles):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(800,700)	(600,685)
+
+1	text	"tw:"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(1170,680)	(600,663)
+1	text	"th:"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(1170,700)	(600,685)

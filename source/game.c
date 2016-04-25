@@ -18,6 +18,7 @@ static Drawable* drawables;
 static int count;
 static const char* layout = "resources/layouts/game_ui.csv";
 
+#define printbuf(x, y) render_text(renderer, debug_font, strbuf, white, x, y);
 #define SCANCODE_COUNT 283
 
 /* The grid of tiles. */
@@ -45,7 +46,7 @@ Status game_loop(SDL_Renderer* renderer)
 
 	const SDL_Color white = { 255, 255, 255, 0 };
 
-	char fps_string[16], centre_string[32], mouse_string[32], scale_string[32], grid_pos[32];
+	char strbuf[32];
 	int key_status[SCANCODE_COUNT] = {0};
 	TTF_Font* debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
 
@@ -181,23 +182,31 @@ Status game_loop(SDL_Renderer* renderer)
 		}
 		render_drawables(renderer, drawables, count);
 
-		/* Calculate the tile (x,y) in grid that is at the top left of the window. */
-		sprintf(grid_pos, "%.1f, %.1f", cal_tx(px, tw, 0), cal_ty(py, th, 0));
-		render_text(renderer, debug_font, grid_pos, white, 150, 4);
+		/* Print the UI debugging infomation. */
+		sprintf(strbuf, "%.1f, %.1f", px, py);
+		printbuf(200, 680);
+		sprintf(strbuf, "%.1f, %.1f", cal_tx(px, tw, 0), cal_ty(py, th, 0));
+		printbuf(200, 700);
 
-		/* Calculate the tile (x,y) in grid that is centered on screen. */
-		sprintf(centre_string, "%.1f, %.1f", cal_tx(px, tw, DESIGN_WIDTH >> 1), cal_ty(py, th, DESIGN_HEIGHT >> 1));
-		render_text(renderer, debug_font, centre_string, white, 450, 4);
+		sprintf(strbuf, "%.1f, %.1f", px + (DESIGN_WIDTH >> 1), py + (DESIGN_HEIGHT >> 1));
+		printbuf(583, 680);
+		sprintf(strbuf, "%.1f, %.1f", cal_tx(px, tw, DESIGN_WIDTH >> 1), cal_ty(py, th, DESIGN_HEIGHT >> 1));
+		printbuf(583, 700);
 
-		sprintf(mouse_string, "%d, %d", mouse_x, mouse_y);
-		render_text(renderer, debug_font, mouse_string, white, 730, 4);
+		sprintf(strbuf, "%.1f, %.1f", px + (float)mouse_x, py + (float)mouse_y);
+		printbuf(974, 680);
+		sprintf(strbuf, "%.1f, %.1f", cal_tx(px, tw, (float)mouse_x), cal_tx(py, th, (float)mouse_y));
+		printbuf(974, 700);
 
-		sprintf(scale_string, "%.1f", scale);
-		render_text(renderer, debug_font, scale_string, white, 1080, 4);
+		sprintf(strbuf, "%.1f", tw);
+		printbuf(1210, 680);
+		sprintf(strbuf, "%.1f", th);
+		printbuf(1210, 700);
 
-		/* Render FPS count. */
-		sprintf(fps_string, "%d", fps);
-		render_text(renderer, debug_font, fps_string, white, 1200, 4);
+		sprintf(strbuf, "%.1f", scale);
+		printbuf(1080, 4);
+		sprintf(strbuf, "%d", fps);
+		printbuf(1200, 4);
 
 		//SDL_RenderCopy(renderer, castle_tex, NULL, &castle_rect);
 
@@ -209,7 +218,6 @@ Status game_loop(SDL_Renderer* renderer)
 		if(total_time >= 1000)
 		{
 			fps = frames;
-			sprintf(fps_string, "%d", fps);
 			frames = -1;
 			total_time = 0;
 		}
