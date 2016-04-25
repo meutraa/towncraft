@@ -28,13 +28,13 @@ static const char* layout = "resources/layouts/game_ui.csv";
 static int inside_screen(float x, float y, float cam_x, float cam_y, float tw, float th);
 static float cal_tw(float scale);
 static float cal_th(float scale);
-static float cal_cpx(float left);
-static float cal_cpy(float left);
-static float cal_ctx(float camera_x, float tile_width);
-static float cal_cty(float camera_y, float tile_width);
-static void calculate_tile_positions(Tile tiles[GRID_SIZE][GRID_SIZE], float tile_width, float tile_height);
-static float cal_px(float centre_tile_x, float tile_width);
-static float cal_py(float centre_tile_y, float tile_width);
+static float cal_cpx(float px);
+static float cal_cpy(float py);
+static float cal_ctx(float cx, float tw);
+static float cal_cty(float px, float tw);
+static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, float th);
+static float cal_px(float ctx, float tw);
+static float cal_py(float cty, float tw);
 
 /*! If you would like not to kill yourself in this file.
     Cx = Tcx * Tw - (0.5 * Dw)
@@ -62,7 +62,9 @@ Status game_loop(SDL_Renderer* renderer)
 	TTF_Font* debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
 
 	int mouse_x, mouse_y;
-	int fps = 0, frames = 0;
+
+	/* Assume 60 for scroll speed to not become infinity. */
+	int fps = 60, frames = 0;
 	unsigned int start_time, dt, total_time = 0;
 
 	float scale = 16.0f;
@@ -133,8 +135,8 @@ Status game_loop(SDL_Renderer* renderer)
 				}
 				else if(1 == zoom_mode)
 				{
-					tx = (mouse_x + px) / tw;
-					ty = (mouse_y + py) / th;
+					tx = ((float)mouse_x + px) / tw;
+					ty = ((float)mouse_y + py) / th;
 				}
 
 				/* Calculate new tile dimensions and positions. */
@@ -151,8 +153,8 @@ Status game_loop(SDL_Renderer* renderer)
 				}
 				else if(1 == zoom_mode)
 				{
-					px = (tx * tw) - mouse_x;
-					py = (ty * th) - mouse_y;
+					px = (tx * tw) - (float)mouse_x;
+					py = (ty * th) - (float)mouse_y;
 				}
 			}
 		}
@@ -164,13 +166,13 @@ Status game_loop(SDL_Renderer* renderer)
 		}
 
 		if(1 == key_status[80] || (0 != fullscreen && 0 == mouse_x)) // left
-			px -= tw * scroll_speed * 60.0f/fps;
+			px -= tw * scroll_speed * 60.0f/(float)fps;
 		if(1 == key_status[79] || (0 != fullscreen && 1279 == mouse_x)) // right
-			px += tw * scroll_speed * 60.0f/fps;
+			px += tw * scroll_speed * 60.0f/(float)fps;
 		if(1 == key_status[82] || (0 != fullscreen && 0 == mouse_y)) // up
-			py -= th * scroll_speed * 60.0f/fps;
+			py -= th * scroll_speed * 60.0f/(float)fps;
 		if(1 == key_status[81] || (0 != fullscreen && 719 == mouse_y)) // down
-			py += th * scroll_speed * 60.0f/fps;
+			py += th * scroll_speed * 60.0f/(float)fps;
 
 		/* Clear the screen for areas that do not have textures mapped to them. */
 		/* Comment out for windows 95 mode. */
