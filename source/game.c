@@ -58,7 +58,7 @@ Status game_loop(SDL_Renderer* renderer)
 	const SDL_Color white = { 255, 255, 255, 0 };
 
 	char fps_string[16], centre_string[32], mouse_string[32], scale_string[32], grid_pos[32];
-	int key_status[SCANCODE_COUNT];
+	int key_status[SCANCODE_COUNT] = {};
 	TTF_Font* debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
 
 	int mouse_x, mouse_y;
@@ -124,37 +124,41 @@ Status game_loop(SDL_Renderer* renderer)
 			}
 			else if(SDL_MOUSEWHEEL == event.type)
 			{
-				scale *= event.wheel.y < 0 ? 0.8f : 1.25f;
-				float ctx, cty, tx, ty;
-
-				/* Centre position in tiles (ctX) we want to retain. */
-				if(0 == zoom_mode)
+				float new_scale = scale * ((event.wheel.y < 0) ? 0.8f : 1.25f);
+				if(new_scale > 4.0f && new_scale < 75.0f)
 				{
-					ctx = cal_ctx(px, tw);
-					cty = cal_cty(py, th);
-				}
-				else if(1 == zoom_mode)
-				{
-					tx = ((float)mouse_x + px) / tw;
-					ty = ((float)mouse_y + py) / th;
-				}
+					scale = new_scale;
+					float ctx, cty, tx, ty;
 
-				/* Calculate new tile dimensions and positions. */
-				tw  = cal_tw(scale);
-				th = cal_th(scale);
+					/* Centre position in tiles (ctX) we want to retain. */
+					if(0 == zoom_mode)
+					{
+						ctx = cal_ctx(px, tw);
+						cty = cal_cty(py, th);
+					}
+					else if(1 == zoom_mode)
+					{
+						tx = ((float)mouse_x + px) / tw;
+						ty = ((float)mouse_y + py) / th;
+					}
 
-				calculate_tile_positions(tiles, tw, th);
+					/* Calculate new tile dimensions and positions. */
+					tw  = cal_tw(scale);
+					th = cal_th(scale);
 
-				if(0 == zoom_mode)
-				{
-					/* Calculate the new top left corner in pixels. */
-					px = cal_px(ctx, tw);
-					py = cal_py(cty, th);
-				}
-				else if(1 == zoom_mode)
-				{
-					px = (tx * tw) - (float)mouse_x;
-					py = (ty * th) - (float)mouse_y;
+					calculate_tile_positions(tiles, tw, th);
+
+					if(0 == zoom_mode)
+					{
+						/* Calculate the new top left corner in pixels. */
+						px = cal_px(ctx, tw);
+						py = cal_py(cty, th);
+					}
+					else if(1 == zoom_mode)
+					{
+						px = (tx * tw) - (float)mouse_x;
+						py = (ty * th) - (float)mouse_y;
+					}
 				}
 			}
 		}
