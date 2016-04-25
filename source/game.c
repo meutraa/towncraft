@@ -68,18 +68,33 @@ Status game_loop(SDL_Renderer* renderer)
 	float px = 0.0f, py = 0.0f;
 
 	/* Create two generic color textures. */
-	const char* images[] = {
+	const char* sprite_images[] = {
 		"resources/images/castle.tga",
 		"resources/images/inn.tga",
 		"resources/images/house.tga",
 		"resources/images/house-overgrown.tga",
 	};
-	int length = 4;
-	SDL_Texture* textures[length];
-	for(int i = 0; i < length; i++)
+
+	const char* tile_images[] = {
+		"resources/images/rhombus-blue.tga",
+		"resources/images/rhombus-green.tga",
+	};
+	int sprite_length = 4;
+	int tile_length = 2;
+
+	SDL_Texture* sprite_textures[sprite_length];
+	SDL_Texture* tile_textures[tile_length];
+
+	for(int i = 0; i < sprite_length; i++)
 	{
-		SDL_Surface* s = IMG_Load(images[i]);
-		textures[i] = SDL_CreateTextureFromSurface(renderer, s);
+		SDL_Surface* s = IMG_Load(sprite_images[i]);
+		sprite_textures[i] = SDL_CreateTextureFromSurface(renderer, s);
+		SDL_FreeSurface(s);
+	}
+	for(int i = 0; i < tile_length; i++)
+	{
+		SDL_Surface* s = IMG_Load(tile_images[i]);
+		tile_textures[i] = SDL_CreateTextureFromSurface(renderer, s);
 		SDL_FreeSurface(s);
 	}
 
@@ -93,8 +108,10 @@ Status game_loop(SDL_Renderer* renderer)
 	{
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
-			int k = rand() % (length << 1);
-			tiles[i][j].sprite_texture = k < length ? textures[k] : NULL;
+			int k = rand() % (sprite_length << 1);
+			tiles[i][j].sprite_texture = k < sprite_length ? sprite_textures[k] : NULL;
+			int l = rand() % 2;
+			tiles[i][j].tile_texture = tile_textures[l];
 		}
 	}
 
@@ -172,11 +189,12 @@ Status game_loop(SDL_Renderer* renderer)
 			for(int j = 0; j < GRID_SIZE; j++)
 			{
 				/* Only render the drawable if it intersects with the current camera rect. */
-				if(NULL != tiles[i][j].sprite_texture && 1 == inside_screen(tiles[i][j].x, tiles[i][j].y, px, py, tw, th))
+				if(1 == inside_screen(tiles[i][j].x, tiles[i][j].y, px, py, tw, th))
 				{
 					new.x = (int) floor(tiles[i][j].x - px);
 					new.y = (int) floor(tiles[i][j].y - py);
-					SDL_RenderCopy(renderer, tiles[i][j].sprite_texture, NULL, &new);
+					SDL_RenderCopy(renderer, tiles[i][j].tile_texture, NULL, &new);
+					if(NULL != tiles[i][j].sprite_texture) SDL_RenderCopy(renderer, tiles[i][j].sprite_texture, NULL, &new);
 				}
 			}
 		}
@@ -230,9 +248,13 @@ Status game_loop(SDL_Renderer* renderer)
 	}
 
 	/* Clean up and return to the main function. */
-	for(int i = 0; i < length; i++)
+	for(int i = 0; i < sprite_length; i++)
 	{
-		SDL_DestroyTexture(textures[i]);
+		SDL_DestroyTexture(sprite_textures[i]);
+	}
+	for(int i = 0; i < tile_length; i++)
+	{
+		SDL_DestroyTexture(tile_textures[i]);
 	}
 	TTF_CloseFont(debug_font);
 
