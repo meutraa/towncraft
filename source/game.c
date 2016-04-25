@@ -27,11 +27,11 @@ static const char* layout = "resources/layouts/game_ui.csv";
 static int inside_screen(float x, float y, float cam_x, float cam_y, float tw, float th);
 static float cal_tw(float scale);
 static float cal_th(float scale);
-static float cal_tx(float px, float tw, float offset);
-static float cal_ty(float py, float tw, float offset);
+static float cal_tx(float grid_offset_pixels, float tw, float screen_offset_pixels);
+static float cal_ty(float grid_offset_pixels, float th, float screen_offset_pixels);
 static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, float th);
-static float cal_px(float offset_tiles, float tw, float offset);
-static float cal_py(float offset_tiles, float th, float offset);
+static float cal_px(float grid_offset_tiles, float tw, float screen_offset_tiles);
+static float cal_py(float grid_offset_tiles, float th, float screen_offset_tiles);
 
 /* Milliseconds per frame .*/
 #define MSPF 1000 / 60
@@ -253,22 +253,22 @@ static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, flo
 	}
 }
 
-static float cal_tx(float px, float tw, float offset)
+static float cal_tx(float grid_offset_pixels, float tw, float screen_offset_pixels)
 {
-	return (offset + px) / tw;
+	return (screen_offset_pixels + grid_offset_pixels) / tw;
 }
 
-static float cal_ty(float py, float th, float offset)
+static float cal_ty(float grid_offset_pixels, float th, float screen_offset_pixels)
 {
-	return (offset + py) / th;
+	return (screen_offset_pixels + grid_offset_pixels) / th;
 }
 
-static float cal_px(float offset_tiles, float tw, float offset)
+static float cal_px(float grid_offset_tiles, float tw, float screen_offset_tiles)
 {
-	return offset_tiles*tw - offset;
+	return grid_offset_tiles*tw - screen_offset_tiles;
 }
 
-static float cal_py(float offset_tiles, float th, float offset)
+static float cal_py(float grid_offset_tiles, float th, float screen_offset_tiles)
 {
-	return offset_tiles*th - offset;
+	return grid_offset_tiles*th - screen_offset_tiles;
 }
