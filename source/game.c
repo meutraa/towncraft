@@ -86,6 +86,12 @@ Status game_loop(SDL_Renderer* renderer)
 	SDL_FreeSurface(blue);
 	SDL_FreeSurface(green);
 
+	SDL_Surface* castle = IMG_Load("resources/images/castle.tga");
+	SDL_Texture* castle_tex = SDL_CreateTextureFromSurface(renderer, castle);
+	SDL_FreeSurface(castle);
+
+	tex1 = castle_tex;
+
 	/* Enable to see how outside of camera borders is rendered. */
 	//SDL_RenderSetLogicalSize(renderer, resolution_width*1.2, resolution_height*1.2);
 
@@ -217,6 +223,8 @@ Status game_loop(SDL_Renderer* renderer)
 		/* Render FPS count. */
 		sprintf(fps_string, "%d", fps);
 		render_text(renderer, debug_font, fps_string, white, 1200, 4);
+
+		//SDL_RenderCopy(renderer, castle_tex, NULL, &castle_rect);
 
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
