@@ -63,7 +63,7 @@ static float camera_y = 0.0f;
 
 static TTF_Font* debug_font;
 static const SDL_Color white = { 255, 255, 255, 0 };
-static char fps_string[128] = { [0] = '0', [1] = '\0' };
+static char fps_string[128] = { [0] = '6', [1] = '0', [2] = '\0' };
 
 Status game_loop(SDL_Renderer* renderer)
 {
@@ -113,13 +113,13 @@ Status game_loop(SDL_Renderer* renderer)
 			break;
 		}
 		if(1 == key_status[80] || (0 != fullscreen && 0 == x)) // left
-			camera_x -= DESIGN_WIDTH * scroll_speed;
+			camera_x -= tile_width * scroll_speed * 60.0f/atof(fps_string);
 		if(1 == key_status[79] || (0 != fullscreen && 1279 == x)) // right
-			camera_x += DESIGN_WIDTH * scroll_speed;
+			camera_x += tile_width * scroll_speed * 60.0f/atof(fps_string);
 		if(1 == key_status[82] || (0 != fullscreen && 0 == y)) // up
-			camera_y -= DESIGN_HEIGHT * scroll_speed / SQUISH_FACTOR;
+			camera_y -= tile_height * scroll_speed * 60.0f/atof(fps_string);
 		if(1 == key_status[81] || (0 != fullscreen && 719 == y)) // down
-			camera_y += DESIGN_HEIGHT * scroll_speed / SQUISH_FACTOR;
+			camera_y += tile_height * scroll_speed * 60.0f/atof(fps_string);
 
 		/* Clear the screen for areas that do not have textures mapped to them. */
 		/* Comment out for windows 95 mode. */
