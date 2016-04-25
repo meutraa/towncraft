@@ -112,11 +112,35 @@ Status game_loop(SDL_Renderer* renderer)
 	{
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
-			int k = rand() % (sprite_length << 1);
-			if(0 == k) k = rand() % 4;
-			tiles[i][j].sprite_texture = k < sprite_length ? sprite_textures[k] : NULL;
+			/* If connected to land, and roll was water, reroll. */
 			int l = rand() % tile_length;
+			if(j > 0)
+			{
+				if(l != tiles[i][j - 1].tile_id) l = rand() % tile_length;
+				if(l != tiles[i][j - 1].tile_id) l = rand() % tile_length;
+			}
+			if(i > 0)
+			{
+				if(l != tiles[i - 1][j].tile_id) l = rand() % tile_length;
+				if(l != tiles[i - 1][j].tile_id) l = rand() % tile_length;
+			}
+			if(i > 0 && j > 0)
+			{
+				if(l != tiles[i - 1][j - 1].tile_id) l = rand() % tile_length;
+			}
 			tiles[i][j].tile_texture = tile_textures[l];
+			tiles[i][j].tile_id = l;
+			/* If water, do not place a building. */
+			if(0 == l)
+			{
+				tiles[i][j].sprite_texture = NULL;
+			}
+			else
+			{
+				int k = rand() % (sprite_length << 2);
+				if(0 == k) k = rand() % 4;
+				tiles[i][j].sprite_texture = k < sprite_length ? sprite_textures[k] : NULL;
+			}
 		}
 	}
 
