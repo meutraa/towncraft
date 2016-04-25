@@ -57,7 +57,7 @@ Status game_loop(SDL_Renderer* renderer)
 
 	const SDL_Color white = { 255, 255, 255, 0 };
 
-	char fps_string[16], centre_string[32], grid_pos[32];
+	char fps_string[16], centre_string[32], mouse_string[32], scale_string[32], grid_pos[32];
 	int key_status[SCANCODE_COUNT];
 	TTF_Font* debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
 
@@ -203,6 +203,12 @@ Status game_loop(SDL_Renderer* renderer)
 		/* Calculate the tile (x,y) in grid that is centered on screen. */
 		sprintf(centre_string, "%.1f, %.1f", cal_ctx(px, th), cal_cty(py, th));
 		render_text(renderer, debug_font, centre_string, white, 450, 4);
+
+		sprintf(mouse_string, "%d, %d", mouse_x, mouse_y);
+		render_text(renderer, debug_font, mouse_string, white, 730, 4);
+
+		sprintf(scale_string, "%.1f", scale);
+		render_text(renderer, debug_font, scale_string, white, 1080, 4);
 
 		/* Render FPS count. */
 		sprintf(fps_string, "%d", fps);
