@@ -115,7 +115,7 @@ Status game_loop(SDL_Renderer* renderer)
 		}
 	}
 
-	SDL_SetRenderDrawColor(renderer, 186, 201, 95, 255);
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
 
 	count = load_drawables(renderer, &drawables, layout);
 
