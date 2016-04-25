@@ -16,7 +16,7 @@ OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))
 OBJPATHS := $(patsubst %,$(OBJDIR)/%,$(OBJFILES))
 DEPPATHS := $(patsubst %.o,%.d,$(OBJPATHS))
 
-.PHONY: all clean dirs
+.PHONY: all clean dirs cachegrind
 
 all: dirs main docs
 
@@ -27,7 +27,7 @@ main: $(OBJPATHS)
 -include $(DEPPATHS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c Makefile
-	@$(CC) -c  $(CFLAGS) $(SRCDIR)/$*.c -o $(OBJDIR)/$*.o -I$(HDRDIR)
+	@$(CC) -c $(CFLAGS) $(SRCDIR)/$*.c -o $(OBJDIR)/$*.o -I$(HDRDIR)
 	@$(CC) -MM $(CFLAGS) $(SRCDIR)/$*.c >  $(OBJDIR)/$*.d -I$(HDRDIR)
 	@cp -f $(OBJDIR)/$*.d $(OBJDIR)/$*.d.tmp
 	@sed -e 's/.*://' -e 's/\\$$//' < $(OBJDIR)/$*.d.tmp | fmt -1 | \
@@ -36,10 +36,13 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c Makefile
 	@sed -i "1s/^/$(OBJDIR)\//" $(OBJDIR)/$*.d
 
 clean:
-	-$(RM) -r $(OBJDIR)/* towncraft documentation/html documentation/latex
+	-$(RM) -r $(OBJDIR)/* towncraft documentation/html documentation/latex callgrind.*
 
 dirs:
 	@mkdir -p $(OBJDIR)
+
+cachegrind:
+	$(CC) -O3 -std=c99 $(shell pkg-config --cflags sdl2) -g -o towncraft source/* $(LDFLAGS) -I$(HDRDIR)
 
 docs:
 	doxygen documentation/doxygen.cfg

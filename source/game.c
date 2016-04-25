@@ -23,16 +23,15 @@ static const char* layout = "resources/layouts/game_ui.csv";
 
 /* The grid of tiles. */
 #define GRID_SIZE 256
+#define TILE_WIDTH 128.0f
+#define TILE_HEIGHT 64.0f
 
 /* Function prototypes. */
-static int inside_screen(float x, float y, float cam_x, float cam_y, float tw, float th);
-static float cal_tw(float scale);
-static float cal_th(float scale);
-static float cal_tx(float grid_offset_pixels, float tw, float screen_offset_pixels);
-static float cal_ty(float grid_offset_pixels, float th, float screen_offset_pixels);
+static float pixel_to_tile_x(float px, float py, float tw, float th);
+static float pixel_to_tile_y(float px, float py, float tw, float th);
+static float tile_to_pixel_x(float tx, float ty, float tw);
+static float tile_to_pixel_y(float tx, float ty, float th);
 static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, float th);
-static float cal_px(float grid_offset_tiles, float tw, float screen_offset_tiles);
-static float cal_py(float grid_offset_tiles, float th, float screen_offset_tiles);
 
 /* Milliseconds per frame .*/
 #define MSPF 1000 / 60
@@ -54,10 +53,8 @@ Status game_loop(SDL_Renderer* renderer)
 	int fps = 60, frames = 0;
 	unsigned int start_time, dt, total_time = 0;
 
-	float scale = 16.0f;
-
 	/* These are the pixel widths of each tile. */
-	float tw = cal_tw(scale), th = cal_th(scale);
+	float scale = 1.0f, tw = TILE_WIDTH, th = TILE_HEIGHT;
 
 	Tile tiles[GRID_SIZE][GRID_SIZE];
 	calculate_tile_positions(tiles, tw, th);
@@ -166,25 +163,25 @@ Status game_loop(SDL_Renderer* renderer)
 			else if(SDL_MOUSEWHEEL == event.type)
 			{
 				float new_scale = scale * ((event.wheel.y < 0) ? 0.5f : 2.0f);
-				if(new_scale >= 2.0f && new_scale <= 64.0f)
+				if(new_scale >= 0.125f && new_scale <= 8.0f)
 				{
 					scale = new_scale;
 					float offset_x = (0 == zoom_mode) ? DESIGN_WIDTH >> 1 : (float)mouse_x;
 					float offset_y = (0 == zoom_mode) ? DESIGN_HEIGHT >> 1 : (float)mouse_y;
 
-					/* Position in tiles we want to retain. */
-					float tx = cal_tx(px, tw, offset_x);
-					float ty = cal_ty(py, th, offset_y);
+					// Position in tiles we want to retain.
+					float tx = pixel_to_tile_x(px + offset_x, py + offset_y, tw, th);
+					float ty = pixel_to_tile_y(px + offset_x, py + offset_y, tw, th);
 
-					/* Calculate new tile dimensions and positions. */
-					tw = cal_tw(scale);
-					th = cal_th(scale);
+					// Calculate new tile dimensions and positions.
+					tw = scale * TILE_WIDTH;
+					th = scale * TILE_HEIGHT;
 
 					calculate_tile_positions(tiles, tw, th);
 
-					/* Calculate the new top left corner in pixels. */
-					px = cal_px(tx, tw, offset_x);
-					py = cal_py(ty, th, offset_y);
+					// Calculate the new top left corner in pixels.
+					px = tile_to_pixel_x(tx, ty, tw) - offset_x;
+					py = tile_to_pixel_y(tx, ty, th) - offset_y;
 				}
 			}
 		}
@@ -200,29 +197,44 @@ Status game_loop(SDL_Renderer* renderer)
 		if(1 == key_status[79] || (0 != fullscreen && 1279 == mouse_x)) // right
 			px += tw * scroll_speed * 60.0f/(float)fps;
 		if(1 == key_status[82] || (0 != fullscreen && 0 == mouse_y)) // up
-			py -= th * 0.25 * scroll_speed * 60.0f/(float)fps;
+			py -= th * scroll_speed * 60.0f/(float)fps;
 		if(1 == key_status[81] || (0 != fullscreen && 719 == mouse_y)) // down
-			py += th * 0.25 * scroll_speed * 60.0f/(float)fps;
+			py += th * scroll_speed * 60.0f/(float)fps;
 
 		/* Clear the screen for areas that do not have textures mapped to them. */
 		/* Comment out for windows 95 mode. */
 		SDL_RenderClear(renderer);
 
-		/* Adding is a quick hack that seems to work. */
 		SDL_Rect new = { 0, 0, (int)tw, (int)th };
+		SDL_Rect newb = { 0, 0, (int)tw, (int)(th*4.0f) };
 
-		for(int i = 0; i < GRID_SIZE; i++)
+		/* Lowest y we need to rend it top right corner. */
+		int y1 = (int) floor(pixel_to_tile_y(px + DESIGN_WIDTH, py, tw, th));
+		if(y1 < 0) y1 = 0;
+
+		/* Highest y is bottom left. */
+		int y2 = (int) ceil(pixel_to_tile_y(px, py + DESIGN_HEIGHT, tw, th));
+		if(y2 > GRID_SIZE) y2 = GRID_SIZE;
+
+		/* Lowest x we need is top left corner. */
+		int x1 = (int) floor(pixel_to_tile_x(px, py, tw, th));
+		if(x1 < 0) x1 = 0;
+
+		/* Highest x is at bottom right. */
+		int x2 = (int) ceil(pixel_to_tile_x(px + DESIGN_WIDTH, py + DESIGN_HEIGHT, tw, th));
+		if(x2 > GRID_SIZE) x2 = GRID_SIZE;
+
+		for(int y = y1; y < y2; y++)
 		{
-			for(int j = 0; j < GRID_SIZE; j++)
+			for(int x = x1; x < x2; x++)
 			{
-				/* Only render the drawable if it intersects with the current camera rect. */
-				if(1 == inside_screen(tiles[i][j].x, tiles[i][j].y, px, py, tw, th))
-				{
-					new.x = (int) floor(tiles[i][j].x - px);
-					new.y = (int) floor(tiles[i][j].y - py);
-					SDL_RenderCopy(renderer, tiles[i][j].tile_texture, NULL, &new);
-					if(NULL != tiles[i][j].sprite_texture) SDL_RenderCopy(renderer, tiles[i][j].sprite_texture, NULL, &new);
-				}
+				float newy = tiles[x][y].y - py;
+				new.x = (int) floor(tiles[x][y].x - px);
+				new.y = (int) floor(newy);
+				newb.x = new.x;
+				newb.y = (int) floor(newy - 3.0f*th);
+				SDL_RenderCopy(renderer, tiles[x][y].tile_texture, NULL, &new);
+				if(NULL != tiles[x][y].sprite_texture) SDL_RenderCopy(renderer, tiles[x][y].sprite_texture, NULL, &newb);
 			}
 		}
 		render_drawables(renderer, drawables, count);
@@ -230,17 +242,21 @@ Status game_loop(SDL_Renderer* renderer)
 		/* Print the UI debugging infomation. */
 		sprintf(strbuf, "%.1f, %.1f", px, py);
 		printbuf(200, 680);
-		sprintf(strbuf, "%.1f, %.1f", cal_tx(px, tw, 0), cal_ty(py, th, 0));
+		sprintf(strbuf, "%.1f, %.1f", pixel_to_tile_x(px, py, tw, th), pixel_to_tile_y(px, py, tw, th));
 		printbuf(200, 700);
 
 		sprintf(strbuf, "%.1f, %.1f", px + (DESIGN_WIDTH >> 1), py + (DESIGN_HEIGHT >> 1));
 		printbuf(583, 680);
-		sprintf(strbuf, "%.1f, %.1f", cal_tx(px, tw, DESIGN_WIDTH >> 1), cal_ty(py, th, DESIGN_HEIGHT >> 1));
+		sprintf(strbuf, "%.1f, %.1f",
+		pixel_to_tile_x(px + (DESIGN_WIDTH >> 1), py + (DESIGN_HEIGHT >> 1), tw, th),
+		pixel_to_tile_y(px + (DESIGN_WIDTH >> 1), py + (DESIGN_HEIGHT >> 1), tw, th));
 		printbuf(583, 700);
 
 		sprintf(strbuf, "%.1f, %.1f", px + (float)mouse_x, py + (float)mouse_y);
 		printbuf(974, 680);
-		sprintf(strbuf, "%.1f, %.1f", cal_tx(px, tw, (float)mouse_x), cal_tx(py, th, (float)mouse_y));
+		sprintf(strbuf, "%.1f, %.1f",
+		pixel_to_tile_x(px + (float)mouse_x, py + (float)mouse_y, tw, th),
+		pixel_to_tile_y(px + (float)mouse_x, py + (float)mouse_y, tw, th));
 		printbuf(974, 700);
 
 		sprintf(strbuf, "%.1f", tw);
@@ -292,52 +308,35 @@ Status game_loop(SDL_Renderer* renderer)
 
 /* These should all be pure functions.
 */
-static int inside_screen(float x, float y, float cam_x, float cam_y, float tw, float th)
+static float pixel_to_tile_x(float px, float py, float tw, float th)
 {
-	return x >= cam_x - tw && x <= cam_x + DESIGN_WIDTH &&
-	y >= cam_y - th && y <= cam_y + DESIGN_HEIGHT;
+	return (px / tw) + (py / th);
 }
 
-static float cal_tw(float scale)
+static float pixel_to_tile_y(float px, float py, float tw, float th)
 {
-	return scale / 16.0f * 128.0f;
+	return (py / th) - (px / tw);
 }
 
-static float cal_th(float scale)
+static float tile_to_pixel_x(float tx, float ty, float tw)
 {
-	return scale / 16.0f * 256.0f;
+	float w = 0.5f * tw;
+	return ((tx - ty) * w);// - w;
+}
+
+static float tile_to_pixel_y(float tx, float ty, float th)
+{
+	return (tx + ty) * 0.5f * th;
 }
 
 static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, float th)
 {
-	const float w = 0.5f * tw;
-	const float h = 0.5f * th;
-	for(int i = 0; i < GRID_SIZE; i++)
+	for(int y = 0; y < GRID_SIZE; y++)
 	{
-		for(int j = 0; j < GRID_SIZE; j++)
+		for(int x = 0; x < GRID_SIZE; x++)
 		{
-			t[i][j].x = w*(float)(j - i);
-			t[i][j].y = h*0.25f*(float)(j + i);
+			t[x][y].x = tile_to_pixel_x((float)x, (float)y, tw);
+			t[x][y].y = tile_to_pixel_y((float)x, (float)y, th);
 		}
 	}
-}
-
-static float cal_tx(float grid_offset_pixels, float tw, float screen_offset_pixels)
-{
-	return (screen_offset_pixels + grid_offset_pixels) / tw;
-}
-
-static float cal_ty(float grid_offset_pixels, float th, float screen_offset_pixels)
-{
-	return (screen_offset_pixels + grid_offset_pixels) / th;
-}
-
-static float cal_px(float grid_offset_tiles, float tw, float screen_offset_tiles)
-{
-	return grid_offset_tiles*tw - screen_offset_tiles;
-}
-
-static float cal_py(float grid_offset_tiles, float th, float screen_offset_tiles)
-{
-	return grid_offset_tiles*th - screen_offset_tiles;
 }
