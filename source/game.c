@@ -18,9 +18,7 @@ static Drawable* drawables;
 static int count;
 static const char* layout = "resources/layouts/game_ui.csv";
 
-/* Array for key states. */
 #define SCANCODE_COUNT 283
-static int key_status[SCANCODE_COUNT];
 
 /* The grid of tiles. */
 #define GRID_SIZE 256
@@ -28,7 +26,7 @@ static int key_status[SCANCODE_COUNT];
 static Tile tiles[GRID_SIZE][GRID_SIZE];
 
 /* Function prototypes. */
-static void game_event_loop(void);
+static void game_event_loop(int key_status[SCANCODE_COUNT]);
 static int inside_screen(float x, float y, float cam_x, float cam_y, float tw, float th);
 static float calculate_tile_width(float scale);
 static float calculate_tile_height(float scale);
@@ -64,9 +62,10 @@ static float camera_y = 0.0f;
 
 Status game_loop(SDL_Renderer* renderer)
 {
-	char fps_string[128] = { [0] = '6', [1] = '0', [2] = '\0' };
 	const SDL_Color white = { 255, 255, 255, 0 };
 
+	char fps_string[128] = { [0] = '6', [1] = '0', [2] = '\0' };
+	int key_status[SCANCODE_COUNT];
 	TTF_Font* debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
 	int fps = 0;
 
@@ -106,7 +105,7 @@ Status game_loop(SDL_Renderer* renderer)
 	{
 		start_time = SDL_GetTicks();
 		/* If there are events in the event queue, process them. */
-		game_event_loop();
+		game_event_loop(key_status);
 
 		int x, y;
 		SDL_GetMouseState(&x, &y);
@@ -117,13 +116,13 @@ Status game_loop(SDL_Renderer* renderer)
 			break;
 		}
 		if(1 == key_status[80] || (0 != fullscreen && 0 == x)) // left
-			camera_x -= tile_width * scroll_speed * 60.0f/atof(fps_string);
+			camera_x -= tile_width * scroll_speed * 60.0f/fps;
 		if(1 == key_status[79] || (0 != fullscreen && 1279 == x)) // right
-			camera_x += tile_width * scroll_speed * 60.0f/atof(fps_string);
+			camera_x += tile_width * scroll_speed * 60.0f/fps;
 		if(1 == key_status[82] || (0 != fullscreen && 0 == y)) // up
-			camera_y -= tile_height * scroll_speed * 60.0f/atof(fps_string);
+			camera_y -= tile_height * scroll_speed * 60.0f/fps;
 		if(1 == key_status[81] || (0 != fullscreen && 719 == y)) // down
-			camera_y += tile_height * scroll_speed * 60.0f/atof(fps_string);
+			camera_y += tile_height * scroll_speed * 60.0f/fps;
 
 		/* Clear the screen for areas that do not have textures mapped to them. */
 		/* Comment out for windows 95 mode. */
@@ -193,7 +192,7 @@ Status game_loop(SDL_Renderer* renderer)
 	return status;
 }
 
-static void game_event_loop()
+static void game_event_loop(int key_status[SCANCODE_COUNT])
 {
 	SDL_Event event;
 	while(1 == SDL_PollEvent(&event))
