@@ -23,21 +23,18 @@ static const char* layout = "resources/layouts/game_ui.csv";
 /* The grid of tiles. */
 #define GRID_SIZE 256
 #define TILE_WIDTH DESIGN_WIDTH / GRID_SIZE
-static Tile tiles[GRID_SIZE][GRID_SIZE];
 
 /* Function prototypes. */
-static void game_event_loop(int key_status[SCANCODE_COUNT]);
 static int inside_screen(float x, float y, float cam_x, float cam_y, float tw, float th);
-static float calculate_tile_width(float scale);
-static float calculate_tile_height(float scale);
-static float centre_pixel_x(float left);
-static float centre_pixel_y(float left);
-static float centre_tile_x(float camera_x, float tile_width);
-static float centre_tile_y(float camera_y, float tile_width);
+static float cal_tw(float scale);
+static float cal_th(float scale);
+static float cal_cpx(float left);
+static float cal_cpy(float left);
+static float cal_ctx(float camera_x, float tile_width);
+static float cal_cty(float camera_y, float tile_width);
 static void calculate_tile_positions(Tile tiles[GRID_SIZE][GRID_SIZE], float tile_width, float tile_height);
-static float left_pixel_x(float centre_tile_x, float tile_width);
-static float top_pixel_y(float centre_tile_y, float tile_width);
-static void zoom(float zoom);
+static float cal_px(float centre_tile_x, float tile_width);
+static float cal_py(float centre_tile_y, float tile_width);
 
 /*! If you would like not to kill yourself in this file.
     Cx = Tcx * Tw - (0.5 * Dw)
@@ -52,24 +49,34 @@ static void zoom(float zoom);
 #define MSPF 1000 / 60
 
 #define SQUISH_FACTOR 0.7f
-static float current_scale = 16.0f;
-
-static float tile_width;
-static float tile_height;
-
-static float camera_x = 0.0f;
-static float camera_y = 0.0f;
 
 Status game_loop(SDL_Renderer* renderer)
 {
+	Status status = NORMAL;
+	SDL_Event event;
+
 	const SDL_Color white = { 255, 255, 255, 0 };
 
-	char fps_string[128] = { [0] = '6', [1] = '0', [2] = '\0' };
+	char fps_string[16], centre_string[32], grid_pos[32];
 	int key_status[SCANCODE_COUNT];
 	TTF_Font* debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
-	int fps = 0;
 
-	/* Create three generic color textures. */
+	int mouse_x, mouse_y;
+	int fps = 0, frames = 0;
+	unsigned int start_time, dt, total_time = 0;
+
+	float scale = 16.0f;
+
+	/* These are the pixel widths of each tile. */
+	float tw = cal_tw(scale), th = cal_th(scale);
+
+	Tile tiles[GRID_SIZE][GRID_SIZE];
+	calculate_tile_positions(tiles, tw, th);
+
+	/* These are the grid position in pixels of the top left of the screen. */
+	float px = 0.0f, py = 0.0f;
+
+	/* Create two generic color textures. */
 	SDL_Surface* blue = IMG_Load("resources/images/rhombus-blue.tga");
 	SDL_Surface* green = IMG_Load("resources/images/rhombus-green.tga");
 	SDL_Texture* tex1 = SDL_CreateTextureFromSurface(renderer, blue);
@@ -92,54 +99,95 @@ Status game_loop(SDL_Renderer* renderer)
 		}
 	}
 
-	zoom(1.0);
-
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
 	count = load_drawables(renderer, &drawables, layout);
 
-	Status status = NORMAL;
-	int frames = 0;
-	unsigned int start_time, dt, total_time = 0;
 	while(NORMAL == status)
 	{
 		start_time = SDL_GetTicks();
-		/* If there are events in the event queue, process them. */
-		game_event_loop(key_status);
+		SDL_GetMouseState(&mouse_x, &mouse_y);
 
-		int x, y;
-		SDL_GetMouseState(&x, &y);
+		/* If there are events in the event queue, process them. */
+		while(1 == SDL_PollEvent(&event))
+		{
+			if(SDL_KEYDOWN == event.type)
+			{
+				key_status[event.key.keysym.scancode] = 1;
+				//printf("Key %d pressed\n", event.key.keysym.scancode);
+			}
+			else if(SDL_KEYUP == event.type)
+			{
+				key_status[event.key.keysym.scancode] = 0;
+			}
+			else if(SDL_MOUSEWHEEL == event.type)
+			{
+				scale *= event.wheel.y < 0 ? 0.8f : 1.25f;
+				float ctx, cty, tx, ty;
+
+				/* Centre position in tiles (ctX) we want to retain. */
+				if(0 == zoom_mode)
+				{
+					ctx = cal_ctx(px, tw);
+					cty = cal_cty(py, th);
+				}
+				else if(1 == zoom_mode)
+				{
+					tx = (mouse_x + px) / tw;
+					ty = (mouse_y + py) / th;
+				}
+
+				/* Calculate new tile dimensions and positions. */
+				tw  = cal_tw(scale);
+				th = cal_th(scale);
+
+				calculate_tile_positions(tiles, tw, th);
+
+				if(0 == zoom_mode)
+				{
+					/* Calculate the new top left corner in pixels. */
+					px = cal_px(ctx, tw);
+					py = cal_py(cty, th);
+				}
+				else if(1 == zoom_mode)
+				{
+					px = (tx * tw) - mouse_x;
+					py = (ty * th) - mouse_y;
+				}
+			}
+		}
 
 		if(1 == key_status[41])	// ESC - Close the program.
 		{
 			status = QUIT_PROGRAM;
 			break;
 		}
-		if(1 == key_status[80] || (0 != fullscreen && 0 == x)) // left
-			camera_x -= tile_width * scroll_speed * 60.0f/fps;
-		if(1 == key_status[79] || (0 != fullscreen && 1279 == x)) // right
-			camera_x += tile_width * scroll_speed * 60.0f/fps;
-		if(1 == key_status[82] || (0 != fullscreen && 0 == y)) // up
-			camera_y -= tile_height * scroll_speed * 60.0f/fps;
-		if(1 == key_status[81] || (0 != fullscreen && 719 == y)) // down
-			camera_y += tile_height * scroll_speed * 60.0f/fps;
+
+		if(1 == key_status[80] || (0 != fullscreen && 0 == mouse_x)) // left
+			px -= tw * scroll_speed * 60.0f/fps;
+		if(1 == key_status[79] || (0 != fullscreen && 1279 == mouse_x)) // right
+			px += tw * scroll_speed * 60.0f/fps;
+		if(1 == key_status[82] || (0 != fullscreen && 0 == mouse_y)) // up
+			py -= th * scroll_speed * 60.0f/fps;
+		if(1 == key_status[81] || (0 != fullscreen && 719 == mouse_y)) // down
+			py += th * scroll_speed * 60.0f/fps;
 
 		/* Clear the screen for areas that do not have textures mapped to them. */
 		/* Comment out for windows 95 mode. */
 		SDL_RenderClear(renderer);
 
 		/* Adding is a quick hack that seems to work. */
-		SDL_Rect new = { 0, 0, (int) (tile_width + 1.5), (int) (tile_height + 1.5) };
+		SDL_Rect new = { 0, 0, (int) (tw + 1.5), (int) (th + 1.5) };
 
 		for(int i = 0; i < GRID_SIZE; i++)
 		{
 			for(int j = 0; j < GRID_SIZE; j++)
 			{
 				/* Only render the drawable if it intersects with the current camera rect. */
-				if(1 == inside_screen(tiles[i][j].x, tiles[i][j].y, camera_x, camera_y, tile_width, tile_height))
+				if(1 == inside_screen(tiles[i][j].x, tiles[i][j].y, px, py, tw, th))
 				{
-					new.x = (int) round(tiles[i][j].x - camera_x);
-					new.y = (int) round(tiles[i][j].y - camera_y);
+					new.x = (int) round(tiles[i][j].x - px);
+					new.y = (int) round(tiles[i][j].y - py);
 					SDL_RenderCopy(renderer, tiles[i][j].texture, NULL, &new);
 				}
 			}
@@ -147,19 +195,15 @@ Status game_loop(SDL_Renderer* renderer)
 		render_drawables(renderer, drawables, count);
 
 		/* Calculate the tile (x,y) in grid that is at the top left of the window. */
-		char grid_pos[128];
-		sprintf(grid_pos, "%.1f, %.1f", camera_x / tile_width, camera_y / tile_height);
+		sprintf(grid_pos, "%.1f, %.1f", px / tw, py / th);
 		render_text(renderer, debug_font, grid_pos, white, 150, 4);
 
 		/* Calculate the tile (x,y) in grid that is centered on screen. */
-		char centre_string[128];
-		sprintf(centre_string,
-				"%.1f, %.1f",
-		 		centre_tile_x(camera_x, tile_width),
-				centre_tile_y(camera_y, tile_height));
+		sprintf(centre_string, "%.1f, %.1f", cal_ctx(px, th), cal_cty(py, th));
 		render_text(renderer, debug_font, centre_string, white, 450, 4);
 
 		/* Render FPS count. */
+		sprintf(fps_string, "%d", fps);
 		render_text(renderer, debug_font, fps_string, white, 1200, 4);
 
 		/* Draw the renderer. */
@@ -192,27 +236,6 @@ Status game_loop(SDL_Renderer* renderer)
 	return status;
 }
 
-static void game_event_loop(int key_status[SCANCODE_COUNT])
-{
-	SDL_Event event;
-	while(1 == SDL_PollEvent(&event))
-	{
-		if(SDL_KEYDOWN == event.type)
-		{
-			key_status[event.key.keysym.scancode] = 1;
-			//printf("Key %d pressed\n", event.key.keysym.scancode);
-		}
-		else if(SDL_KEYUP == event.type)
-		{
-			key_status[event.key.keysym.scancode] = 0;
-		}
-		if(SDL_MOUSEWHEEL == event.type)
-		{
-			zoom(event.wheel.y < 0 ? 0.8f : 1.25f);
-		}
-	}
-}
-
 /* These should all be pure functions.
 */
 static int inside_screen(float x, float y, float cam_x, float cam_y, float tw, float th)
@@ -221,24 +244,24 @@ static int inside_screen(float x, float y, float cam_x, float cam_y, float tw, f
 	y >= cam_y - th && y <= cam_y + DESIGN_HEIGHT;
 }
 
-static float calculate_tile_width(float scale)
+static float cal_tw(float scale)
 {
 	return TILE_WIDTH * scale;
 }
 
-static float calculate_tile_height(float scale)
+static float cal_th(float scale)
 {
 	return TILE_WIDTH * scale * SQUISH_FACTOR;
 }
 
-static float centre_pixel_x(float left)
+static float cal_cpx(float px)
 {
-	return left + (DESIGN_WIDTH >> 1);
+	return px + (DESIGN_WIDTH >> 1);
 }
 
-static float centre_pixel_y(float top)
+static float cal_cpy(float py)
 {
-	return top + (DESIGN_HEIGHT >> 1);
+	return py + (DESIGN_HEIGHT >> 1);
 }
 
 /*! \fun static float centre_tile_x(float left_pixel, float tile_w)
@@ -248,14 +271,14 @@ static float centre_pixel_y(float top)
 	\param tile_w the width of a tile.
 	\return the grid position at the centre of the screen measured in tiles.
 */
-static float centre_tile_x(float left_pixel, float tile_w)
+static float cal_ctx(float px, float tw)
 {
-	return centre_pixel_x(left_pixel) / tile_w;
+	return cal_cpx(px) / tw;
 }
 
-static float centre_tile_y(float top_pixel, float tile_h)
+static float cal_cty(float py, float th)
 {
-	return centre_pixel_y(top_pixel) / tile_h;
+	return cal_cpy(py) / th;
 }
 
 static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, float th)
@@ -272,33 +295,12 @@ static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, flo
 	}
 }
 
-/* center_x is in tiles, result is in pixels. */
-static float left_pixel_x(float centre_tile_x, float tw)
+static float cal_px(float ctx, float tw)
 {
-	return centre_tile_x*tw - (DESIGN_WIDTH >> 1);
+	return ctx*tw - (DESIGN_WIDTH >> 1);
 }
 
-static float top_pixel_y(float centre_tile_y, float th)
+static float cal_py(float cty, float th)
 {
-	return centre_tile_y*th - (DESIGN_HEIGHT >> 1);
-}
-
-static void zoom(float zoom)
-{
-	/* Tiles for centre we want to retain. Using floats to retain accuracy. */
-	float ctx = centre_tile_x(camera_x, calculate_tile_width(current_scale));
-	float cty = centre_tile_y(camera_y, calculate_tile_height(current_scale));
-
-	/* Calculate new tile dimensions and positions. */
-	current_scale *= zoom;
-	tile_width  = calculate_tile_width(current_scale);
-	tile_height = calculate_tile_height(current_scale);
-
-	calculate_tile_positions(tiles, tile_width, tile_height);
-
-	if(0 == zoom_mode)
-	{
-		camera_x = left_pixel_x(ctx, tile_width);
-		camera_y = top_pixel_y (cty, tile_height);
-	}
+	return cty*th - (DESIGN_HEIGHT >> 1);
 }
