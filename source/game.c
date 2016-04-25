@@ -37,8 +37,6 @@ static float cal_py(float grid_offset_tiles, float th, float screen_offset_tiles
 /* Milliseconds per frame .*/
 #define MSPF 1000 / 60
 
-#define SQUISH_FACTOR 2.0f
-
 Status game_loop(SDL_Renderer* renderer)
 {
 	Status status = NORMAL;
@@ -91,7 +89,6 @@ Status game_loop(SDL_Renderer* renderer)
 	for(int i = 0; i < sprite_length; i++)
 	{
 		SDL_Surface* s = IMG_Load(sprite_images[i]);
-		if(NULL == s) printf("%s\n", IMG_GetError());
 		sprite_textures[i] = SDL_CreateTextureFromSurface(renderer, s);
 		SDL_FreeSurface(s);
 	}
@@ -103,7 +100,7 @@ Status game_loop(SDL_Renderer* renderer)
 	}
 
 	/* Enable to see how outside of camera borders is rendered. */
-	//SDL_RenderSetLogicalSize(renderer, resolution_width*1.2, resolution_height*1.2);
+	//SDL_RenderSetLogicalSize(renderer, resolution_width*2, resolution_height*2);
 
 	srand((unsigned int) time(NULL));
 
@@ -169,7 +166,7 @@ Status game_loop(SDL_Renderer* renderer)
 			else if(SDL_MOUSEWHEEL == event.type)
 			{
 				float new_scale = scale * ((event.wheel.y < 0) ? 0.5f : 2.0f);
-				if(new_scale >= 4.0f && new_scale <= 64.0f)
+				if(new_scale >= 2.0f && new_scale <= 64.0f)
 				{
 					scale = new_scale;
 					float offset_x = (0 == zoom_mode) ? DESIGN_WIDTH >> 1 : (float)mouse_x;
@@ -203,9 +200,9 @@ Status game_loop(SDL_Renderer* renderer)
 		if(1 == key_status[79] || (0 != fullscreen && 1279 == mouse_x)) // right
 			px += tw * scroll_speed * 60.0f/(float)fps;
 		if(1 == key_status[82] || (0 != fullscreen && 0 == mouse_y)) // up
-			py -= th * scroll_speed * 60.0f/(float)fps;
+			py -= th * 0.25 * scroll_speed * 60.0f/(float)fps;
 		if(1 == key_status[81] || (0 != fullscreen && 719 == mouse_y)) // down
-			py += th * scroll_speed * 60.0f/(float)fps;
+			py += th * 0.25 * scroll_speed * 60.0f/(float)fps;
 
 		/* Clear the screen for areas that do not have textures mapped to them. */
 		/* Comment out for windows 95 mode. */
@@ -308,7 +305,7 @@ static float cal_tw(float scale)
 
 static float cal_th(float scale)
 {
-	return scale / 16.0f *SQUISH_FACTOR * 128.0f;
+	return scale / 16.0f * 256.0f;
 }
 
 static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, float th)
