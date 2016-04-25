@@ -69,15 +69,20 @@ Status game_loop(SDL_Renderer* renderer)
 
 	/* Create two generic color textures. */
 	const char* sprite_images[] = {
+		"resources/images/building-mega.tga",
 		"resources/images/building-1.tga",
 		"resources/images/building-2.tga",
+		"resources/images/building-2-1.tga",
+		"resources/images/building-2-2.tga",
+		"resources/images/building-2-3.tga",
+		"resources/images/building-2-4.tga",
 	};
 
 	const char* tile_images[] = {
 		"resources/images/terrain-water.tga",
 		"resources/images/terrain-grass.tga",
 	};
-	int sprite_length = 2;
+	int sprite_length = 7;
 	int tile_length = 2;
 
 	SDL_Texture* sprite_textures[sprite_length];
@@ -108,6 +113,7 @@ Status game_loop(SDL_Renderer* renderer)
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
 			int k = rand() % (sprite_length << 1);
+			if(0 == k) k = rand() % 4;
 			tiles[i][j].sprite_texture = k < sprite_length ? sprite_textures[k] : NULL;
 			int l = rand() % tile_length;
 			tiles[i][j].tile_texture = tile_textures[l];
