@@ -37,7 +37,7 @@ static float cal_py(float grid_offset_tiles, float th, float screen_offset_tiles
 /* Milliseconds per frame .*/
 #define MSPF 1000 / 60
 
-#define SQUISH_FACTOR 0.5f
+#define SQUISH_FACTOR 2.0f
 
 Status game_loop(SDL_Renderer* renderer)
 {
@@ -69,17 +69,15 @@ Status game_loop(SDL_Renderer* renderer)
 
 	/* Create two generic color textures. */
 	const char* sprite_images[] = {
-		"resources/images/castle.tga",
-		"resources/images/inn.tga",
-		"resources/images/house.tga",
-		"resources/images/house-overgrown.tga",
+		"resources/images/building-1.tga",
+		"resources/images/building-2.tga",
 	};
 
 	const char* tile_images[] = {
-		"resources/images/rhombus-test.tga",
-		"resources/images/rhombus-green.tga",
+		"resources/images/terrain-water.tga",
+		"resources/images/terrain-grass.tga",
 	};
-	int sprite_length = 4;
+	int sprite_length = 2;
 	int tile_length = 2;
 
 	SDL_Texture* sprite_textures[sprite_length];
@@ -88,6 +86,7 @@ Status game_loop(SDL_Renderer* renderer)
 	for(int i = 0; i < sprite_length; i++)
 	{
 		SDL_Surface* s = IMG_Load(sprite_images[i]);
+		if(NULL == s) printf("%s\n", IMG_GetError());
 		sprite_textures[i] = SDL_CreateTextureFromSurface(renderer, s);
 		SDL_FreeSurface(s);
 	}
@@ -110,7 +109,7 @@ Status game_loop(SDL_Renderer* renderer)
 		{
 			int k = rand() % (sprite_length << 1);
 			tiles[i][j].sprite_texture = k < sprite_length ? sprite_textures[k] : NULL;
-			int l = rand() % 2;
+			int l = rand() % tile_length;
 			tiles[i][j].tile_texture = tile_textures[l];
 		}
 	}
@@ -194,19 +193,7 @@ Status game_loop(SDL_Renderer* renderer)
 					new.x = (int) floor(tiles[i][j].x - px);
 					new.y = (int) floor(tiles[i][j].y - py);
 					SDL_RenderCopy(renderer, tiles[i][j].tile_texture, NULL, &new);
-				}
-			}
-		}
-		for(int i = 0; i < GRID_SIZE; i++)
-		{
-			for(int j = 0; j < GRID_SIZE; j++)
-			{
-				/* Only render the drawable if it intersects with the current camera rect. */
-				if(1 == inside_screen(tiles[i][j].x, tiles[i][j].y, px, py, tw, th))
-				{
-					new.x = (int) floor(tiles[i][j].x - px);
-					new.y = (int) floor(tiles[i][j].y - py);
-					//if(NULL != tiles[i][j].sprite_texture) SDL_RenderCopy(renderer, tiles[i][j].sprite_texture, NULL, &new);
+					if(NULL != tiles[i][j].sprite_texture) SDL_RenderCopy(renderer, tiles[i][j].sprite_texture, NULL, &new);
 				}
 			}
 		}
@@ -302,7 +289,7 @@ static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, flo
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
 			t[i][j].x = w*(float)(j - i);
-			t[i][j].y = h*0.5*(float)(j + i);
+			t[i][j].y = h*0.25f*(float)(j + i);
 		}
 	}
 }
