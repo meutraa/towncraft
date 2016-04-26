@@ -1,9 +1,11 @@
 // Place your settings in this file to overwrite default and user settings.
 {
+	"files.autoSave": "onFocusChange",
 	"editor.renderWhitespace": true,
 	"files.trimTrailingWhitespace": true,
-	"editor.insertSpaces": false,
 	"files.associations": {
 		"*.h": "c"
-	}
+	},
+	"clang-format.formatOnSave": true,
+	"clang-format.style": "WebKit"
 }

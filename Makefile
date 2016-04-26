@@ -5,7 +5,7 @@ WARNINGS := -Wall -Wextra -Wpedantic \
             -Wuninitialized -Wconversion -Wstrict-prototypes -Wunused-macros -Wcomments
 
 LDFLAGS := -lm -lSDL2_image -lSDL2_ttf -lSDL2_mixer $(shell pkg-config --libs sdl2)
-CFLAGS  := -g $(WARNINGS) -O0 -std=c99 $(shell pkg-config --cflags sdl2)
+CFLAGS  := -ggdb3 $(WARNINGS) -O0 -std=c99 $(shell pkg-config --cflags sdl2)
 
 SRCDIR := source
 HDRDIR := include
@@ -16,9 +16,9 @@ OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))
 OBJPATHS := $(patsubst %,$(OBJDIR)/%,$(OBJFILES))
 DEPPATHS := $(patsubst %.o,%.d,$(OBJPATHS))
 
-.PHONY: all clean dirs cachegrind
+.PHONY: all clean dirs cachegrind tidy format
 
-all: dirs main docs
+all: clean dirs format main docs
 
 main: $(OBJPATHS)
 	$(CC) -o towncraft $(OBJPATHS) $(LDFLAGS)
@@ -36,13 +36,19 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c Makefile
 	@sed -i "1s/^/$(OBJDIR)\//" $(OBJDIR)/$*.d
 
 clean:
-	-$(RM) -r $(OBJDIR)/* towncraft documentation/html documentation/latex callgrind.*
+	@$(RM) -r $(OBJDIR)/* towncraft documentation/html documentation/latex callgrind.*
 
 dirs:
 	@mkdir -p $(OBJDIR)
 
 cachegrind:
 	$(CC) -O3 -std=c99 $(shell pkg-config --cflags sdl2) -g -o towncraft source/* $(LDFLAGS) -I$(HDRDIR)
+
+tidy:
+	clang-tidy-3.9 source/*.c -fix -- -Iinclude -I/usr/include/SDL2
+
+format:
+	@clang-format-3.9 -i -style="WebKit" source/* include/*
 
 docs:
 	doxygen documentation/doxygen.cfg

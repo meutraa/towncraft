@@ -14,14 +14,13 @@
 	of a Texture but rather a pointer. It also contains SDL_Rects with positions that vary
 	for multiple aspect ratios, and a pointer to one of these which is currently in use.
 */
-typedef struct Drawable
-{
-	SDL_Texture* texture;   /*!< a pointer to an SDL_Texture */
-	SDL_Rect* rect;      	/*!< an SDL_Rect pointer that defines the current position and size. */
-	char* name;				/*!< a unique name. */
-	int	visible;			/*!< 1 == rendered, anything else == not rendered. */
-	SDL_Rect widescreen;	/*!< an SDL_Rect containing positions for a 16:9 aspect ratio. */
-	SDL_Rect monitor;		/*!< an SDL_Rect containing positions for a 16:10 aspect ratio. */
+typedef struct Drawable {
+    SDL_Texture* texture; /*!< a pointer to an SDL_Texture */
+    SDL_Rect* rect; /*!< an SDL_Rect pointer that defines the current position and size. */
+    char* name; /*!< a unique name. */
+    int visible; /*!< 1 == rendered, anything else == not rendered. */
+    SDL_Rect widescreen; /*!< an SDL_Rect containing positions for a 16:9 aspect ratio. */
+    SDL_Rect monitor; /*!< an SDL_Rect containing positions for a 16:10 aspect ratio. */
 } Drawable;
 
 /*! \fn int bounded_by(int x, int y, SDL_Rect* r)

@@ -1,6 +1,6 @@
 before_script:
-  - apt-get update -qq && apt-get install -y -qq libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev doxygen
+  - apt-get update -qq && apt-get install -y -qq libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev
 
 main:
   script:
-    - make
+    - make main
