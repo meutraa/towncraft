@@ -3,3 +3,4 @@ documentation/html
 documentation/latex
 objects
 callgrind.*
+.vscode/.browse*
