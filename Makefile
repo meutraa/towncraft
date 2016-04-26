@@ -18,9 +18,9 @@ DEPPATHS := $(patsubst %.o,%.d,$(OBJPATHS))
 
 .PHONY: all clean dirs cachegrind tidy format
 
-all: clean dirs format main docs
+all: format main docs
 
-main: $(OBJPATHS)
+main: clean dirs $(OBJPATHS)
 	$(CC) -o towncraft $(OBJPATHS) $(LDFLAGS)
 
 # pull in dependency info for *existing* .o files
