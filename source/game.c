@@ -13,18 +13,38 @@
 #include "drawable.h"
 #include "text.h"
 
+static const char* sprite_images[] = {
+	"resources/images/building-mega.tga",
+	"resources/images/building-1.tga",
+	"resources/images/building-2.tga",
+	"resources/images/building-2-1.tga",
+	"resources/images/building-2-2.tga",
+	"resources/images/building-2-3.tga",
+	"resources/images/building-2-4.tga",
+};
+
+static const char* tile_images[] = {
+	"resources/images/terrain-water-test.tga",
+	"resources/images/terrain-grass-test.tga",
+};
+
+static const int SPRITE_LENGTH = 7;
+static const int TILE_LENGTH = 2;
+
 /* UI Drawables. */
 static Drawable* drawables;
 static int count;
 static const char* layout = "resources/layouts/game_ui.csv";
 
+static const SDL_Color white = { 255, 255, 255, 0 };
+
 #define printbuf(x, y) render_text(renderer, debug_font, strbuf, white, x, y);
 #define SCANCODE_COUNT 283
 
 /* The grid of tiles. */
-#define GRID_SIZE 256
-#define TILE_WIDTH 128.0f
-#define TILE_HEIGHT 64.0f
+static const int   GRID_SIZE   = 256;
+static const float TILE_WIDTH  = 128.0f;
+static const float TILE_HEIGHT = 64.0f;
 
 /* Function prototypes. */
 static float pixel_to_tile_x(float px, float py, float tw, float th);
@@ -33,15 +53,10 @@ static float tile_to_pixel_x(float tx, float ty, float tw);
 static float tile_to_pixel_y(float tx, float ty, float th);
 static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, float th);
 
-/* Milliseconds per frame .*/
-#define MSPF 1000 / 60
-
 Status game_loop(SDL_Renderer* renderer)
 {
 	Status status = NORMAL;
 	SDL_Event event;
-
-	const SDL_Color white = { 255, 255, 255, 0 };
 
 	char strbuf[32];
 	int key_status[SCANCODE_COUNT] = {0};
@@ -51,7 +66,7 @@ Status game_loop(SDL_Renderer* renderer)
 
 	/* Assume 60 for scroll speed to not become infinity. */
 	int fps = 60, frames = 0;
-	unsigned int start_time, dt, total_time = 0;
+	unsigned int start_time;
 
 	/* These are the pixel widths of each tile. */
 	float scale = 1.0f, tw = TILE_WIDTH, th = TILE_HEIGHT;
@@ -62,34 +77,16 @@ Status game_loop(SDL_Renderer* renderer)
 	/* These are the grid position in pixels of the top left of the screen. */
 	float px = 0.0f, py = 0.0f;
 
-	/* Create two generic color textures. */
-	const char* sprite_images[] = {
-		"resources/images/building-mega.tga",
-		"resources/images/building-1.tga",
-		"resources/images/building-2.tga",
-		"resources/images/building-2-1.tga",
-		"resources/images/building-2-2.tga",
-		"resources/images/building-2-3.tga",
-		"resources/images/building-2-4.tga",
-	};
+	SDL_Texture* sprite_textures[SPRITE_LENGTH];
+	SDL_Texture* tile_textures[TILE_LENGTH];
 
-	const char* tile_images[] = {
-		"resources/images/terrain-water-test.tga",
-		"resources/images/terrain-grass-test.tga",
-	};
-	int sprite_length = 7;
-	int tile_length = 2;
-
-	SDL_Texture* sprite_textures[sprite_length];
-	SDL_Texture* tile_textures[tile_length];
-
-	for(int i = 0; i < sprite_length; i++)
+	for(int i = 0; i < SPRITE_LENGTH; i++)
 	{
 		SDL_Surface* s = IMG_Load(sprite_images[i]);
 		sprite_textures[i] = SDL_CreateTextureFromSurface(renderer, s);
 		SDL_FreeSurface(s);
 	}
-	for(int i = 0; i < tile_length; i++)
+	for(int i = 0; i < TILE_LENGTH; i++)
 	{
 		SDL_Surface* s = IMG_Load(tile_images[i]);
 		tile_textures[i] = SDL_CreateTextureFromSurface(renderer, s);
@@ -107,21 +104,21 @@ Status game_loop(SDL_Renderer* renderer)
 		for(int j = 0; j < GRID_SIZE; j++)
 		{
 			/* If connected to land, and roll was water, reroll. */
-			int l = rand() % (tile_length + 10);
+			int l = rand() % (TILE_LENGTH + 10);
 			l = (l < 9) ? 1 : 0;
 			if(j > 0)
 			{
-				if(l != tiles[i][j - 1].tile_id) l = rand() % tile_length;
-				if(l != tiles[i][j - 1].tile_id) l = rand() % tile_length;
+				if(l != tiles[i][j - 1].tile_id) l = rand() % TILE_LENGTH;
+				if(l != tiles[i][j - 1].tile_id) l = rand() % TILE_LENGTH;
 			}
 			if(i > 0)
 			{
-				if(l != tiles[i - 1][j].tile_id) l = rand() % tile_length;
-				if(l != tiles[i - 1][j].tile_id) l = rand() % tile_length;
+				if(l != tiles[i - 1][j].tile_id) l = rand() % TILE_LENGTH;
+				if(l != tiles[i - 1][j].tile_id) l = rand() % TILE_LENGTH;
 			}
 			if(i > 0 && j > 0)
 			{
-				if(l != tiles[i - 1][j - 1].tile_id) l = rand() % tile_length;
+				if(l != tiles[i - 1][j - 1].tile_id) l = rand() % TILE_LENGTH;
 			}
 			tiles[i][j].tile_texture = tile_textures[l];
 			tiles[i][j].tile_id = l;
@@ -132,9 +129,9 @@ Status game_loop(SDL_Renderer* renderer)
 			}
 			else
 			{
-				int k = rand() % (sprite_length << 2);
+				int k = rand() % (SPRITE_LENGTH << 2);
 				if(0 == k) k = rand() % 4;
-				tiles[i][j].sprite_texture = k < sprite_length ? sprite_textures[k] : NULL;
+				tiles[i][j].sprite_texture = k < SPRITE_LENGTH ? sprite_textures[k] : NULL;
 			}
 		}
 	}
@@ -145,7 +142,6 @@ Status game_loop(SDL_Renderer* renderer)
 
 	while(NORMAL == status)
 	{
-		start_time = SDL_GetTicks();
 		SDL_GetMouseState(&mouse_x, &mouse_y);
 
 		/* If there are events in the event queue, process them. */
@@ -274,28 +270,21 @@ Status game_loop(SDL_Renderer* renderer)
 		/* Draw the renderer. */
 		SDL_RenderPresent(renderer);
 
-		dt = SDL_GetTicks() - start_time;
-		total_time += dt;
-		if(total_time >= 1000)
+		if(SDL_GetTicks() - start_time >= 1000)
 		{
 			fps = frames;
 			frames = -1;
-			total_time = 0;
+			start_time = SDL_GetTicks();
 		}
-        if(0 == vsync && dt < MSPF)
-        {
-			//printf("Finished frame early (%d/%d)\n", dt, MSPF);
-            SDL_Delay(MSPF - dt);
-        }
 		frames++;
 	}
 
 	/* Clean up and return to the main function. */
-	for(int i = 0; i < sprite_length; i++)
+	for(int i = 0; i < SPRITE_LENGTH; i++)
 	{
 		SDL_DestroyTexture(sprite_textures[i]);
 	}
-	for(int i = 0; i < tile_length; i++)
+	for(int i = 0; i < TILE_LENGTH; i++)
 	{
 		SDL_DestroyTexture(tile_textures[i]);
 	}
