@@ -1,5 +1,5 @@
 /*! \file tile.h
-	\brief A structure that simplifies scaling SDL_Textures.
+    \brief A structure that simplifies scaling SDL_Textures.
 */
 
 #ifndef TILE_H
@@ -8,7 +8,7 @@
 #include "SDL.h"
 
 /*!
-	\brief A structure that contains some values for tiles.
+    \brief A structure that contains some values for tiles.
 */
 typedef struct Tile {
     SDL_Texture* tile_texture; /*!< a pointer to an SDL_Texture */

@@ -18,7 +18,7 @@ DEPPATHS := $(patsubst %.o,%.d,$(OBJPATHS))
 
 .PHONY: all clean dirs cachegrind tidy format
 
-all: format main docs
+all: main docs
 
 main: clean dirs $(OBJPATHS)
 	$(CC) -o towncraft $(OBJPATHS) $(LDFLAGS)
@@ -45,10 +45,7 @@ cachegrind:
 	$(CC) -O3 -std=c99 $(shell pkg-config --cflags sdl2) -g -o towncraft source/* $(LDFLAGS) -I$(HDRDIR)
 
 tidy:
-	clang-tidy source/*.c -fix -- -Iinclude -I/usr/include/SDL2
-
-format:
-	@clang-format -i -style="WebKit" source/* include/*
+	clang-tidy source/*.c -checks="*,-google*" -- -Iinclude -I/usr/include/SDL2
 
 docs:
 	doxygen documentation/doxygen.cfg
