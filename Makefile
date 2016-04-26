@@ -21,14 +21,14 @@ DEPPATHS := $(patsubst %.o,%.d,$(OBJPATHS))
 all: main docs
 
 main: clean dirs $(OBJPATHS)
-	$(CC) -o towncraft $(OBJPATHS) $(LDFLAGS)
+	clang -o towncraft $(OBJPATHS) $(LDFLAGS)
 
 # pull in dependency info for *existing* .o files
 -include $(DEPPATHS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c Makefile
-	@$(CC) -c $(CFLAGS) $(SRCDIR)/$*.c -o $(OBJDIR)/$*.o -I$(HDRDIR)
-	@$(CC) -MM $(CFLAGS) $(SRCDIR)/$*.c >  $(OBJDIR)/$*.d -I$(HDRDIR)
+	clang -c $(CFLAGS) $(SRCDIR)/$*.c -o $(OBJDIR)/$*.o -I$(HDRDIR)
+	clang -MM $(CFLAGS) $(SRCDIR)/$*.c >  $(OBJDIR)/$*.d -I$(HDRDIR)
 	@cp -f $(OBJDIR)/$*.d $(OBJDIR)/$*.d.tmp
 	@sed -e 's/.*://' -e 's/\\$$//' < $(OBJDIR)/$*.d.tmp | fmt -1 | \
 	  sed -e 's/^ *//' -e 's/$$/:/' >> $(OBJDIR)/$*.d
@@ -42,7 +42,7 @@ dirs:
 	@mkdir -p $(OBJDIR)
 
 cachegrind:
-	$(CC) -O3 -std=c99 $(shell pkg-config --cflags sdl2) -g -o towncraft source/* $(LDFLAGS) -I$(HDRDIR)
+	clang -O3 -std=c99 $(shell pkg-config --cflags sdl2) -g -o towncraft source/* $(LDFLAGS) -I$(HDRDIR)
 
 tidy:
 	clang-tidy source/*.c -checks="*,-google*" -- -Iinclude -I/usr/include/SDL2
