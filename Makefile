@@ -45,10 +45,10 @@ cachegrind:
 	$(CC) -O3 -std=c99 $(shell pkg-config --cflags sdl2) -g -o towncraft source/* $(LDFLAGS) -I$(HDRDIR)
 
 tidy:
-	clang-tidy-3.9 source/*.c -fix -- -Iinclude -I/usr/include/SDL2
+	clang-tidy source/*.c -fix -- -Iinclude -I/usr/include/SDL2
 
 format:
-	@clang-format-3.9 -i -style="WebKit" source/* include/*
+	@clang-format -i -style="WebKit" source/* include/*
 
 docs:
 	doxygen documentation/doxygen.cfg
