@@ -1,10 +1,23 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-	"files.autoSave": "onFocusChange",
+	"explorer.workingFiles.maxVisible": 2,
+	// Controls if the height of the working files section should adapt dynamically to the number of elements or not.
+	"explorer.workingFiles.dynamicHeight": false,
+	"editor.selectionClipboard": true,
 	"editor.renderWhitespace": true,
 	"files.trimTrailingWhitespace": true,
 	"files.associations": {
 		"*.h": "c"
 	},
-	"files.eol": "\n"
+	"files.eol": "\n",
+
+	"clang.cflags": [
+		"-std=c99",
+		"-Wall",
+		"-Wextra",
+		"-Wpedantic",
+		"-D_REENTRANT",
+		"-I${workspaceRoot}/include",
+		"-I./usr/include/SDL2"
+	]
 }

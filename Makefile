@@ -48,4 +48,4 @@ tidy:
 	clang-tidy source/*.c -checks="*,-google*" -- -Iinclude -I/usr/include/SDL2
 
 docs:
-	doxygen documentation/doxygen.cfg
+	@doxygen documentation/doxygen.cfg

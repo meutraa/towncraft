@@ -1,0 +1,19 @@
+{
+	"version": "0.1.0",
+	"command": "make",
+	"isShellCommand": true,
+	"args": ["main"],
+	"showOutput": "never",
+	"problemMatcher": {
+		"owner": "cpp",
+		"fileLocation": ["relative", "${workspaceRoot}"],
+		"pattern": {
+			"regexp": "([^:]*):([^:]*):([^:]*): ([^:]*): (.*)",
+			"file": 1,
+			"line": 2,
+			"column": 3,
+			"severity": 4,
+			"message": 5
+		}
+    }
+}
