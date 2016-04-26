@@ -9,15 +9,5 @@
 	"files.associations": {
 		"*.h": "c"
 	},
-	"files.eol": "\n",
-
-	"clang.cflags": [
-		"-std=c99",
-		"-Wall",
-		"-Wextra",
-		"-Wpedantic",
-		"-D_REENTRANT",
-		"-I${workspaceRoot}/include",
-		"-I./usr/include/SDL2"
-	]
+	"files.eol": "\n"
 }

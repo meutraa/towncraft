@@ -27,8 +27,8 @@ main: clean dirs $(OBJPATHS)
 -include $(DEPPATHS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c Makefile
-	clang -c $(CFLAGS) $(SRCDIR)/$*.c -o $(OBJDIR)/$*.o -I$(HDRDIR)
-	clang -MM $(CFLAGS) $(SRCDIR)/$*.c >  $(OBJDIR)/$*.d -I$(HDRDIR)
+	@clang -c $(CFLAGS) $(SRCDIR)/$*.c -o $(OBJDIR)/$*.o -I$(HDRDIR)
+	@clang -MM $(CFLAGS) $(SRCDIR)/$*.c >  $(OBJDIR)/$*.d -I$(HDRDIR)
 	@cp -f $(OBJDIR)/$*.d $(OBJDIR)/$*.d.tmp
 	@sed -e 's/.*://' -e 's/\\$$//' < $(OBJDIR)/$*.d.tmp | fmt -1 | \
 	  sed -e 's/^ *//' -e 's/$$/:/' >> $(OBJDIR)/$*.d
@@ -42,7 +42,7 @@ dirs:
 	@mkdir -p $(OBJDIR)
 
 cachegrind:
-	clang -O3 -std=c99 $(shell pkg-config --cflags sdl2) -g -o towncraft source/* $(LDFLAGS) -I$(HDRDIR)
+	@clang -O3 -std=c99 $(shell pkg-config --cflags sdl2) -g -o towncraft source/* $(LDFLAGS) -I$(HDRDIR)
 
 tidy:
 	clang-tidy source/*.c -checks="*,-google*" -- -Iinclude -I/usr/include/SDL2
