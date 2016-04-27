@@ -9,11 +9,8 @@
 1	text	"top left(px,py):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(3,680)		(3,663)
 1	text	"        (tx,ty):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(3,700)		(3,685)
 
-1	text	"centre(pixels):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(400,680)	(310,663)
-1	text	"       (tiles):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(400,700)	(310,685)
+1	text	"centre(pixels):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(420,680)	(310,663)
+1	text	"       (tiles):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(420,700)	(310,685)
 
-1	text	"mouse(pixels):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(800,680)	(600,663)
-1	text	"      (tiles):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(800,700)	(600,685)
-
-1	text	"tw:"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(1170,680)	(600,663)
-1	text	"th:"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(1170,700)	(600,685)
+1	text	"mouse(pixels):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(840,680)	(600,663)
+1	text	"      (tiles):"	resources/fonts/fleftex_mono_8.ttf:16:1	(255,255,255,0)	(840,700)	(600,685)

@@ -16,7 +16,8 @@
     \param color font color.
     \param pos_x x component of text position.
     \param pos_y y component of text position.
+    \param scale all rect components will be multiplied by this value.
 */
-void render_text(SDL_Renderer* renderer, TTF_Font* font, char text[], SDL_Color color, int pos_x, int pos_y);
+void render_text(SDL_Renderer* renderer, TTF_Font* font, char text[], SDL_Color color, int pos_x, int pos_y, int scale);
 
 #endif

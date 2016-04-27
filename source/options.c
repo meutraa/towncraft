@@ -8,7 +8,7 @@ int vsync = 1;
 
 int fullscreen = 0;
 
-float scroll_speed = 0.3f;
+float scroll_speed = 0.15f;
 
 char render_scale_quality[] = "nearest";
 

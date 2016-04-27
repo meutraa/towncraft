@@ -33,20 +33,19 @@ static const int TILE_LENGTH = 2;
 
 static const SDL_Color white = { 255, 255, 255, 0 };
 
-#define printbuf(x, y) render_text(renderer, debug_font, strbuf, white, x, y);
+#define printbuf(x, y) render_text(renderer, debug_font, strbuf, white, x, y, camera.scale);
 #define SCANCODE_COUNT 283
 
 /* The grid of tiles. */
 static const int GRID_SIZE = 256;
-static const float TILE_WIDTH = 128.0f;
-static const float TILE_HEIGHT = 64.0f;
+static const int DEFAULT_SCALE = 8;
+static const int TILE_WIDTH = 128 * DEFAULT_SCALE;
+static const int TILE_HEIGHT = 64 * DEFAULT_SCALE;
 
 /* Function prototypes. */
-static float pixel_to_tile_x(float px, float py, float tw, float th);
-static float pixel_to_tile_y(float px, float py, float tw, float th);
-static float tile_to_pixel_x(float tx, float ty, float tw);
-static float tile_to_pixel_y(float tx, float ty, float th);
-static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, float th);
+static void change_scale(Camera* camera, SDL_Renderer* renderer, Drawable drawables[], int count, int bits);
+static FPoint pixel_to_tile(int x, int y);
+static FPoint tile_to_pixel(float x, float y);
 
 Status game_loop(SDL_Renderer* renderer)
 {
@@ -63,14 +62,21 @@ Status game_loop(SDL_Renderer* renderer)
     int fps = 60, frames = 0;
     unsigned int start_time;
 
-    /* These are the pixel widths of each tile. */
-    float scale = 1.0f, tw = TILE_WIDTH, th = TILE_HEIGHT;
-
+    /* Create and fill the positions of the tiles. */
     Tile tiles[GRID_SIZE][GRID_SIZE];
-    calculate_tile_positions(tiles, tw, th);
+    for (int y = 0; y < GRID_SIZE; y++)
+    {
+        for (int x = 0; x < GRID_SIZE; x++)
+        {
+            FPoint pixel = tile_to_pixel((float)x , (float)y);
+            tiles[x][y].x = (int)pixel.x;
+            tiles[x][y].y = (int)pixel.y;
+        }
+    }
 
-    /* These are the grid position in pixels of the top left of the screen. */
-    float px = 0.0f, py = 0.0f;
+    /* Rectangles for rendering loop. */
+    SDL_Rect rect_terrain  = { 0, 0, TILE_WIDTH, TILE_HEIGHT };
+    SDL_Rect rect_building = { 0, 0, TILE_WIDTH, TILE_HEIGHT << 2 };
 
     SDL_Texture* sprite_textures[SPRITE_LENGTH];
     SDL_Texture* tile_textures[TILE_LENGTH];
@@ -88,9 +94,6 @@ Status game_loop(SDL_Renderer* renderer)
         tile_textures[i] = SDL_CreateTextureFromSurface(renderer, s);
         SDL_FreeSurface(s);
     }
-
-    /* Enable to see how outside of camera borders is rendered. */
-    //SDL_RenderSetLogicalSize(renderer, resolution_width*2, resolution_height*2);
 
     srand((unsigned int)time(NULL));
 
@@ -136,6 +139,11 @@ Status game_loop(SDL_Renderer* renderer)
     Drawable drawables[count];
     load_drawables(renderer, drawables, layout, 0);
 
+    /* The camera with scale, and the top left of the grid. */
+    Camera camera = { 1, 0, 0 };
+
+    change_scale(&camera, renderer, drawables, count, 3); // * times bigger.
+
     while (NORMAL == status)
     {
         SDL_GetMouseState(&mouse_x, &mouse_y);
@@ -158,26 +166,26 @@ Status game_loop(SDL_Renderer* renderer)
                 }
                 case SDL_MOUSEWHEEL:
                 {
-                    float new_scale = scale * ((event.wheel.y < 0) ? 0.5f : 2.0f);
-                    if (new_scale >= 0.125f && new_scale <= 8.0f)
+                    int zoom = (event.wheel.y > 0) ? -1 : 1;
+
+                    if((1 == zoom && camera.scale != 64) || (-1 == zoom && camera.scale != 1))
                     {
-                        scale = new_scale;
-                        float offset_x = (0 == zoom_mode) ? DESIGN_WIDTH >> 1 : (float)mouse_x;
-                        float offset_y = (0 == zoom_mode) ? DESIGN_HEIGHT >> 1 : (float)mouse_y;
+                        change_scale(&camera, renderer, drawables, count, zoom);
 
-                        // Position in tiles we want to retain.
-                        float tx = pixel_to_tile_x(px + offset_x, py + offset_y, tw, th);
-                        float ty = pixel_to_tile_y(px + offset_x, py + offset_y, tw, th);
+                        int offset_x = zoom_mode == 0 ? DESIGN_WIDTH >> 1  : mouse_x;
+                        int offset_y = zoom_mode == 0 ? DESIGN_HEIGHT >> 1 : mouse_y;
 
-                        // Calculate new tile dimensions and positions.
-                        tw = scale * TILE_WIDTH;
-                        th = scale * TILE_HEIGHT;
-
-                        calculate_tile_positions(tiles, tw, th);
-
-                        // Calculate the new top left corner in pixels.
-                        px = tile_to_pixel_x(tx, ty, tw) - offset_x;
-                        py = tile_to_pixel_y(tx, ty, th) - offset_y;
+                        // zooming in
+                        if(-1 == zoom)
+                        {
+                            camera.x += (int)(camera.scale * offset_x);
+                            camera.y += (int)(camera.scale * offset_y);
+                        }
+                        if(1 == zoom)
+                        {
+                            camera.x -= (int)((camera.scale >> 1) * offset_x);
+                            camera.y -= (int)((camera.scale >> 1) * offset_y);
+                        }
                     }
                     break;
                 }
@@ -190,93 +198,93 @@ Status game_loop(SDL_Renderer* renderer)
             break;
         }
 
-        float sw = tw * scroll_speed * 60.0f / (float)fps;
-        float sh = th * scroll_speed * 60.0f / (float)fps;
+        float speed = camera.scale / DEFAULT_SCALE * scroll_speed * 60.0f / (float)fps;
+        int sw = (int) ceil(TILE_WIDTH * speed);
+        int sh = (int) ceil(TILE_HEIGHT * speed);
         if (1 == key_status[80] || (0 != fullscreen && 0 == mouse_x)) // left
         {
-            px -= sw;
+            camera.x -= sw;
         }
         if (1 == key_status[79] || (0 != fullscreen && 1279 == mouse_x)) // right
         {
-            px += sw;
+            camera.x += sw;
         }
         if (1 == key_status[82] || (0 != fullscreen && 0 == mouse_y)) // up
         {
-            py -= sh;
+            camera.y -= sh;
         }
         if (1 == key_status[81] || (0 != fullscreen && 719 == mouse_y)) // down
         {
-            py += sh;
+            camera.y += sh;
         }
 
         /* Clear the screen for areas that do not have textures mapped to them. */
         /* Comment out for windows 95 mode. */
         SDL_RenderClear(renderer);
 
-        SDL_Rect new = { 0, 0, (int)tw, (int)th };
-        SDL_Rect newb = { 0, 0, (int)tw, (int)(th * 4.0f) };
-
-        /* Lowest y we need to rend it top right corner. */
-        int y1 = (int)floor(pixel_to_tile_y(px + DESIGN_WIDTH, py, tw, th));
-        y1 = (y1 < 0) ? 0 : y1;
+        /* Lowest y we need to rend is top right corner. */
+        //int y1 = (int)floor(pixel_to_tile(camera.x + DESIGN_WIDTH, camera.y).y);
+        //y1 = (y1 < 0) ? 0 : y1;
 
         /* Highest y is bottom left. */
-        int y2 = (int)ceil(pixel_to_tile_y(px, py + DESIGN_HEIGHT, tw, th));
-        y2 = (y2 > GRID_SIZE) ? GRID_SIZE : y2;
+        //int y2 = (int)ceil(pixel_to_tile(camera.x, camera.y + DESIGN_HEIGHT).y);
+        //y2 = (y2 > GRID_SIZE) ? GRID_SIZE : y2;
 
         /* Lowest x we need is top left corner. */
-        int x1 = (int)floor(pixel_to_tile_x(px, py, tw, th));
-        x1 = (x1 < 0) ? 0 : x1;
+        //int x1 = (int)floor(pixel_to_tile(camera.x, camera.y).x);
+        //x1 = (x1 < 0) ? 0 : x1;
 
         /* Highest x is at bottom right. */
-        int x2 = (int)ceil(pixel_to_tile_x(px + DESIGN_WIDTH, py + DESIGN_HEIGHT, tw, th));
-        x2 = (x2 > GRID_SIZE) ? GRID_SIZE : x2;
+        //int x2 = (int)ceil(pixel_to_tile(camera.x + DESIGN_WIDTH, camera.y + DESIGN_HEIGHT).x);
+        //x2 = (x2 > GRID_SIZE) ? GRID_SIZE : x2;
 
-        for (int y = y1; y < y2; y++)
+        for (int y = 0; y < GRID_SIZE; y++)
         {
-            for (int x = x1; x < x2; x++)
+            for (int x = 0; x < GRID_SIZE; x++)
             {
-                float newy = tiles[x][y].y - py;
-                new.x = (int)floor(tiles[x][y].x - px);
-                new.y = (int)floor(newy);
-                newb.x = new.x;
-                newb.y = (int)floor(newy - 3.0f * th);
-                SDL_RenderCopy(renderer, tiles[x][y].tile_texture, NULL, &new);
+                rect_terrain.x = tiles[x][y].x - camera.x;
+                rect_terrain.y = tiles[x][y].y - camera.y;
+                rect_building.x = rect_terrain.x;
+                rect_building.y = rect_terrain.y - (3 * TILE_HEIGHT);
+                SDL_RenderCopy(renderer, tiles[x][y].tile_texture, NULL, &rect_terrain);
                 if (NULL != tiles[x][y].sprite_texture)
                 {
-                    SDL_RenderCopy(renderer, tiles[x][y].sprite_texture, NULL, &newb);
+                    SDL_RenderCopy(renderer, tiles[x][y].sprite_texture, NULL, &rect_building);
                 }
             }
         }
 
         render_drawables(renderer, drawables, count);
 
+        int centre[] = {
+            camera.x + camera.scale*(DESIGN_WIDTH >> 1),
+            camera.y + camera.scale*(DESIGN_HEIGHT >> 1)
+        };
+        int mouse[] = {
+            camera.x + camera.scale*mouse_x,
+            camera.y + camera.scale*mouse_y
+        };
+        FPoint mouse_tile  = pixel_to_tile(mouse[0], mouse[1]);
+        FPoint corner_tile = pixel_to_tile(camera.x, camera.y);
+        FPoint centre_tile = pixel_to_tile(centre[0], centre[1]);
+
         /* Print the UI debugging infomation. */
-        sprintf(strbuf, "%.1f, %.1f", px, py);
+        sprintf(strbuf, "%d, %d", camera.x, camera.y);
         printbuf(200, 680);
-        sprintf(strbuf, "%.1f, %.1f", pixel_to_tile_x(px, py, tw, th), pixel_to_tile_y(px, py, tw, th));
+        sprintf(strbuf, "%.1f, %.1f", corner_tile.x, corner_tile.y);
         printbuf(200, 700);
 
-        sprintf(strbuf, "%.1f, %.1f", px + (DESIGN_WIDTH >> 1), py + (DESIGN_HEIGHT >> 1));
-        printbuf(583, 680);
-        sprintf(strbuf, "%.1f, %.1f",
-            pixel_to_tile_x(px + (DESIGN_WIDTH >> 1), py + (DESIGN_HEIGHT >> 1), tw, th),
-            pixel_to_tile_y(px + (DESIGN_WIDTH >> 1), py + (DESIGN_HEIGHT >> 1), tw, th));
-        printbuf(583, 700);
+        sprintf(strbuf, "%d, %d", centre[0], centre[1]);
+        printbuf(603, 680);
+        sprintf(strbuf, "%.1f, %.1f", centre_tile.x, centre_tile.y);
+        printbuf(603, 700);
 
-        sprintf(strbuf, "%.1f, %.1f", px + (float)mouse_x, py + (float)mouse_y);
-        printbuf(974, 680);
-        sprintf(strbuf, "%.1f, %.1f",
-            pixel_to_tile_x(px + (float)mouse_x, py + (float)mouse_y, tw, th),
-            pixel_to_tile_y(px + (float)mouse_x, py + (float)mouse_y, tw, th));
-        printbuf(974, 700);
+        sprintf(strbuf, "%d, %d", mouse[0], mouse[1]);
+        printbuf(1014, 680);
+        sprintf(strbuf, "%.1f, %.1f", mouse_tile.x, mouse_tile.y);
+        printbuf(1014, 700);
 
-        sprintf(strbuf, "%.1f", tw);
-        printbuf(1210, 680);
-        sprintf(strbuf, "%.1f", th);
-        printbuf(1210, 700);
-
-        sprintf(strbuf, "%.1f", scale);
+        sprintf(strbuf, "%d", camera.scale);
         printbuf(1080, 4);
         sprintf(strbuf, "%d", fps);
         printbuf(1200, 4);
@@ -310,37 +318,53 @@ Status game_loop(SDL_Renderer* renderer)
     return status;
 }
 
-/* These should all be pure functions.
- */
-static float pixel_to_tile_x(float px, float py, float tw, float th)
+static void change_scale(Camera* camera, SDL_Renderer* renderer, Drawable drawables[], int count, int bits)
 {
-    return (px / tw) + (py / th);
-}
-
-static float pixel_to_tile_y(float px, float py, float tw, float th)
-{
-    return (py / th) - (px / tw);
-}
-
-static float tile_to_pixel_x(float tx, float ty, float tw)
-{
-    float w = 0.5f * tw;
-    return ((tx - ty) * w); // - w;
-}
-
-static float tile_to_pixel_y(float tx, float ty, float th)
-{
-    return (tx + ty) * 0.5f * th;
-}
-
-static void calculate_tile_positions(Tile t[GRID_SIZE][GRID_SIZE], float tw, float th)
-{
-    for (int y = 0; y < GRID_SIZE; y++)
+    int abits = abs(bits);
+    if(bits > 0)
     {
-        for (int x = 0; x < GRID_SIZE; x++)
+        (*camera).scale <<= abits;
+    }
+    else if(bits < 0)
+    {
+        (*camera).scale >>= abits;
+    }
+    SDL_RenderSetLogicalSize(renderer, (*camera).scale * resolution_width, (*camera).scale * resolution_height);
+    for(int i = 0; i < count; i++)
+    {
+        if(bits > 0)
         {
-            t[x][y].x = tile_to_pixel_x((float)x, (float)y, tw);
-            t[x][y].y = tile_to_pixel_y((float)x, (float)y, th);
+            drawables[i].rect->x <<= abits;
+            drawables[i].rect->y <<= abits;
+            drawables[i].rect->w <<= abits;
+            drawables[i].rect->h <<= abits;
+        }
+        else if(bits < 0)
+        {
+            drawables[i].rect->x >>= abits;
+            drawables[i].rect->y >>= abits;
+            drawables[i].rect->w >>= abits;
+            drawables[i].rect->h >>= abits;
         }
     }
+}
+
+/* These should all be pure functions.
+ */
+static FPoint pixel_to_tile(int x, int y)
+{
+    FPoint tile = {
+        (x / (float)TILE_WIDTH) + (y / (float)TILE_HEIGHT),
+        (y / (float)TILE_HEIGHT) - (x / (float)TILE_WIDTH)
+    };
+    return tile;
+}
+
+static FPoint tile_to_pixel(float x, float y)
+{
+    FPoint pixel = {
+        (x - y) * (float)(TILE_WIDTH >> 1),
+        (x + y) * (float)(TILE_HEIGHT >> 1)
+    };
+    return pixel;
 }
