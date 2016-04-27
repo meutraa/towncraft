@@ -191,14 +191,10 @@ Status game_loop(SDL_Renderer* renderer)
         {
             switch (event.type)
             {
+                case SDL_KEYUP:
                 case SDL_KEYDOWN:
                 {
-                    key_status[event.key.keysym.scancode] = 1;
-                    break;
-                }
-                case SDL_KEYUP:
-                {
-                    key_status[event.key.keysym.scancode] = 0;
+                    key_status[event.key.keysym.scancode] = event.type == SDL_KEYUP ? 0 : 1;
                     break;
                 }
                 case SDL_MOUSEWHEEL:
