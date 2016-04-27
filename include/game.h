@@ -13,10 +13,25 @@ typedef struct Point {
     int y;                /*!< the top left pixel on the grid */
 } Point;
 
-typedef struct FPoint {
-    float x;              /*!< the top left pixel on the grid */
-    float y;              /*!< the top left pixel on the grid */
-} FPoint;
+typedef struct Terrain {
+    SDL_Texture* texture;       /*!< a pointer to an SDL_Texture */
+} Terrain;
+
+typedef struct Building {
+    SDL_Texture* texture;       /*!< a pointer to an SDL_Texture */
+    int height;                 /*!< an SDL_Rect pointer that defines the current position and size. */
+} Building;
+
+/*!
+    \brief A structure that contains some values for tiles.
+*/
+typedef struct Tile {
+    Building* building; /*!< a pointer to an Building. */
+    Terrain* terrain;   /*!< a pointer to a Terrain. */
+    int tile_id;        /*!< an id. */
+    int x;              /*!< x position of tile. */
+    int y;              /*!< y position of tile. */
+} Tile;
 
 /*!
     \brief Camera infomation.

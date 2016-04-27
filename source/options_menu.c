@@ -45,10 +45,7 @@ Status options_menu_loop(SDL_Renderer* renderer)
                 {
                     return QUIT_PROGRAM;
                 }
-                else
-                {
-                    printf("Key %d pressed\n", event.key.keysym.scancode);
-                }
+                printf("Key %d pressed\n", event.key.keysym.scancode);
             }
             if (SDL_MOUSEBUTTONDOWN == event.type && SDL_BUTTON_LEFT == event.button.button)
             {

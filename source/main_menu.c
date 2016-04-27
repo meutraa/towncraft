@@ -1,8 +1,7 @@
-#include "main_menu.h"
-
 #include <stdio.h>
 #include <string.h>
 
+#include "main_menu.h"
 #include "SDL_mixer.h"
 #include "drawable.h"
 #include "status.h"
