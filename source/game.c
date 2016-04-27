@@ -27,51 +27,51 @@ static const char* tile_images[] = {
     "resources/images/terrain-grass-test.tga",
 };
 
-static const int BUILDING_COUNT = sizeof(building_images)/sizeof(*building_images);
-static const int TERRAIN_COUNT  = sizeof(tile_images)/sizeof(*tile_images);
+/* The virtual widths of the current visible screen. */
+#define screen_width() DESIGN_WIDTH*camera.scale
+#define screen_height() DESIGN_HEIGHT*camera.scale
 
-static const SDL_Color white = { 255, 255, 255, 0 };
+/* This is just to stop repetative stuff. */
+#define printbuf(x, y, format, ...) \
+    sprintf(strbuf, format, __VA_ARGS__); \
+    render_text(renderer, debug_font, strbuf, white, x, y, camera.scale);
 
-#define screen_width() (int)(DESIGN_WIDTH*camera.scale)
-#define screen_height() (int)(DESIGN_HEIGHT*camera.scale)
-#define printbuf(x, y) render_text(renderer, debug_font, strbuf, white, x, y, camera.scale);
+#define SHIFT(a, b) if(b > 0){(a) <<= (b);} else if(b < 0){(a) >>= abs(b);}
+#define MIN(a, b) (((a)<(b))?(a):(b))
+#define MAX(a, b) (((a)>(b))?(a):(b))
+#define LENGTH(a) (sizeof(a)/sizeof(*a))
+
+/* The number of keys SDL2 defines. */
 #define SCANCODE_COUNT 283
 
 /* The grid of tiles. */
 static const int GRID_SIZE = 256;
+
+/* DO NOT TOUCH THESE (maybe). */
 static const int DEFAULT_SCALE = 8;
 static const int TILE_WIDTH = 128 * DEFAULT_SCALE;
 static const int TILE_HEIGHT = 64 * DEFAULT_SCALE;
 
-/* Function prototypes. */
+static const int BUILDING_COUNT = LENGTH(building_images);
+static const int TERRAIN_COUNT  = LENGTH(tile_images);
+
+/*!
+    \brief Scales all the UI elements, and updates the scale value in the camera.
+
+    \var drawables an array of Drawables that need to be scaled.
+    \var count the size of the Drawable array.
+    \var bits for +ve bits: camera.scale >> bits, for -ve bits: camera.scale << bits
+*/
 static void change_scale(Camera* camera, SDL_Renderer* renderer, Drawable drawables[], int count, int bits)
 {
-    int abits = abs(bits);
-    if(bits > 0)
-    {
-        (*camera).scale <<= abits;
-    }
-    else if(bits < 0)
-    {
-        (*camera).scale >>= abits;
-    }
+    SHIFT(((*camera).scale), bits);
     SDL_RenderSetLogicalSize(renderer, (*camera).scale * resolution_width, (*camera).scale * resolution_height);
     for(int i = 0; i < count; i++)
     {
-        if(bits > 0)
-        {
-            drawables[i].rect->x <<= abits;
-            drawables[i].rect->y <<= abits;
-            drawables[i].rect->w <<= abits;
-            drawables[i].rect->h <<= abits;
-        }
-        else if(bits < 0)
-        {
-            drawables[i].rect->x >>= abits;
-            drawables[i].rect->y >>= abits;
-            drawables[i].rect->w >>= abits;
-            drawables[i].rect->h >>= abits;
-        }
+        SHIFT(drawables[i].rect->x, bits);
+        SHIFT(drawables[i].rect->y, bits);
+        SHIFT(drawables[i].rect->w, bits);
+        SHIFT(drawables[i].rect->h, bits);
     }
 }
 
@@ -99,14 +99,22 @@ Status game_loop(SDL_Renderer* renderer)
     Building buildings[BUILDING_COUNT];
     Terrain terrains[TERRAIN_COUNT];
 
-    char strbuf[32];
-    int key_status[SCANCODE_COUNT] = { 0 };
-    TTF_Font* debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
+    /* Rectangles for rendering loop. */
+    SDL_Rect rect_terrain  = { 0, 0, TILE_WIDTH, TILE_HEIGHT };
+    SDL_Rect rect_building = { 0, 0, TILE_WIDTH, 0 };
 
-    int mouse_x, mouse_y;
+    int key_status[SCANCODE_COUNT] = { 0 };
+    srand((unsigned int)time(NULL));
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
+
+    /* Things required for rendering of text on the UI. */
+    char strbuf[32];
+    const SDL_Color white = { 255, 255, 255, 0 };
+    TTF_Font* debug_font  = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
 
     /* Assume 60 for scroll speed to not become infinity. */
     int fps = 60, frames = 0;
+    int mouse_x, mouse_y;
     unsigned int start_time;
 
     /* Fill our structure arrays. */
@@ -149,34 +157,27 @@ Status game_loop(SDL_Renderer* renderer)
             tiles[y][x].tile_id = l;
 
             /* If land, maybe place a building. */
+            int k = BUILDING_COUNT + 1;
             if (1 == l)
             {
-                int k = rand() % (BUILDING_COUNT << 2);
+                k = rand() % (BUILDING_COUNT << 2);
                 if (0 == k)
                 {
                     k = rand() % 4;
                 }
-                tiles[y][x].building = k < BUILDING_COUNT ? &buildings[k] : NULL;
             }
+            tiles[y][x].building = k < BUILDING_COUNT ? &buildings[k] : NULL;
         }
     }
 
-    /* Rectangles for rendering loop. */
-    SDL_Rect rect_terrain  = { 0, 0, TILE_WIDTH, TILE_HEIGHT };
-    SDL_Rect rect_building = { 0, 0, TILE_WIDTH, 0 };
-
-    srand((unsigned int)time(NULL));
-
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
-
-    /* Load in the UI. */
+    /* Load in the game UI. */
     const char* layout = "resources/layouts/game_ui.csv";
     int count = count_drawables(layout);
     Drawable drawables[count];
     load_drawables(renderer, drawables, layout, 0);
 
+    /* Initialise the camera and update everything for the DEFAULT_SCALE of 8. */
     Camera camera = { 1, 0, 0 };
-
     change_scale(&camera, renderer, drawables, count, 3); // * times bigger.
 
     /* Centre the top of the grid on the x axis. */
@@ -184,92 +185,72 @@ Status game_loop(SDL_Renderer* renderer)
 
     while (NORMAL == status)
     {
+        /* Clear the renderer and get mouse co-ordinates. */
+        SDL_RenderClear(renderer);
         SDL_GetMouseState(&mouse_x, &mouse_y);
 
-        /* If there are events in the event queue, process them. */
-        while (1 == SDL_PollEvent(&event))
+        /* Process any events in the queue. */
+        while (SDL_PollEvent(&event))
         {
-            switch (event.type)
+            if (SDL_KEYUP == event.type || SDL_KEYDOWN == event.type)
             {
-                case SDL_KEYUP:
-                case SDL_KEYDOWN:
+                key_status[event.key.keysym.scancode] = event.type == SDL_KEYUP ? 0 : 1;
+            }
+            else if (SDL_MOUSEWHEEL == event.type)
+            {
+                int zoom = (event.wheel.y > 0) ? -1 : 1;
+                if ((1 == zoom && camera.scale != 64) || (-1 == zoom && camera.scale != 1))
                 {
-                    key_status[event.key.keysym.scancode] = event.type == SDL_KEYUP ? 0 : 1;
-                    break;
-                }
-                case SDL_MOUSEWHEEL:
-                {
-                    int zoom = (event.wheel.y > 0) ? -1 : 1;
-
-                    if((1 == zoom && camera.scale != 64) || (-1 == zoom && camera.scale != 1))
-                    {
-                        change_scale(&camera, renderer, drawables, count, zoom);
-
-                        int offset_x = zoom_mode == 0 ? DESIGN_WIDTH  >> 1 : mouse_x;
-                        int offset_y = zoom_mode == 0 ? DESIGN_HEIGHT >> 1 : mouse_y;
-
-                        int factor = -1 == zoom ? camera.scale : -(camera.scale >> 1);
-
-                        camera.x += factor * offset_x;
-                        camera.y += factor * offset_y;
-                    }
-                    break;
+                    change_scale(&camera, renderer, drawables, count, zoom);
+                    int factor = -1 == zoom ? camera.scale : -(camera.scale >> 1);
+                    camera.x += factor * (zoom_mode == 0 ? DESIGN_WIDTH  >> 1 : mouse_x);
+                    camera.y += factor * (zoom_mode == 0 ? DESIGN_HEIGHT >> 1 : mouse_y);
                 }
             }
         }
 
-        if (1 == key_status[41]) // ESC - Close the program.
+        /* Quit the program if Escape is pressed. */
+        if (key_status[41])
         {
             status = QUIT_PROGRAM;
             break;
         }
 
+        /* Update the camera co-ordinates if scroll conditions are met. */
         int speed = (int) ceil(camera.scale * scroll_speed * 60.0f / fps);
-        if (1 == key_status[80] || (0 != fullscreen && 0 == mouse_x)) // left
+        if (key_status[80] || (fullscreen && 0 == mouse_x)) // left
         {
             camera.x -= speed;
         }
-        if (1 == key_status[79] || (0 != fullscreen && 1279 == mouse_x)) // right
+        if (key_status[79] || (fullscreen && 1279 == mouse_x)) // right
         {
             camera.x += speed;
         }
-        if (1 == key_status[82] || (0 != fullscreen && 0 == mouse_y)) // up
+        if (key_status[82] || (fullscreen && 0 == mouse_y)) // up
         {
             camera.y -= speed >> 1;
         }
-        if (1 == key_status[81] || (0 != fullscreen && 719 == mouse_y)) // down
+        if (key_status[81] || (fullscreen && 719 == mouse_y)) // down
         {
             camera.y += speed >> 1;
         }
 
-        /* Clear the screen for areas that do not have textures mapped to them. */
-        /* Comment out for windows 95 mode. */
-        SDL_RenderClear(renderer);
-
-        /* Lowest y we need to rend is top right corner. */
+        /* Calculate the smallest rectangle sub-grid that will cover our screen. */
         int y1 = pixel_to_tile(camera.x + screen_width(), camera.y).y;
-        y1 = (y1 < 0) ? 0 : y1;
-
-        /* Highest y is bottom left. */
         int y2 = pixel_to_tile(camera.x, camera.y + screen_height()).y + 1;
-        y2 = (y2 > GRID_SIZE) ? GRID_SIZE : y2;
-
-        /* Lowest x we need is top left corner. */
         int x1 = pixel_to_tile(camera.x, camera.y).x;
-        x1 = (x1 < 0) ? 0 : x1;
-
-        /* Highest x is at bottom right. */
         int x2 = pixel_to_tile(camera.x + screen_width(), camera.y + screen_height()).x + 1;
-        x2 = (x2 > GRID_SIZE) ? GRID_SIZE : x2;
 
-        for (int y = y1; y < y2; y++)
+        /* Make sure all these are within bounds of our grid.
+           Loop through this sub-grid and render each texture. */
+        for (int y = MAX(0, y1); y < MIN(GRID_SIZE, y2); y++)
         {
-            for (int x = x1; x < x2; x++)
+            for (int x = MAX(0, x1); x < MAX(GRID_SIZE, x2); x++)
             {
                 rect_terrain.x = tiles[x][y].x - camera.x;
                 rect_terrain.y = tiles[x][y].y - camera.y;
                 SDL_RenderCopy(renderer, tiles[x][y].terrain->texture, NULL, &rect_terrain);
-                if (NULL != tiles[x][y].building)
+                if (tiles[x][y].building)
                 {
                     rect_building.x = rect_terrain.x;
                     rect_building.h = tiles[x][y].building->height;
@@ -279,44 +260,30 @@ Status game_loop(SDL_Renderer* renderer)
             }
         }
 
+        /* Copy the game_ui layout drawables to the renderer. */
         render_drawables(renderer, drawables, count);
 
-        int centre[] = {
-            camera.x + (screen_width() >> 1),
-            camera.y + (screen_height() >> 1)
-        };
-        int mouse[] = {
-            camera.x + camera.scale*mouse_x,
-            camera.y + camera.scale*mouse_y
-        };
+        /* Get the data we need for the debugging UI. */
+        int centre[] = { camera.x + (screen_width() >> 1), camera.y + (screen_height() >> 1) };
+        int  mouse[] = { camera.x + camera.scale*mouse_x,  camera.y + camera.scale*mouse_y   };
         Point mouse_tile  = pixel_to_tile(mouse[0], mouse[1]);
         Point corner_tile = pixel_to_tile(camera.x, camera.y);
         Point centre_tile = pixel_to_tile(centre[0], centre[1]);
 
         /* Print the UI debugging infomation. */
-        sprintf(strbuf, "%d, %d", camera.x, camera.y);
-        printbuf(200, 680);
-        sprintf(strbuf, "%d, %d", corner_tile.x, corner_tile.y);
-        printbuf(200, 700);
+        printbuf(200, 680, "%d, %d", camera.x, camera.y);
+        printbuf(200, 700, "%d, %d", corner_tile.x, corner_tile.y);
+        printbuf(603, 680, "%d, %d", centre[0], centre[1]);
+        printbuf(603, 700, "%d, %d", centre_tile.x, centre_tile.y);
+        printbuf(1014, 680, "%d, %d", mouse[0], mouse[1]);
+        printbuf(1014, 700, "%d, %d", mouse_tile.x, mouse_tile.y);
+        printbuf(1080, 4, "%d", camera.scale);
+        printbuf(1200, 4, "%d", fps);
 
-        sprintf(strbuf, "%d, %d", centre[0], centre[1]);
-        printbuf(603, 680);
-        sprintf(strbuf, "%d, %d", centre_tile.x, centre_tile.y);
-        printbuf(603, 700);
-
-        sprintf(strbuf, "%d, %d", mouse[0], mouse[1]);
-        printbuf(1014, 680);
-        sprintf(strbuf, "%d, %d", mouse_tile.x, mouse_tile.y);
-        printbuf(1014, 700);
-
-        sprintf(strbuf, "%d", camera.scale);
-        printbuf(1080, 4);
-        sprintf(strbuf, "%d", fps);
-        printbuf(1200, 4);
-
-        /* Draw the renderer. */
+        /* Finish and render the frame. */
         SDL_RenderPresent(renderer);
 
+        /* Calculate the frame rate. */
         if (SDL_GetTicks() - start_time >= 1000)
         {
             fps = frames;
@@ -326,19 +293,17 @@ Status game_loop(SDL_Renderer* renderer)
         frames++;
     }
 
-    /* Clean up and return to the main function. */
+    /* Free any allocated memory. */
     destroy_drawables(drawables, count);
+    TTF_CloseFont(debug_font);
     for (int i = 0; i < BUILDING_COUNT; i++)
     {
         SDL_DestroyTexture(buildings[i].texture);
     }
-
     for (int i = 0; i < TERRAIN_COUNT; i++)
     {
         SDL_DestroyTexture(terrains[i].texture);
     }
-
-    TTF_CloseFont(debug_font);
 
     return status;
 }
