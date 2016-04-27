@@ -12,14 +12,14 @@
 #include "status.h"
 #include "text.h"
 
-static const char* building_images[][2] = {
-    {"resources/images/building-mega.tga",  "256" },
-    {"resources/images/building-1.tga",     "256" },
-    {"resources/images/building-2.tga",     "256" },
-    {"resources/images/building-2-1.tga",   "256" },
-    {"resources/images/building-2-2.tga",   "256" },
-    {"resources/images/building-2-3.tga",   "256" },
-    {"resources/images/building-2-4.tga",   "256" },
+static const char* building_images[] = {
+    "resources/images/building-mega.tga",
+    "resources/images/building-1.tga",
+    "resources/images/building-2.tga",
+    "resources/images/building-2-1.tga",
+    "resources/images/building-2-2.tga",
+    "resources/images/building-2-3.tga",
+    "resources/images/building-2-4.tga",
 };
 
 static const char* tile_images[] = {
@@ -27,8 +27,8 @@ static const char* tile_images[] = {
     "resources/images/terrain-grass-test.tga",
 };
 
-static const int BUILDING_COUNT  = 7;
-static const int TERRAIN_COUNT   = sizeof(tile_images)/sizeof(*tile_images);
+static const int BUILDING_COUNT = sizeof(building_images)/sizeof(*building_images);
+static const int TERRAIN_COUNT  = sizeof(tile_images)/sizeof(*tile_images);
 
 static const SDL_Color white = { 255, 255, 255, 0 };
 
@@ -112,9 +112,9 @@ Status game_loop(SDL_Renderer* renderer)
     /* Fill our structure arrays. */
     for (int i = 0; i < BUILDING_COUNT; i++)
     {
-        SDL_Surface* s = IMG_Load(building_images[i][0]);
+        SDL_Surface* s = IMG_Load(building_images[i]);
         buildings[i].texture = SDL_CreateTextureFromSurface(renderer, s);
-        buildings[i].height  = (int)strtol(building_images[i][1], NULL, 10)*DEFAULT_SCALE;
+        buildings[i].height  = s->h * DEFAULT_SCALE;
         SDL_FreeSurface(s);
     }
 
