@@ -6,11 +6,6 @@
 #define OPTIONS_H
 
 /*!
-    \brief All ui elements will scale their width and height by this value.
-*/
-extern float ui_scale;
-
-/*!
     \brief Whether or not the renderer should use vsync.
 */
 extern int vsync;
@@ -45,7 +40,7 @@ extern int zoom_mode;
 /*!
     \brief percent of the screen that will scroll each frame.
 */
-extern float scroll_speed;
+int scroll_speed;
 
 /*!
     \brief Screen width resolution for use in fullscreen 0 & 1

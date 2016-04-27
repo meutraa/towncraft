@@ -2,13 +2,11 @@
 
 #include "constants.h"
 
-float ui_scale = 1.0f;
-
 int vsync = 1;
 
 int fullscreen = 0;
 
-float scroll_speed = 0.15f;
+int scroll_speed = 15;
 
 char render_scale_quality[] = "nearest";
 

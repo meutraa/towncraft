@@ -224,24 +224,22 @@ Status game_loop(SDL_Renderer* renderer)
             break;
         }
 
-        float speed = camera.scale / DEFAULT_SCALE * scroll_speed * 60.0f / fps;
-        int sw = (int) ceil(TILE_WIDTH * speed);
-        int sh = (int) ceil(TILE_HEIGHT * speed);
+        int speed = (int) ceil(camera.scale * scroll_speed * 60.0f / fps);
         if (1 == key_status[80] || (0 != fullscreen && 0 == mouse_x)) // left
         {
-            camera.x -= sw;
+            camera.x -= speed;
         }
         if (1 == key_status[79] || (0 != fullscreen && 1279 == mouse_x)) // right
         {
-            camera.x += sw;
+            camera.x += speed;
         }
         if (1 == key_status[82] || (0 != fullscreen && 0 == mouse_y)) // up
         {
-            camera.y -= sh;
+            camera.y -= speed >> 1;
         }
         if (1 == key_status[81] || (0 != fullscreen && 719 == mouse_y)) // down
         {
-            camera.y += sh;
+            camera.y += speed >> 1;
         }
 
         /* Clear the screen for areas that do not have textures mapped to them. */
