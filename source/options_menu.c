@@ -43,9 +43,9 @@ Status options_menu_loop(SDL_Renderer* renderer)
             {
                 if (41 == event.key.keysym.scancode) // ESC - Close the program.
                 {
-                    return QUIT_PROGRAM;
+                    status = QUIT_PROGRAM;
+                    break;
                 }
-                printf("Key %d pressed\n", event.key.keysym.scancode);
             }
             if (SDL_MOUSEBUTTONDOWN == event.type && SDL_BUTTON_LEFT == event.button.button)
             {

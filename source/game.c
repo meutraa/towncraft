@@ -20,29 +20,27 @@ static const char* building_images[] = {
     "resources/images/building-2-2.tga",
     "resources/images/building-2-3.tga",
     "resources/images/building-2-4.tga",
+    NULL
 };
 
-static const char* tile_images[] = {
+static const char* terrain_images[] = {
     "resources/images/terrain-water-test.tga",
     "resources/images/terrain-grass-test.tga",
+    NULL
 };
-
-/* The virtual widths of the current visible screen. */
-#define screen_width() DESIGN_WIDTH*camera.scale
-#define screen_height() DESIGN_HEIGHT*camera.scale
 
 /* This is just to stop repetative stuff. */
 #define printbuf(x, y, format, ...) \
     sprintf(strbuf, format, __VA_ARGS__); \
     render_text(renderer, debug_font, strbuf, white, x, y, camera.scale);
 
-#define SHIFT(a, b) if(b > 0){(a) >>= (b);} else if(b < 0){(a) <<= abs(b);}
-#define MIN(a, b) (((a)<(b))?(a):(b))
-#define MAX(a, b) (((a)>(b))?(a):(b))
-#define LENGTH(a) (sizeof(a)/sizeof(*a))
+static inline void SHIFT(int* a, int b)    { if(b > 0) *a >>= b; else if(b < 0) *a <<= abs(b); }
+static inline int  MIN(int a, int b)      { return (a < b) ? a : b;      }
+static inline int  MAX(int a, int b)      { return (a > b) ? a : b;      }
+static inline int  LENGTH(const char** a) { int i = 0; while(NULL != a[i]) i++; return i; }
 
 /* The number of keys SDL2 defines. */
-#define SCANCODE_COUNT 283
+#define KEYCOUNT 283
 
 /* The grid of tiles. */
 static const int GRID_SIZE = 256;
@@ -51,9 +49,6 @@ static const int GRID_SIZE = 256;
 static const int DEFAULT_SCALE = 3;
 static const int TILE_WIDTH = 128 << DEFAULT_SCALE;
 static const int TILE_HEIGHT = 64 << DEFAULT_SCALE;
-
-static const int BUILDING_COUNT = LENGTH(building_images);
-static const int TERRAIN_COUNT  = LENGTH(tile_images);
 
 /*!
     \brief Scales all the UI elements, and updates the scale value in the camera.
@@ -64,14 +59,14 @@ static const int TERRAIN_COUNT  = LENGTH(tile_images);
 */
 static void change_scale(Camera* camera, SDL_Renderer* renderer, Drawable drawables[], int count, int bits)
 {
-    SHIFT(((*camera).scale), bits);
+    SHIFT(&((*camera).scale), bits);
     SDL_RenderSetLogicalSize(renderer, (*camera).scale * resolution_width, (*camera).scale * resolution_height);
     for(int i = 0; i < count; i++)
     {
-        SHIFT(drawables[i].rect->x, bits);
-        SHIFT(drawables[i].rect->y, bits);
-        SHIFT(drawables[i].rect->w, bits);
-        SHIFT(drawables[i].rect->h, bits);
+        SHIFT(&drawables[i].rect->x, bits);
+        SHIFT(&drawables[i].rect->y, bits);
+        SHIFT(&drawables[i].rect->w, bits);
+        SHIFT(&drawables[i].rect->h, bits);
     }
 }
 
@@ -96,14 +91,17 @@ Status game_loop(SDL_Renderer* renderer)
     Status status = NORMAL;
     SDL_Event event;
 
-    Building buildings[BUILDING_COUNT];
-    Terrain terrains[TERRAIN_COUNT];
+    const int building_count = LENGTH(building_images);
+    const int  terrain_count = LENGTH(terrain_images);
+
+    Building buildings[building_count];
+    Terrain terrains[terrain_count];
 
     /* Rectangles for rendering loop. */
     SDL_Rect rect_terrain  = { 0, 0, TILE_WIDTH, TILE_HEIGHT };
     SDL_Rect rect_building = { 0, 0, TILE_WIDTH, 0 };
 
-    int key_status[SCANCODE_COUNT] = { 0 };
+    int key_status[KEYCOUNT] = { 0 };
     srand((unsigned int)time(NULL));
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
 
@@ -117,7 +115,7 @@ Status game_loop(SDL_Renderer* renderer)
     int mouse_x, mouse_y;
 
     /* Fill our structure arrays. */
-    for (int i = 0; i < BUILDING_COUNT; i++)
+    for (int i = 0; i < building_count; i++)
     {
         SDL_Surface* s = IMG_Load(building_images[i]);
         buildings[i].texture = SDL_CreateTextureFromSurface(renderer, s);
@@ -125,9 +123,9 @@ Status game_loop(SDL_Renderer* renderer)
         SDL_FreeSurface(s);
     }
 
-    for (int i = 0; i < TERRAIN_COUNT; i++)
+    for (int i = 0; i < terrain_count; i++)
     {
-        SDL_Surface* s = IMG_Load(tile_images[i]);
+        SDL_Surface* s = IMG_Load(terrain_images[i]);
         terrains[i].texture = SDL_CreateTextureFromSurface(renderer, s);
         SDL_FreeSurface(s);
     }
@@ -143,25 +141,25 @@ Status game_loop(SDL_Renderer* renderer)
             tiles[x][y].y = pixel.y;
 
             /* If connected to land, and roll was water, reroll. */
-            int l = (rand() % (TERRAIN_COUNT + 10) < 9) ? 1 : 0;
+            int l = (rand() % (terrain_count + 10) < 9) ? 1 : 0;
             if (l != tiles[MAX(y - 1, 0)][MAX(x - 1, 0)].tile_id)
             {
-                l = rand() % TERRAIN_COUNT;
+                l = rand() % terrain_count;
             }
             tiles[y][x].terrain = &terrains[l];
             tiles[y][x].tile_id = l;
 
             /* If land, maybe place a building. */
-            int k = BUILDING_COUNT + 1;
+            int k = building_count + 1;
             if (1 == l)
             {
-                k = rand() % (BUILDING_COUNT << 2);
+                k = rand() % (building_count << 2);
                 if (0 == k)
                 {
                     k = rand() % 4;
                 }
             }
-            tiles[y][x].building = k < BUILDING_COUNT ? &buildings[k] : NULL;
+            tiles[y][x].building = k < building_count ? &buildings[k] : NULL;
         }
     }
 
@@ -176,7 +174,7 @@ Status game_loop(SDL_Renderer* renderer)
     change_scale(&camera, renderer, drawables, count, -(DEFAULT_SCALE));
 
     /* Centre the top of the grid on the x axis. */
-    camera.x = -(screen_width() >> 1) + (TILE_WIDTH >> 1);
+    camera.x = (TILE_WIDTH >> 1) - (DESIGN_WIDTH << (DEFAULT_SCALE - 1));
 
     unsigned int start_time = SDL_GetTicks();
     while (NORMAL == status)
@@ -205,6 +203,10 @@ Status game_loop(SDL_Renderer* renderer)
             }
         }
 
+        /* Screen widths can not change for the rest of the loop. */
+        const int sw = DESIGN_WIDTH*camera.scale;
+        const int sh = DESIGN_HEIGHT*camera.scale;
+
         /* Quit the program if Escape is pressed. */
         if (key_status[41])
         {
@@ -232,14 +234,10 @@ Status game_loop(SDL_Renderer* renderer)
         }
 
         /* Calculate the smallest rectangle sub-grid that will cover our screen. */
-        int y1 = pixel_to_tile(camera.x + screen_width(), camera.y).y;
-        int y2 = pixel_to_tile(camera.x, camera.y + screen_height()).y + 1;
-        int x1 = pixel_to_tile(camera.x, camera.y).x;
-        int x2 = pixel_to_tile(camera.x + screen_width(), camera.y + screen_height()).x + 1;
-
-        /* Save two (for-the-next-loop constants). */
-        int sw = screen_width();
-        int sh = screen_height();
+        const int y1 = pixel_to_tile(camera.x + sw, camera.y     ).y;
+        const int y2 = pixel_to_tile(camera.x,      camera.y + sh).y + 1;
+        const int x1 = pixel_to_tile(camera.x,      camera.y     ).x;
+        const int x2 = pixel_to_tile(camera.x + sw, camera.y + sh).x + 1;
 
         /* Make sure all these are within bounds of our grid.
            Loop through this sub-grid and render each texture. */
@@ -247,8 +245,8 @@ Status game_loop(SDL_Renderer* renderer)
         {
             for (int x = MAX(0, x1); x < MIN(GRID_SIZE, x2); x++)
             {
-                int rtx = tiles[x][y].x - camera.x;
-                int rty = tiles[x][y].y - camera.y;
+                const int rtx = tiles[x][y].x - camera.x;
+                const int rty = tiles[x][y].y - camera.y;
 
                 /* Only render if it will be visible on the screen. */
                 if(rtx + TILE_WIDTH  > 0 && rtx < sw && rty + TILE_HEIGHT > 0 && rty < sh)
@@ -271,19 +269,19 @@ Status game_loop(SDL_Renderer* renderer)
         render_drawables(renderer, drawables, count);
 
         /* Get the data we need for the debugging UI. */
-        int centre[] = { camera.x + (screen_width() >> 1), camera.y + (screen_height() >> 1) };
+        int centre[] = { camera.x + (sw >> 1), camera.y + (sh >> 1) };
         int  mouse[] = { camera.x + camera.scale*mouse_x,  camera.y + camera.scale*mouse_y   };
-        Point mouse_tile  = pixel_to_tile(mouse[0], mouse[1]);
-        Point corner_tile = pixel_to_tile(camera.x, camera.y);
+        Point mouse_tile  = pixel_to_tile(mouse[0],  mouse[1]);
+        Point corner_tile = pixel_to_tile(camera.x,  camera.y);
         Point centre_tile = pixel_to_tile(centre[0], centre[1]);
 
         /* Print the UI debugging infomation. */
-        printbuf(200, 680, "%d, %d", camera.x, camera.y);
-        printbuf(200, 700, "%d, %d", corner_tile.x, corner_tile.y);
-        printbuf(603, 680, "%d, %d", centre[0], centre[1]);
-        printbuf(603, 700, "%d, %d", centre_tile.x, centre_tile.y);
-        printbuf(1014, 680, "%d, %d", mouse[0], mouse[1]);
-        printbuf(1014, 700, "%d, %d", mouse_tile.x, mouse_tile.y);
+        printbuf(200, 680, "%d, %d",  camera.x,      camera.y);
+        printbuf(200, 700, "%d, %d",  corner_tile.x, corner_tile.y);
+        printbuf(603, 680, "%d, %d",  centre[0],     centre[1]);
+        printbuf(603, 700, "%d, %d",  centre_tile.x, centre_tile.y);
+        printbuf(1014, 680, "%d, %d", mouse[0],      mouse[1]);
+        printbuf(1014, 700, "%d, %d", mouse_tile.x,  mouse_tile.y);
         printbuf(1080, 4, "%d", camera.scale);
         printbuf(1200, 4, "%d", fps);
 
@@ -303,8 +301,8 @@ Status game_loop(SDL_Renderer* renderer)
     /* Free any allocated memory. */
     destroy_drawables(drawables, count);
     TTF_CloseFont(debug_font);
-    for (int i = 0; i < BUILDING_COUNT; SDL_DestroyTexture(buildings[i++].texture));
-    for (int i = 0; i < TERRAIN_COUNT; SDL_DestroyTexture(terrains[i++].texture));
+    for (int i = 0; i < building_count; SDL_DestroyTexture(buildings[i++].texture));
+    for (int i = 0; i <  terrain_count; SDL_DestroyTexture( terrains[i++].texture));
 
     return status;
 }

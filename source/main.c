@@ -11,23 +11,35 @@
 #include "SDL_ttf.h"
 #include "constants.h"
 
+static SDL_Window* window;
+static SDL_Renderer* renderer;
+
+static void Quit(void)
+{
+    Mix_CloseAudio();
+    Mix_Quit();
+    TTF_Quit();
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+}
+
 int main(void)
 {
-    /* Ensures any return will call SDL_Quit first. */
-    atexit(SDL_Quit);
+    /* Ensures any exit will call cleanup. */
+    atexit(Quit);
 
     /* Initialise the video and timer subsystem. */
     if (0 != SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO))
     {
         fprintf(stderr, "\nUnable to initialize SDL Subsystem: %s\n", SDL_GetError());
-        return 1;
+        exit(EXIT_FAILURE);
     }
 
     if (0 != TTF_Init())
     {
         fprintf(stderr, "\nUnable to initialize SDL_ttf Subsystem: %s\n", TTF_GetError());
-        TTF_Quit();
-        return 1;
+        exit(EXIT_FAILURE);
     }
 
     if (MIX_INIT_OGG != Mix_Init(MIX_INIT_OGG))
@@ -43,7 +55,7 @@ int main(void)
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, render_scale_quality);
 
     /* Create window */
-    SDL_Window* window = SDL_CreateWindow(
+    window = SDL_CreateWindow(
         GAME_NAME,
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         resolution_width, resolution_height,
@@ -54,11 +66,11 @@ int main(void)
     if (NULL == window)
     {
         fprintf(stderr, "\nCould not create window: %s\n", SDL_GetError());
-        return 1;
+        exit(EXIT_FAILURE);
     }
 
     /* Create the renderer for the SDL_Window. */
-    SDL_Renderer* renderer = SDL_CreateRenderer(
+    renderer = SDL_CreateRenderer(
         window,
         -1,
         SDL_RENDERER_ACCELERATED
@@ -72,7 +84,7 @@ int main(void)
         {
             SDL_DestroyWindow(window);
         }
-        return 1;
+        exit(EXIT_FAILURE);
     }
 
     Status status = SWITCHTO_MAINMENU;
@@ -91,13 +103,14 @@ int main(void)
             }
             case SWITCHTO_OPTIONS:
             {
-                Mix_FadeOutMusic(1000);
                 status = options_menu_loop(renderer);
                 break;
             }
             case SWITCHTO_GAME:
             {
                 Mix_FadeOutMusic(100);
+                Mix_HaltMusic();
+                Mix_FreeMusic(chiptune);
                 status = game_loop(renderer);
                 break;
             }
@@ -105,13 +118,5 @@ int main(void)
                 break;
         }
     }
-
-    Mix_HaltMusic();
-    Mix_FreeMusic(chiptune);
-    Mix_CloseAudio();
-    Mix_Quit();
-    TTF_Quit();
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    return 0;
+    exit(EXIT_SUCCESS);
 }
