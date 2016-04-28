@@ -36,7 +36,7 @@ static const char* tile_images[] = {
     sprintf(strbuf, format, __VA_ARGS__); \
     render_text(renderer, debug_font, strbuf, white, x, y, camera.scale);
 
-#define SHIFT(a, b) if(b > 0){(a) <<= (b);} else if(b < 0){(a) >>= abs(b);}
+#define SHIFT(a, b) if(b > 0){(a) >>= (b);} else if(b < 0){(a) <<= abs(b);}
 #define MIN(a, b) (((a)<(b))?(a):(b))
 #define MAX(a, b) (((a)>(b))?(a):(b))
 #define LENGTH(a) (sizeof(a)/sizeof(*a))
@@ -47,10 +47,10 @@ static const char* tile_images[] = {
 /* The grid of tiles. */
 static const int GRID_SIZE = 256;
 
-/* DO NOT TOUCH THESE (maybe). */
-static const int DEFAULT_SCALE = 8;
-static const int TILE_WIDTH = 128 * DEFAULT_SCALE;
-static const int TILE_HEIGHT = 64 * DEFAULT_SCALE;
+/* Tile dimensions must be divisible by exp2(DEFAULT_SCALE). */
+static const int DEFAULT_SCALE = 3;
+static const int TILE_WIDTH = 128 << DEFAULT_SCALE;
+static const int TILE_HEIGHT = 64 << DEFAULT_SCALE;
 
 static const int BUILDING_COUNT = LENGTH(building_images);
 static const int TERRAIN_COUNT  = LENGTH(tile_images);
@@ -115,14 +115,13 @@ Status game_loop(SDL_Renderer* renderer)
     /* Assume 60 for scroll speed to not become infinity. */
     int fps = 60, frames = 0;
     int mouse_x, mouse_y;
-    unsigned int start_time;
 
     /* Fill our structure arrays. */
     for (int i = 0; i < BUILDING_COUNT; i++)
     {
         SDL_Surface* s = IMG_Load(building_images[i]);
         buildings[i].texture = SDL_CreateTextureFromSurface(renderer, s);
-        buildings[i].height  = s->h * DEFAULT_SCALE;
+        buildings[i].height  = s->h << DEFAULT_SCALE;
         SDL_FreeSurface(s);
     }
 
@@ -144,14 +143,10 @@ Status game_loop(SDL_Renderer* renderer)
             tiles[x][y].y = pixel.y;
 
             /* If connected to land, and roll was water, reroll. */
-            int l = rand() % (TERRAIN_COUNT + 10);
-            l = (l < 9) ? 1 : 0;
-            if (y > 0 && x > 0)
+            int l = (rand() % (TERRAIN_COUNT + 10) < 9) ? 1 : 0;
+            if (l != tiles[MAX(y - 1, 0)][MAX(x - 1, 0)].tile_id)
             {
-                if (l != tiles[y - 1][x - 1].tile_id)
-                {
-                    l = rand() % TERRAIN_COUNT;
-                }
+                l = rand() % TERRAIN_COUNT;
             }
             tiles[y][x].terrain = &terrains[l];
             tiles[y][x].tile_id = l;
@@ -176,13 +171,14 @@ Status game_loop(SDL_Renderer* renderer)
     Drawable drawables[count];
     load_drawables(renderer, drawables, layout, 0);
 
-    /* Initialise the camera and update everything for the DEFAULT_SCALE of 8. */
+    /* Initialise the camera and update everything for the DEFAULT_SCALE. */
     Camera camera = { 1, 0, 0 };
-    change_scale(&camera, renderer, drawables, count, 3); // * times bigger.
+    change_scale(&camera, renderer, drawables, count, -(DEFAULT_SCALE));
 
     /* Centre the top of the grid on the x axis. */
     camera.x = -(screen_width() >> 1) + (TILE_WIDTH >> 1);
 
+    unsigned int start_time = SDL_GetTicks();
     while (NORMAL == status)
     {
         /* Clear the renderer and get mouse co-ordinates. */
@@ -198,11 +194,11 @@ Status game_loop(SDL_Renderer* renderer)
             }
             else if (SDL_MOUSEWHEEL == event.type)
             {
-                int zoom = (event.wheel.y > 0) ? -1 : 1;
-                if ((1 == zoom && camera.scale != 64) || (-1 == zoom && camera.scale != 1))
+                /* Zoom in is 1, zoom out is -1 */
+                if ((-1 == event.wheel.y && camera.scale < 64) || (1 == event.wheel.y && camera.scale > 1))
                 {
-                    change_scale(&camera, renderer, drawables, count, zoom);
-                    int factor = -1 == zoom ? camera.scale : -(camera.scale >> 1);
+                    change_scale(&camera, renderer, drawables, count, event.wheel.y);
+                    int factor = 1 == event.wheel.y ? camera.scale : -(camera.scale >> 1);
                     camera.x += factor * (zoom_mode == 0 ? DESIGN_WIDTH  >> 1 : mouse_x);
                     camera.y += factor * (zoom_mode == 0 ? DESIGN_HEIGHT >> 1 : mouse_y);
                 }
@@ -241,21 +237,32 @@ Status game_loop(SDL_Renderer* renderer)
         int x1 = pixel_to_tile(camera.x, camera.y).x;
         int x2 = pixel_to_tile(camera.x + screen_width(), camera.y + screen_height()).x + 1;
 
+        /* Save two (for-the-next-loop constants). */
+        int sw = screen_width();
+        int sh = screen_height();
+
         /* Make sure all these are within bounds of our grid.
            Loop through this sub-grid and render each texture. */
         for (int y = MAX(0, y1); y < MIN(GRID_SIZE, y2); y++)
         {
-            for (int x = MAX(0, x1); x < MAX(GRID_SIZE, x2); x++)
+            for (int x = MAX(0, x1); x < MIN(GRID_SIZE, x2); x++)
             {
-                rect_terrain.x = tiles[x][y].x - camera.x;
-                rect_terrain.y = tiles[x][y].y - camera.y;
-                SDL_RenderCopy(renderer, tiles[x][y].terrain->texture, NULL, &rect_terrain);
-                if (tiles[x][y].building)
+                int rtx = tiles[x][y].x - camera.x;
+                int rty = tiles[x][y].y - camera.y;
+
+                /* Only render if it will be visible on the screen. */
+                if(rtx + TILE_WIDTH  > 0 && rtx < sw && rty + TILE_HEIGHT > 0 && rty < sh)
                 {
-                    rect_building.x = rect_terrain.x;
-                    rect_building.h = tiles[x][y].building->height;
-                    rect_building.y = rect_terrain.y - rect_building.h + TILE_HEIGHT;
-                    SDL_RenderCopy(renderer, tiles[x][y].building->texture, NULL, &rect_building);
+                    rect_terrain.x = rtx;
+                    rect_terrain.y = rty;
+                    SDL_RenderCopy(renderer, tiles[x][y].terrain->texture, NULL, &rect_terrain);
+                    if (tiles[x][y].building)
+                    {
+                        rect_building.x = rtx;
+                        rect_building.h = tiles[x][y].building->height;
+                        rect_building.y = rect_terrain.y - rect_building.h + TILE_HEIGHT;
+                        SDL_RenderCopy(renderer, tiles[x][y].building->texture, NULL, &rect_building);
+                    }
                 }
             }
         }
