@@ -303,14 +303,8 @@ Status game_loop(SDL_Renderer* renderer)
     /* Free any allocated memory. */
     destroy_drawables(drawables, count);
     TTF_CloseFont(debug_font);
-    for (int i = 0; i < BUILDING_COUNT; i++)
-    {
-        SDL_DestroyTexture(buildings[i].texture);
-    }
-    for (int i = 0; i < TERRAIN_COUNT; i++)
-    {
-        SDL_DestroyTexture(terrains[i].texture);
-    }
+    for (int i = 0; i < BUILDING_COUNT; SDL_DestroyTexture(buildings[i++].texture));
+    for (int i = 0; i < TERRAIN_COUNT; SDL_DestroyTexture(terrains[i++].texture));
 
     return status;
 }
