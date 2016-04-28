@@ -12,7 +12,10 @@
 #include "status.h"
 #include "text.h"
 
-static const char* building_images[] = {
+#define building_count 7
+#define  terrain_count 2
+
+static const char* building_images[building_count] = {
     "resources/images/building-mega.tga",
     "resources/images/building-1.tga",
     "resources/images/building-2.tga",
@@ -20,14 +23,18 @@ static const char* building_images[] = {
     "resources/images/building-2-2.tga",
     "resources/images/building-2-3.tga",
     "resources/images/building-2-4.tga",
-    NULL
 };
 
-static const char* terrain_images[] = {
+static const char* terrain_images[terrain_count] = {
     "resources/images/terrain-water-test.tga",
     "resources/images/terrain-grass-test.tga",
-    NULL
 };
+
+/* Free up some space in the stack. */
+const SDL_Color white = { 255, 255, 255, 0 };
+Building buildings[building_count];
+Terrain terrains[terrain_count];
+int centre[2], mouse[2];
 
 /* This is just to stop repetative stuff. */
 #define printbuf(x, y, format, ...) \
@@ -37,13 +44,13 @@ static const char* terrain_images[] = {
 static inline void SHIFT(int* a, int b)    { if(b > 0) *a >>= b; else if(b < 0) *a <<= abs(b); }
 static inline int  MIN(int a, int b)      { return (a < b) ? a : b;      }
 static inline int  MAX(int a, int b)      { return (a > b) ? a : b;      }
-static inline int  LENGTH(const char** a) { int i = 0; while(NULL != a[i]) i++; return i; }
 
 /* The number of keys SDL2 defines. */
 #define KEYCOUNT 283
 
 /* The grid of tiles. */
-static const int GRID_SIZE = 256;
+#define GRID_SIZE 256
+Tile tiles[GRID_SIZE][GRID_SIZE];
 
 /* Tile dimensions must be divisible by exp2(DEFAULT_SCALE). */
 static const int DEFAULT_SCALE = 3;
@@ -91,12 +98,6 @@ Status game_loop(SDL_Renderer* renderer)
     Status status = NORMAL;
     SDL_Event event;
 
-    const int building_count = LENGTH(building_images);
-    const int  terrain_count = LENGTH(terrain_images);
-
-    Building buildings[building_count];
-    Terrain terrains[terrain_count];
-
     /* Rectangles for rendering loop. */
     SDL_Rect rect_terrain  = { 0, 0, TILE_WIDTH, TILE_HEIGHT };
     SDL_Rect rect_building = { 0, 0, TILE_WIDTH, 0 };
@@ -107,7 +108,6 @@ Status game_loop(SDL_Renderer* renderer)
 
     /* Things required for rendering of text on the UI. */
     char strbuf[32];
-    const SDL_Color white = { 255, 255, 255, 0 };
     TTF_Font* debug_font  = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
 
     /* Assume 60 for scroll speed to not become infinity. */
@@ -131,7 +131,6 @@ Status game_loop(SDL_Renderer* renderer)
     }
 
     /* Create and fill the positions of the tiles. */
-    Tile tiles[GRID_SIZE][GRID_SIZE];
     for (int y = 0; y < GRID_SIZE; y++)
     {
         for (int x = 0; x < GRID_SIZE; x++)
@@ -269,8 +268,10 @@ Status game_loop(SDL_Renderer* renderer)
         render_drawables(renderer, drawables, count);
 
         /* Get the data we need for the debugging UI. */
-        int centre[] = { camera.x + (sw >> 1), camera.y + (sh >> 1) };
-        int  mouse[] = { camera.x + camera.scale*mouse_x,  camera.y + camera.scale*mouse_y   };
+        centre[0] = camera.x + (sw >> 1);
+        centre[1] = camera.y + (sh >> 1);
+        mouse[0]  = camera.x + camera.scale*mouse_x;
+        mouse[1]  = camera.y + camera.scale*mouse_y;
         Point mouse_tile  = pixel_to_tile(mouse[0],  mouse[1]);
         Point corner_tile = pixel_to_tile(camera.x,  camera.y);
         Point centre_tile = pixel_to_tile(centre[0], centre[1]);

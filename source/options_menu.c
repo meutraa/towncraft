@@ -37,7 +37,7 @@ Status options_menu_loop(SDL_Renderer* renderer)
     while (NORMAL == status) {
         /* If there are events in the event queue, process them. */
         SDL_Event event;
-        while (1 == SDL_PollEvent(&event))
+        while (SDL_PollEvent(&event))
         {
             if (SDL_KEYDOWN == event.type)
             {
@@ -78,17 +78,17 @@ Status options_menu_loop(SDL_Renderer* renderer)
 
         /* Copy the drawables to the window. */
         render_drawables(renderer, options_menu, options_count);
-        switch (menu)
+        if(1 == menu)
         {
-            case 1:
-                render_drawables(renderer, video_menu, video_count);
-                break;
-            case 2:
-                render_drawables(renderer, audio_menu, audio_count);
-                break;
-            case 3:
-                render_drawables(renderer, control_menu, control_count);
-                break;
+            render_drawables(renderer, video_menu, video_count);
+        }
+        else if(2 == menu)
+        {
+            render_drawables(renderer, audio_menu, audio_count);
+        }
+        else if(3 == menu)
+        {
+            render_drawables(renderer, control_menu, control_count);
         }
 
         /* Draw the renderer. */

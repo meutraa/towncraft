@@ -55,8 +55,7 @@ int main(void)
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, render_scale_quality);
 
     /* Create window */
-    window = SDL_CreateWindow(
-        GAME_NAME,
+    window = SDL_CreateWindow(GAME_NAME,
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         resolution_width, resolution_height,
         ((fullscreen == 1) ? SDL_WINDOW_FULLSCREEN : 0)
@@ -70,20 +69,11 @@ int main(void)
     }
 
     /* Create the renderer for the SDL_Window. */
-    renderer = SDL_CreateRenderer(
-        window,
-        -1,
-        SDL_RENDERER_ACCELERATED
-      | (vsync ? SDL_RENDERER_PRESENTVSYNC : 0)
-    );
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | (vsync ? SDL_RENDERER_PRESENTVSYNC : 0));
 
     if (NULL == renderer)
     {
         fprintf(stderr, "\nCould not create renderer: %s\n", SDL_GetError());
-        if (NULL != window)
-        {
-            SDL_DestroyWindow(window);
-        }
         exit(EXIT_FAILURE);
     }
 
@@ -93,29 +83,21 @@ int main(void)
     /* Start the main loop. */
     while (status != QUIT_PROGRAM)
     {
-        switch (status)
+        if(SWITCHTO_MAINMENU == status)
         {
-            case SWITCHTO_MAINMENU:
-            {
-                Mix_FadeInMusicPos(chiptune, -1, 2000, 0.5);
-                status = main_menu_loop(renderer);
-                break;
-            }
-            case SWITCHTO_OPTIONS:
-            {
-                status = options_menu_loop(renderer);
-                break;
-            }
-            case SWITCHTO_GAME:
-            {
-                Mix_FadeOutMusic(100);
-                Mix_HaltMusic();
-                Mix_FreeMusic(chiptune);
-                status = game_loop(renderer);
-                break;
-            }
-            default:
-                break;
+            Mix_FadeInMusicPos(chiptune, -1, 2000, 0.5);
+            status = main_menu_loop(renderer);
+        }
+        else if(SWITCHTO_OPTIONS == status)
+        {
+            status = options_menu_loop(renderer);
+        }
+        else if(SWITCHTO_GAME == status)
+        {
+            Mix_FadeOutMusic(100);
+            Mix_HaltMusic();
+            Mix_FreeMusic(chiptune);
+            status = game_loop(renderer);
         }
     }
     exit(EXIT_SUCCESS);

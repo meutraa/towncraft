@@ -36,7 +36,7 @@ Status main_menu_loop(SDL_Renderer* renderer)
 static Status main_menu_event_loop(Drawable drawables[], int count)
 {
     SDL_Event event;
-    while (1 == SDL_PollEvent(&event))
+    while (SDL_PollEvent(&event))
     {
         if (SDL_KEYDOWN == event.type)
         {
@@ -61,8 +61,8 @@ static Status main_menu_event_loop(Drawable drawables[], int count)
         {
             for (int i = 0; i < count; i++)
             {
-                if (bounded_by(event.button.x, event.button.y,
-                        drawables[i].rect)) {
+                if (bounded_by(event.button.x, event.button.y, drawables[i].rect))
+                {
                     if (0 == strcmp(drawables[i].name, "button_quit"))
                     {
                         return QUIT_PROGRAM;
