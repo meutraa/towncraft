@@ -50,8 +50,9 @@ static inline int  MAX(int a, int b)    { return (a > b) ? a : b;      }
 #define KEYCOUNT 283
 
 /* The grid of tiles. */
-#define GRID_SIZE 256
+#define GRID_SIZE 256 + 1
 Tile tiles[GRID_SIZE][GRID_SIZE];
+float heightmap[GRID_SIZE][GRID_SIZE];
 
 /* Tile dimensions must be divisible by exp2(DEFAULT_SCALE). */
 static const int DEFAULT_SCALE = 3;
@@ -94,6 +95,47 @@ static SDL_Point tile_to_pixel(int x, int y)
     };
 }
 
+static float frand()
+{
+    return (float)rand()/(float)(RAND_MAX);
+}
+
+static void diamond_square(int x1, int y1, int x2, int y2, float range, int level)
+{
+    if (level < 1) return;
+    int nl = level >> 1;
+    int ll = level << 1;
+
+    // diamonds
+    for (int i = x1 + level; i < x2; i += level)
+    {
+        for (int j = y1 + level; j < y2; j += level)
+        {
+            float a = heightmap[i - level][j - level];
+            float b = heightmap[i][j - level];
+            float c = heightmap[i - level][j];
+            float d = heightmap[i][j];
+            heightmap[i - nl][j - nl] = ((a + b + c + d) / 4.0f) + (frand() * range);
+        }
+    }
+
+    // squares
+    for (int i = x1 + ll; i < x2; i += level)
+    {
+        for (int j = y1 + ll; j < y2; j += level)
+        {
+            float a = heightmap[i - level][j - level];
+            float b = heightmap[i][j - level];
+            float c = heightmap[i - level][j];
+            float e = heightmap[i - nl][j - nl];
+            heightmap[i - level][j - nl] = ((a + c + e + heightmap[(i - 3) * nl][j - nl]) / 4.0f) + (frand() * range);
+            heightmap[i - nl][j - level] = ((a + b + e + heightmap[i - nl][j - (3 * nl)]) / 4.0f) + (frand() * range);
+        }
+    }
+
+    diamond_square(x1, y1, x2, y2, range / 2.0f, level >> 1);
+}
+
 Status game_loop(SDL_Renderer* renderer)
 {
     Status status = NORMAL;
@@ -132,6 +174,8 @@ Status game_loop(SDL_Renderer* renderer)
         SDL_FreeSurface(s);
     }
 
+    diamond_square(0, 0, GRID_SIZE - 1, GRID_SIZE - 1, 16.0f, 16);
+
     /* Create and fill the positions of the tiles. */
     for (int y = 0; y < GRID_SIZE; y++)
     {
@@ -139,7 +183,7 @@ Status game_loop(SDL_Renderer* renderer)
         {
             SDL_Point pixel = tile_to_pixel(x , y);
             int r = rand();
-            int t = r % terrain_count;
+            int t = heightmap[x][y] > 8.0f ? 1 : 0;
             int b = r % building_count;
 
             tp = &tiles[x][y];
