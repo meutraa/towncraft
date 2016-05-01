@@ -177,6 +177,11 @@ Status game_loop(SDL_Renderer* renderer)
 
     diamond_square(0, 0, GRID_SIZE - 1, GRID_SIZE - 1, 16.0f, 16);
 
+    float max_height = 0;
+    for (int y = 0; y < GRID_SIZE; y++)
+        for (int x = 0; x < GRID_SIZE; x++)
+            if(max_height < heightmap[x][y]) max_height = heightmap[x][y];
+
     /* Create and fill the positions of the tiles. */
     for (int y = 0; y < GRID_SIZE; y++)
     {
@@ -204,7 +209,7 @@ Status game_loop(SDL_Renderer* renderer)
             tp->y        = pixel.y;
             tp->terrain  = &terrains[t];
             tp->tile_id  = t;
-            tp->building = 1 == t && heightmap[x][y] > 12 && r % ((int)floor((17.0f - heightmap[x][y]))) == 0 ? &buildings[b] : NULL;
+            tp->building = 1 == t && heightmap[x][y] > 12.5f && r % ((int)floor((max_height + 1.01f - heightmap[x][y]))) == 0 ? &buildings[b] : NULL;
         }
     }
 
