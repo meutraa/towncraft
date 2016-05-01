@@ -15,7 +15,7 @@
 #define building_count 7
 #define  terrain_count 2
 
-static const char* building_images[building_count] = {
+static const char* building_images[building_count + 1] = {
     "resources/images/building-mega.tga",
     "resources/images/building-1.tga",
     "resources/images/building-2.tga",
@@ -23,11 +23,13 @@ static const char* building_images[building_count] = {
     "resources/images/building-2-2.tga",
     "resources/images/building-2-3.tga",
     "resources/images/building-2-4.tga",
+    NULL,
 };
 
-static const char* terrain_images[terrain_count] = {
+static const char* terrain_images[terrain_count + 1] = {
     "resources/images/terrain-water-test.tga",
     "resources/images/terrain-grass-test.tga",
+    NULL,
 };
 
 /* Free up some space in the stack. */
@@ -64,16 +66,16 @@ static const int TILE_HEIGHT = 64 << DEFAULT_SCALE;
     \var count the size of the Drawable array.
     \var bits for +ve bits: camera.scale >> bits, for -ve bits: camera.scale << bits
 */
-static void change_scale(Camera* camera, SDL_Renderer* renderer, Drawable drawables[], int count, int bits)
+static void change_scale(Camera* camera, SDL_Renderer* renderer, Drawable* drawables, int bits)
 {
     SHIFT(&((*camera).scale), bits);
     SDL_RenderSetLogicalSize(renderer, (*camera).scale * resolution_width, (*camera).scale * resolution_height);
-    for(int i = 0; i < count; i++)
+    for(int i = 0; NULL != (*(drawables + i)).texture; i++)
     {
-        SHIFT(&drawables[i].rect->x, bits);
-        SHIFT(&drawables[i].rect->y, bits);
-        SHIFT(&drawables[i].rect->w, bits);
-        SHIFT(&drawables[i].rect->h, bits);
+        SHIFT(&((*(drawables + i)).rect->x), bits);
+        SHIFT(&((*(drawables + i)).rect->y), bits);
+        SHIFT(&((*(drawables + i)).rect->w), bits);
+        SHIFT(&((*(drawables + i)).rect->h), bits);
     }
 }
 
@@ -130,47 +132,34 @@ Status game_loop(SDL_Renderer* renderer)
         SDL_FreeSurface(s);
     }
 
+    Tile *tp;
+
     /* Create and fill the positions of the tiles. */
     for (int y = 0; y < GRID_SIZE; y++)
     {
         for (int x = 0; x < GRID_SIZE; x++)
         {
             Point pixel = tile_to_pixel(x , y);
-            tiles[x][y].x = pixel.x;
-            tiles[x][y].y = pixel.y;
+            int r = rand();
+            int t = r % terrain_count;
+            int b = r % building_count;
 
-            /* If connected to land, and roll was water, reroll. */
-            int l = (rand() % (terrain_count + 10) < 9) ? 1 : 0;
-            if (l != tiles[MAX(y - 1, 0)][MAX(x - 1, 0)].tile_id)
-            {
-                l = rand() % terrain_count;
-            }
-            tiles[y][x].terrain = &terrains[l];
-            tiles[y][x].tile_id = l;
-
-            /* If land, maybe place a building. */
-            int k = building_count + 1;
-            if (1 == l)
-            {
-                k = rand() % (building_count << 2);
-                if (0 == k)
-                {
-                    k = rand() % 4;
-                }
-            }
-            tiles[y][x].building = k < building_count ? &buildings[k] : NULL;
+            tp = &tiles[x][y];
+            tp->x        = pixel.x;
+            tp->y        = pixel.y;
+            tp->terrain  = &terrains[t];
+            tp->tile_id  = t;
+            tp->building = t && r % 5 == 0 ? &buildings[b] : NULL;
         }
     }
 
     /* Load in the game UI. */
     const char* layout = "resources/layouts/game_ui.csv";
-    int count = count_drawables(layout);
-    Drawable drawables[count];
-    load_drawables(renderer, drawables, layout, 0);
+    Drawable* drawables = load_drawables(renderer, layout);
 
     /* Initialise the camera and update everything for the DEFAULT_SCALE. */
     Camera camera = { 1, 0, 0 };
-    change_scale(&camera, renderer, drawables, count, -(DEFAULT_SCALE));
+    change_scale(&camera, renderer, drawables, -(DEFAULT_SCALE));
 
     /* Centre the top of the grid on the x axis. */
     camera.x = (TILE_WIDTH >> 1) - (DESIGN_WIDTH << (DEFAULT_SCALE - 1));
@@ -194,7 +183,7 @@ Status game_loop(SDL_Renderer* renderer)
                 /* Zoom in is 1, zoom out is -1 */
                 if ((-1 == event.wheel.y && camera.scale < 64) || (1 == event.wheel.y && camera.scale > 1))
                 {
-                    change_scale(&camera, renderer, drawables, count, event.wheel.y);
+                    change_scale(&camera, renderer, drawables, event.wheel.y);
                     int factor = 1 == event.wheel.y ? camera.scale : -(camera.scale >> 1);
                     camera.x += factor * (zoom_mode == 0 ? DESIGN_WIDTH  >> 1 : mouse_x);
                     camera.y += factor * (zoom_mode == 0 ? DESIGN_HEIGHT >> 1 : mouse_y);
@@ -209,7 +198,7 @@ Status game_loop(SDL_Renderer* renderer)
         /* Quit the program if Escape is pressed. */
         if (key_status[41])
         {
-            status = QUIT_PROGRAM;
+            status = SWITCHTO_MAINMENU;
             break;
         }
 
@@ -265,7 +254,7 @@ Status game_loop(SDL_Renderer* renderer)
         }
 
         /* Copy the game_ui layout drawables to the renderer. */
-        render_drawables(renderer, drawables, count);
+        render_drawables(renderer, drawables);
 
         /* Get the data we need for the debugging UI. */
         centre[0] = camera.x + (sw >> 1);
@@ -300,10 +289,11 @@ Status game_loop(SDL_Renderer* renderer)
     }
 
     /* Free any allocated memory. */
-    destroy_drawables(drawables, count);
+    destroy_drawables(drawables);
     TTF_CloseFont(debug_font);
     for (int i = 0; i < building_count; SDL_DestroyTexture(buildings[i++].texture));
     for (int i = 0; i <  terrain_count; SDL_DestroyTexture( terrains[i++].texture));
 
+    SDL_RenderSetLogicalSize(renderer, DESIGN_WIDTH, DESIGN_HEIGHT);
     return status;
 }

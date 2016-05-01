@@ -17,7 +17,7 @@
 typedef struct Drawable {
     SDL_Texture* texture;       /*!< a pointer to an SDL_Texture */
     SDL_Rect* rect;             /*!< an SDL_Rect pointer that defines the current position and size. */
-    char* name;                 /*!< a unique name. */
+    char name[128];             /*!< a unique name. */
     int visible;                /*!< 1 == rendered, anything else == not rendered. */
     SDL_Rect widescreen;        /*!< an SDL_Rect containing positions for a 16:9 aspect ratio. */
     SDL_Rect monitor;           /*!< an SDL_Rect containing positions for a 16:10 aspect ratio. */
@@ -33,48 +33,28 @@ typedef struct Drawable {
 */
 int bounded_by(int x, int y, SDL_Rect* r);
 
-/*! \fn void destroy_drawables(Drawable drawables[], int count)
+/*! \fn void destroy_drawables(Drawable drawables[])
     \brief Frees all memory contained in the Drawable.
 
     \param drawables a pointer to an array of drawables.
-    \param count the number of drawables to free.
 */
-void destroy_drawables(Drawable drawables[], int count);
+void destroy_drawables(Drawable* drawables);
 
-/*! \fn show_drawables(Drawable** drawables, int count, int show)
-    \brief Sets the visible property of all the drawables to 0 or 1
-
-    \param drawables a pointer to an array of drawables.
-    \param count the number of drawables.
-    \param show 1 for visible, anything else will become 0.
-*/
-void show_drawables(Drawable** drawables, int count, int show);
-
-/*! \fn void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count)
+/*! \fn void render_drawables(SDL_Renderer* renderer, Drawable* drawables)
     \brief Copys an array of drawables to the renderer provided.
 
     \param renderer the SDL_Renderer used to render textures.
     \param drawables a pointer to an array of drawables.
-    \param count the number of drawables to copy.
 */
-void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count);
-
-/*! \fn int count_drawables(const char* layout_file)
-    \brief Returns the number of valid drawables in a layout file.
-    \param layout_file a relative path to the resource file as a string.
-    \return the number of loaded drawables.
-*/
-int count_drawables(const char* layout_file);
+void render_drawables(SDL_Renderer* renderer, Drawable* drawables);
 
 /*! \fn void load_drawables(SDL_Renderer* renderer, Drawable drawables[], const char* layout_file)
     \brief Takes a layout file and fills the drawables array.
 
     \param renderer the SDL_Renderer used to render textures.
-    \param drawables a pointer to an array of drawables to fill.
     \param layout_file a relative path to the resource file as a string.
-    \param count if 1, just count the number of valid drawables.
     \return the number of loaded drawables.
 */
-int load_drawables(SDL_Renderer* renderer, Drawable drawables[], const char* layout_file, int count);
+Drawable* load_drawables(SDL_Renderer* renderer, const char* layout_file);
 
 #endif

@@ -19,6 +19,8 @@
 #define COLOR_FORMAT \
     "%d%*[ \t]color%*[^\"]\"%256[^\"]\"%*[^(](%d,%d)%*[^(](%hhu,%hhu,%hhu,%hhu)%*[^(](%d,%d)%*[^(](%d,%d)"
 
+static int TEXT_COUNT = 13, IMG_COUNT = 7, COLOR_COUNT = 12;
+
 int bounded_by(int x, int y, SDL_Rect* r)
 {
     if ((x > r->x && x < r->x + r->w) && (y > r->y && y < r->y + r->h))
@@ -28,70 +30,40 @@ int bounded_by(int x, int y, SDL_Rect* r)
     return 0;
 }
 
-static int count_params(const char format[])
+void destroy_drawables(Drawable* drawables)
 {
-    int i = 0, count = 0;
-    while (format[i + 1] != '\0')
+    for (int i = 0; NULL != (drawables + i)->texture; i++)
     {
-        if (format[i] == '%' && format[i + 1] != '*')
+        SDL_DestroyTexture((drawables + i)->texture);
+    }
+    free(drawables);
+}
+
+void render_drawables(SDL_Renderer* renderer, Drawable* drawables)
+{
+    for (int i = 0; NULL != (drawables + i)->texture; i++)
+    {
+        if ((drawables + i)->visible)
         {
-            count++;
-        }
-        i++;
-    }
-    return count;
-}
-
-static int TEXT_COUNT, IMG_COUNT, COLOR_COUNT;
-
-void destroy_drawables(Drawable drawables[], int count)
-{
-    for (int i = 0; i < count; i++)
-    {
-        free(drawables[i].name);
-        SDL_DestroyTexture(drawables[i].texture);
-    }
-}
-
-void show_drawables(Drawable** drawables, int count, int show)
-{
-    for (int i = 0; i < count; i++)
-    {
-        (*drawables)[i].visible = (1 == show) ? 1 : 0;
-    }
-}
-
-void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int count)
-{
-    for (int i = 0; i < count; i++)
-    {
-        if (1 == drawables[i].visible)
-        {
-            SDL_RenderCopy(renderer, drawables[i].texture, NULL,
-                drawables[i].rect);
+            SDL_RenderCopy(renderer, (drawables + i)->texture, NULL, (drawables + i)->rect);
         }
     }
 }
 
-int count_drawables(const char* layout_file)
+static Drawable* load_drawables_in(SDL_Renderer* renderer, const char* layout_file, int* count)
 {
-    return load_drawables(NULL, NULL, layout_file, 1);
-}
-
-int load_drawables(SDL_Renderer* renderer, Drawable drawables[], const char* layout_file, int count)
-{
-    /* Count the correct number of parameters in the format strings. */
-    if (0 == TEXT_COUNT)
+    /* If we do not have the number of drawables, get it. */
+    int length = 0;
+    if(NULL == count)
     {
-        TEXT_COUNT = count_params(TEXT_FORMAT);
-        IMG_COUNT = count_params(IMG_FORMAT);
-        COLOR_COUNT = count_params(COLOR_FORMAT);
+        load_drawables_in(NULL, layout_file, &length);
     }
+
     FILE* file = fopen(layout_file, "r");
     if (NULL == file)
     {
         fprintf(stderr, "%s: file not readable\n\n", layout_file);
-        return 0;
+        return NULL;
     }
 
     int len = MAX_LINE_LENGTH + 1; // +1 for the terminating null-character.
@@ -102,8 +74,12 @@ int load_drawables(SDL_Renderer* renderer, Drawable drawables[], const char* lay
     int mode, font_size;
     unsigned char r, g, b, a;
     SDL_Surface* surface;
+    Drawable* drawables;
 
-    while (NULL != fgets(line, len, file))
+    drawables = malloc(sizeof(Drawable) * (length + 1));
+    (drawables + length)->texture = NULL;     // Null terminate the memory block.
+
+    while (fgets(line, len, file))
     {
         if (IMG_COUNT == sscanf(line, IMG_FORMAT, &visible, name, path, &wx, &wy, &mx, &my))
         {
@@ -112,7 +88,7 @@ int load_drawables(SDL_Renderer* renderer, Drawable drawables[], const char* lay
                 fprintf(stderr, "%s:%d:%s\n^^ file not readable ^^\n\n", layout_file, i, line);
                 continue;
             }
-            if (0 == count)
+            if (!count)
             {
                 surface = IMG_Load(path);
             }
@@ -124,7 +100,7 @@ int load_drawables(SDL_Renderer* renderer, Drawable drawables[], const char* lay
                 fprintf(stderr, "%s:%d:%s\n^^ file not readable ^^\n\n", layout_file, i, line);
                 continue;
             }
-            if (0 == count)
+            if (!count)
             {
                 TTF_Font* font = TTF_OpenFont(path, font_size);
                 SDL_Color color = { r, g, b, a };
@@ -134,7 +110,7 @@ int load_drawables(SDL_Renderer* renderer, Drawable drawables[], const char* lay
         }
         else if (COLOR_COUNT == sscanf(line, COLOR_FORMAT, &visible, name, &width, &height, &r, &g, &b, &a, &wx, &wy, &mx, &my))
         {
-            if (0 == count)
+            if (!count)
             {
                 surface = SDL_CreateRGBSurface(0, width, height, 8, 0, 0, 0, 0);
                 SDL_SetSurfaceColorMod(surface, r, g, b);
@@ -151,30 +127,32 @@ int load_drawables(SDL_Renderer* renderer, Drawable drawables[], const char* lay
             continue;
         }
 
-        if (0 == count)
+        if (!count)
         {
-            /* Save the name. */
-            drawables[i].name = (char*)calloc(strlen(name) + 1, sizeof(char));
-            strncpy(drawables[i].name, name, strlen(name));
+            /* Assign new values. */
+            strncpy((drawables + i)->name, name, strlen(name));
+            (drawables + i)->visible = (1 == visible) ? 1 : 0;
+            (drawables + i)->widescreen = (SDL_Rect){  wx, wy, surface->w, surface->h };
+            (drawables + i)->monitor = (SDL_Rect){ mx, my, surface->w, surface->h };
 
-            /* Save the visibility. */
-            drawables[i].visible = (1 == visible) ? 1 : 0;
-
-            /* Save the texture. */
-            drawables[i].texture = SDL_CreateTextureFromSurface(renderer,
-                surface);
-
-            /* Fill the dimensions. */
-            drawables[i].widescreen = (SDL_Rect){  wx, wy, surface->w, surface->h };
-            drawables[i].monitor = (SDL_Rect){ mx, my, surface->w, surface->h };
-            drawables[i].rect = &drawables[i].widescreen;
+            /* Assign pointers new pointees. */
+            (drawables + i)->texture = SDL_CreateTextureFromSurface(renderer, surface);
+            (drawables + i)->rect = &drawables[i].widescreen;
 
             SDL_FreeSurface(surface);
         }
         i++;
+        if(count)
+        {
+            (*count)++;
+        }
     }
 
-    /* Close file. */
     fclose(file);
-    return (i);
+    return drawables;
+}
+
+Drawable* load_drawables(SDL_Renderer* renderer, const char* layout_file)
+{
+    return load_drawables_in(renderer, layout_file, NULL);
 }
