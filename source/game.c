@@ -114,6 +114,7 @@ Status game_loop(SDL_Renderer* renderer)
     /* Assume 60 for scroll speed to not become infinity. */
     int fps = 60, frames = 0;
     int mouse_x, mouse_y;
+    Tile *tp;
 
     /* Fill our structure arrays. */
     for (int i = 0; i < building_count; i++)
@@ -130,8 +131,6 @@ Status game_loop(SDL_Renderer* renderer)
         terrains[i].texture = SDL_CreateTextureFromSurface(renderer, s);
         SDL_FreeSurface(s);
     }
-
-    Tile *tp;
 
     /* Create and fill the positions of the tiles. */
     for (int y = 0; y < GRID_SIZE; y++)
@@ -232,21 +231,22 @@ Status game_loop(SDL_Renderer* renderer)
         {
             for (int x = MAX(0, x1); x < MIN(GRID_SIZE, x2); x++)
             {
-                const int rtx = tiles[x][y].x - camera.x;
-                const int rty = tiles[x][y].y - camera.y;
+                tp = &tiles[x][y];
+                int rtx = tp->x - camera.x;
+                int rty = tp->y - camera.y;
 
                 /* Only render if it will be visible on the screen. */
                 if(rtx + TILE_WIDTH  > 0 && rtx < sw && rty + TILE_HEIGHT > 0 && rty < sh)
                 {
                     rect_terrain.x = rtx;
                     rect_terrain.y = rty;
-                    SDL_RenderCopy(renderer, tiles[x][y].terrain->texture, NULL, &rect_terrain);
-                    if (tiles[x][y].building)
+                    SDL_RenderCopy(renderer, tp->terrain->texture, NULL, &rect_terrain);
+                    if (tp->building)
                     {
                         rect_building.x = rtx;
-                        rect_building.h = tiles[x][y].building->height;
+                        rect_building.h = tp->building->height;
                         rect_building.y = rect_terrain.y - rect_building.h + TILE_HEIGHT;
-                        SDL_RenderCopy(renderer, tiles[x][y].building->texture, NULL, &rect_building);
+                        SDL_RenderCopy(renderer, tp->building->texture, NULL, &rect_building);
                     }
                 }
             }
