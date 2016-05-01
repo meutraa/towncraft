@@ -13,7 +13,7 @@
 #include "text.h"
 
 #define building_count 7
-#define  terrain_count 2
+#define  terrain_count 3
 
 static const char* building_images[building_count + 1] = {
     "resources/images/building-mega.tga",
@@ -27,8 +27,9 @@ static const char* building_images[building_count + 1] = {
 };
 
 static const char* terrain_images[terrain_count + 1] = {
-    "resources/images/terrain-water-test.tga",
-    "resources/images/terrain-grass-test.tga",
+    "resources/images/terrain-water.tga",
+    "resources/images/terrain-grass.tga",
+    "resources/images/terrain-sand.tga",
     NULL,
 };
 
@@ -183,7 +184,19 @@ Status game_loop(SDL_Renderer* renderer)
         {
             SDL_Point pixel = tile_to_pixel(x , y);
             int r = rand();
-            int t = heightmap[x][y] > 8.0f ? 1 : 0;
+            int t;
+            if(heightmap[x][y] < 8.0f)
+            {
+                t = 0;
+            }
+            else if(heightmap[x][y] > 8.7f)
+            {
+                t = 1;
+            }
+            else
+            {
+                t = 2;
+            }
             int b = r % building_count;
 
             tp = &tiles[x][y];
@@ -191,7 +204,7 @@ Status game_loop(SDL_Renderer* renderer)
             tp->y        = pixel.y;
             tp->terrain  = &terrains[t];
             tp->tile_id  = t;
-            tp->building = t && r % 5 == 0 ? &buildings[b] : NULL;
+            tp->building = 1 == t && heightmap[x][y] > 12 && r % ((int)floor((17.0f - heightmap[x][y]))) == 0 ? &buildings[b] : NULL;
         }
     }
 
@@ -278,6 +291,8 @@ Status game_loop(SDL_Renderer* renderer)
                 tp = &tiles[x][y];
                 int rtx = tp->x - camera.x;
                 int rty = tp->y - camera.y;
+                /* Enable for 3D mode. */
+                //rty = tp->y - camera.y - floor(heightmap[x][y]*TILE_HEIGHT);
 
                 /* Only render if it will be visible on the screen. */
                 if(rtx + TILE_WIDTH  > 0 && rtx < sw && rty + TILE_HEIGHT > 0 && rty < sh)
