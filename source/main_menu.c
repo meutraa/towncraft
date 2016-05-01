@@ -34,7 +34,7 @@ static Status main_menu_event_loop(Drawable* drawables)
         {
             for (int i = 0; (drawables + i)->texture; i++)
             {
-                if (bounded_by(event.button.x, event.button.y, (drawables + i)->rect))
+                if (SDL_PointInRect(&((SDL_Point){event.button.x, event.button.y}), (drawables + i)->rect))
                 {
                     if (!strcmp((drawables + i)->name, "button_quit"))
                     {

@@ -18,20 +18,10 @@ typedef struct Drawable {
     SDL_Texture* texture;       /*!< a pointer to an SDL_Texture */
     SDL_Rect* rect;             /*!< an SDL_Rect pointer that defines the current position and size. */
     char name[128];             /*!< a unique name. */
-    int visible;                /*!< 1 == rendered, anything else == not rendered. */
+    unsigned int visible : 1;   /*!< 1 == rendered, 0 == not rendered. */
     SDL_Rect widescreen;        /*!< an SDL_Rect containing positions for a 16:9 aspect ratio. */
     SDL_Rect monitor;           /*!< an SDL_Rect containing positions for a 16:10 aspect ratio. */
 } Drawable;
-
-/*! \fn int bounded_by(int x, int y, SDL_Rect* r)
-    \note This function is made redundant in SDL 2.0.4 with SDL_PointInRect()
-    \brief Checks if a 2d point is inside a rectangle (SDL_Rect)
-    \param x an integer value for the horizontal position.
-    \param y an integer value for the vertical position.
-    \param r an SDL_Rect for bounds.
-    \return 0 if point is outside bounds, 1 else.
-*/
-int bounded_by(int x, int y, SDL_Rect* r);
 
 /*! \fn void destroy_drawables(Drawable drawables[])
     \brief Frees all memory contained in the Drawable.

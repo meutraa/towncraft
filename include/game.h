@@ -8,11 +8,6 @@
 #include "SDL.h"
 #include "status.h"
 
-typedef struct Point {
-    int x;                /*!< the top left pixel on the grid */
-    int y;                /*!< the top left pixel on the grid */
-} Point;
-
 typedef struct Terrain {
     SDL_Texture* texture;       /*!< a pointer to an SDL_Texture */
 } Terrain;

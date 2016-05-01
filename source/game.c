@@ -36,16 +36,15 @@ static const char* terrain_images[terrain_count + 1] = {
 const SDL_Color white = { 255, 255, 255, 0 };
 Building buildings[building_count];
 Terrain terrains[terrain_count];
-int centre[2], mouse[2];
 
 /* This is just to stop repetative stuff. */
 #define printbuf(x, y, format, ...) \
     sprintf(strbuf, format, __VA_ARGS__); \
     render_text(renderer, debug_font, strbuf, white, x, y, camera.scale);
 
-static inline void SHIFT(int* a, int b)    { if(b > 0) *a >>= b; else if(b < 0) *a <<= abs(b); }
-static inline int  MIN(int a, int b)      { return (a < b) ? a : b;      }
-static inline int  MAX(int a, int b)      { return (a > b) ? a : b;      }
+static inline void SHIFT(int* a, int b) { if(b > 0) *a >>= b; else if(b < 0) *a <<= abs(b); }
+static inline int  MIN(int a, int b)    { return (a < b) ? a : b;      }
+static inline int  MAX(int a, int b)    { return (a > b) ? a : b;      }
 
 /* The number of keys SDL2 defines. */
 #define KEYCOUNT 283
@@ -56,8 +55,8 @@ Tile tiles[GRID_SIZE][GRID_SIZE];
 
 /* Tile dimensions must be divisible by exp2(DEFAULT_SCALE). */
 static const int DEFAULT_SCALE = 3;
-static const int TILE_WIDTH = 128 << DEFAULT_SCALE;
-static const int TILE_HEIGHT = 64 << DEFAULT_SCALE;
+static const int TILE_WIDTH    = 128 << DEFAULT_SCALE;
+static const int TILE_HEIGHT   = 64 << DEFAULT_SCALE;
 
 /*!
     \brief Scales all the UI elements, and updates the scale value in the camera.
@@ -79,17 +78,17 @@ static void change_scale(Camera* camera, SDL_Renderer* renderer, Drawable* drawa
     }
 }
 
-static Point pixel_to_tile(int x, int y)
+static SDL_Point pixel_to_tile(int x, int y)
 {
-    return (Point) {
+    return (SDL_Point) {
         (int) floor(((x / (float)TILE_WIDTH) + (y / (float)TILE_HEIGHT)) - 0.5f),
         (int) floor(((y / (float)TILE_HEIGHT) - (x / (float)TILE_WIDTH)) + 0.5f)
     };
 }
 
-static Point tile_to_pixel(int x, int y)
+static SDL_Point tile_to_pixel(int x, int y)
 {
-    return (Point) {
+    return (SDL_Point) {
         (x - y) * (TILE_WIDTH >> 1),
         (x + y) * (TILE_HEIGHT >> 1)
     };
@@ -139,7 +138,7 @@ Status game_loop(SDL_Renderer* renderer)
     {
         for (int x = 0; x < GRID_SIZE; x++)
         {
-            Point pixel = tile_to_pixel(x , y);
+            SDL_Point pixel = tile_to_pixel(x , y);
             int r = rand();
             int t = r % terrain_count;
             int b = r % building_count;
@@ -257,21 +256,19 @@ Status game_loop(SDL_Renderer* renderer)
         render_drawables(renderer, drawables);
 
         /* Get the data we need for the debugging UI. */
-        centre[0] = camera.x + (sw >> 1);
-        centre[1] = camera.y + (sh >> 1);
-        mouse[0]  = camera.x + camera.scale*mouse_x;
-        mouse[1]  = camera.y + camera.scale*mouse_y;
-        Point mouse_tile  = pixel_to_tile(mouse[0],  mouse[1]);
-        Point corner_tile = pixel_to_tile(camera.x,  camera.y);
-        Point centre_tile = pixel_to_tile(centre[0], centre[1]);
+        int centre[2] = {camera.x + (sw >> 1), camera.y + (sh >> 1) };
+        int mouse[2]  = {camera.x + camera.scale*mouse_x, camera.y + camera.scale*mouse_y };
+        SDL_Point mouse_tile = pixel_to_tile(mouse[0],  mouse[1]);
+        SDL_Point cnr_tile   = pixel_to_tile(camera.x,  camera.y);
+        SDL_Point ctr_tile   = pixel_to_tile(centre[0], centre[1]);
 
         /* Print the UI debugging infomation. */
-        printbuf(200, 680, "%d, %d",  camera.x,      camera.y);
-        printbuf(200, 700, "%d, %d",  corner_tile.x, corner_tile.y);
-        printbuf(603, 680, "%d, %d",  centre[0],     centre[1]);
-        printbuf(603, 700, "%d, %d",  centre_tile.x, centre_tile.y);
-        printbuf(1014, 680, "%d, %d", mouse[0],      mouse[1]);
-        printbuf(1014, 700, "%d, %d", mouse_tile.x,  mouse_tile.y);
+        printbuf(200, 680, "%d, %d",  camera.x,     camera.y);
+        printbuf(200, 700, "%d, %d",  cnr_tile.x,   cnr_tile.y);
+        printbuf(603, 680, "%d, %d",  centre[0],    centre[1]);
+        printbuf(603, 700, "%d, %d",  ctr_tile.x,   ctr_tile.y);
+        printbuf(1014, 680, "%d, %d", mouse[0],     mouse[1]);
+        printbuf(1014, 700, "%d, %d", mouse_tile.x, mouse_tile.y);
         printbuf(1080, 4, "%d", camera.scale);
         printbuf(1200, 4, "%d", fps);
 

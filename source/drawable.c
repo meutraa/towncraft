@@ -21,15 +21,6 @@
 
 static int TEXT_COUNT = 13, IMG_COUNT = 7, COLOR_COUNT = 12;
 
-int bounded_by(int x, int y, SDL_Rect* r)
-{
-    if ((x > r->x && x < r->x + r->w) && (y > r->y && y < r->y + r->h))
-    {
-        return 1;
-    }
-    return 0;
-}
-
 void destroy_drawables(Drawable* drawables)
 {
     for (int i = 0; NULL != (drawables + i)->texture; i++)
