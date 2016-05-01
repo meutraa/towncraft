@@ -95,10 +95,9 @@ int main(void)
         else if(SWITCHTO_GAME == status)
         {
             Mix_FadeOutMusic(100);
-            Mix_HaltMusic();
-            Mix_FreeMusic(chiptune);
             status = game_loop(renderer);
         }
     }
+    Mix_FreeMusic(chiptune);
     exit(EXIT_SUCCESS);
 }

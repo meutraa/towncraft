@@ -57,20 +57,17 @@ static Drawable* load_drawables_in(SDL_Renderer* renderer, const char* layout_fi
         return NULL;
     }
 
-    int len = MAX_LINE_LENGTH + 1; // +1 for the terminating null-character.
-    int i = 0;
-
-    char line[len], name[len], path[len];
+    char line[256], name[128], path[128];
     int wx, wy, mx, my, width, height, visible;
     int mode, font_size;
     unsigned char r, g, b, a;
     SDL_Surface* surface;
     Drawable* drawables;
 
-    drawables = malloc(sizeof(Drawable) * (length + 1));
+    drawables = malloc(sizeof(Drawable) * (unsigned long)(length + 1));
     (drawables + length)->texture = NULL;     // Null terminate the memory block.
 
-    while (fgets(line, len, file))
+    for (int i = 0; fgets(line, 256, file);)
     {
         if (IMG_COUNT == sscanf(line, IMG_FORMAT, &visible, name, path, &wx, &wy, &mx, &my))
         {
@@ -118,7 +115,11 @@ static Drawable* load_drawables_in(SDL_Renderer* renderer, const char* layout_fi
             continue;
         }
 
-        if (!count)
+        if(count)
+        {
+            (*count)++;
+        }
+        else
         {
             /* Assign new values. */
             unsigned long l = strlen(name);
@@ -135,10 +136,6 @@ static Drawable* load_drawables_in(SDL_Renderer* renderer, const char* layout_fi
             SDL_FreeSurface(surface);
         }
         i++;
-        if(count)
-        {
-            (*count)++;
-        }
     }
 
     fclose(file);
