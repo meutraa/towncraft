@@ -51,7 +51,7 @@ static inline int  MAX(int a, int b)    { return (a > b) ? a : b;      }
 #define KEYCOUNT 283
 
 /* The grid of tiles. */
-#define GRID_SIZE 256 + 1
+#define GRID_SIZE 512 + 1
 Tile tiles[GRID_SIZE][GRID_SIZE];
 float heightmap[GRID_SIZE][GRID_SIZE];
 
@@ -190,11 +190,11 @@ Status game_loop(SDL_Renderer* renderer)
             SDL_Point pixel = tile_to_pixel(x , y);
             int r = rand();
             int t;
-            if(heightmap[x][y] < 8.0f)
+            if(heightmap[x][y] < 8.5f)
             {
                 t = 0;
             }
-            else if(heightmap[x][y] > 8.7f)
+            else if(heightmap[x][y] > 9.2f)
             {
                 t = 1;
             }
