@@ -13,7 +13,7 @@
 #include "text.h"
 
 #define building_count 7
-#define  terrain_count 3
+#define  terrain_count 22
 
 static const char* building_images[building_count + 1] = {
     "resources/images/building-mega.tga",
@@ -27,9 +27,28 @@ static const char* building_images[building_count + 1] = {
 };
 
 static const char* terrain_images[terrain_count + 1] = {
-    "resources/images/terrain-water.tga",
-    "resources/images/terrain-grass.tga",
-    "resources/images/terrain-sand.tga",
+    "resources/images/tileset/0001.png",
+    "resources/images/tileset/0002.png",
+    "resources/images/tileset/0003.png",
+    "resources/images/tileset/0004.png",
+    "resources/images/tileset/0005.png",
+    "resources/images/tileset/0006.png",
+    "resources/images/tileset/0007.png",
+    "resources/images/tileset/0008.png",
+    "resources/images/tileset/0009.png",
+    "resources/images/tileset/0010.png",
+    "resources/images/tileset/0011.png",
+    "resources/images/tileset/0012.png",
+    "resources/images/tileset/0013.png",
+    "resources/images/tileset/0014.png",
+    "resources/images/tileset/0015.png",
+    "resources/images/tileset/0016.png",
+    "resources/images/tileset/0017.png",
+    "resources/images/tileset/0018.png",
+    "resources/images/tileset/0019.png",
+    "resources/images/tileset/0020.png",
+    "resources/images/tileset/0021.png",
+    "resources/images/tileset/0022.png",
     NULL,
 };
 
@@ -51,14 +70,14 @@ static inline int  MAX(int a, int b)    { return (a > b) ? a : b;      }
 #define KEYCOUNT 283
 
 /* The grid of tiles. */
-#define GRID_SIZE 512 + 1
+#define GRID_SIZE 64 + 1
 Tile tiles[GRID_SIZE][GRID_SIZE];
-float heightmap[GRID_SIZE][GRID_SIZE];
+int heightmap[GRID_SIZE][GRID_SIZE];
 
 /* Tile dimensions must be divisible by exp2(DEFAULT_SCALE). */
 static const int DEFAULT_SCALE = 3;
 static const int TILE_WIDTH    = 128 << DEFAULT_SCALE;
-static const int TILE_HEIGHT   = 64 << DEFAULT_SCALE;
+static const int TILE_HEIGHT   = 96  << DEFAULT_SCALE;
 
 /*!
     \brief Scales all the UI elements, and updates the scale value in the camera.
@@ -92,7 +111,7 @@ static SDL_Point tile_to_pixel(int x, int y)
 {
     return (SDL_Point) {
         (x - y) * (TILE_WIDTH >> 1),
-        (x + y) * (TILE_HEIGHT >> 1)
+        (x + y) * ((int)floor((TILE_HEIGHT * 2.0f / 3.0f)) >> 1)
     };
 }
 
@@ -116,7 +135,7 @@ static void diamond_square(int x1, int y1, int x2, int y2, float range, int leve
             float b = heightmap[i][j - level];
             float c = heightmap[i - level][j];
             float d = heightmap[i][j];
-            heightmap[i - nl][j - nl] = ((a + b + c + d) / 4.0f) + (frand() * range);
+            heightmap[i - nl][j - nl] = (int) floor(((a + b + c + d) / 4.0f) + (frand() * range));
         }
     }
 
@@ -129,8 +148,8 @@ static void diamond_square(int x1, int y1, int x2, int y2, float range, int leve
             float b = heightmap[i][j - level];
             float c = heightmap[i - level][j];
             float e = heightmap[i - nl][j - nl];
-            heightmap[i - level][j - nl] = ((a + c + e + heightmap[(i - 3) * nl][j - nl]) / 4.0f) + (frand() * range);
-            heightmap[i - nl][j - level] = ((a + b + e + heightmap[i - nl][j - (3 * nl)]) / 4.0f) + (frand() * range);
+            heightmap[i - level][j - nl] = (int) floor(((a + c + e + heightmap[(i - 3) * nl][j - nl]) / 4.0f) + (frand() * range));
+            heightmap[i - nl][j - level] = (int) floor(((a + b + e + heightmap[i - nl][j - (3 * nl)]) / 4.0f) + (frand() * range));
         }
     }
 
@@ -188,28 +207,94 @@ Status game_loop(SDL_Renderer* renderer)
         for (int x = 0; x < GRID_SIZE; x++)
         {
             SDL_Point pixel = tile_to_pixel(x , y);
-            int r = rand();
-            int t;
-            if(heightmap[x][y] < 8.5f)
+            int t = 1;
+            /* Edges are always flat. */
+            if(x == 0 || y == 0 || x == GRID_SIZE - 1 || y == GRID_SIZE - 1)
+            {
+                t = 1;
+            }
+            else
+            {
+                int CORNER_W = 1;
+                int CORNER_S = 2;
+                int CORNER_E = 4;
+                int CORNER_N = 8;
+                int IS_STEEP = 16;
+                int u = 0, d = 0, l = 0, r = 0, h = heightmap[x][y];
+
+                float uh = (heightmap[x - 1][y] + heightmap[x][y - 1] + heightmap[x - 1][y - 1])/3.0f;
+                if((int)round(uh) > h) u = 1;
+                else if((int)round(uh) < h) u = -1;
+
+                float lh = (heightmap[x - 1][y] + heightmap[x - 1][y + 1] + heightmap[x][y + 1])/3.0f;
+                if((int)round(lh) > h) l = 1;
+                else if((int)round(lh) < h) l = -1;
+
+                float dh = (heightmap[x][y + 1] + heightmap[x + 1][y + 1] + heightmap[x + 1][y])/3.0f;
+                if((int)round(dh) > h) d = 1;
+                else if((int)round(dh) < h) d = -1;
+
+                float rh = (heightmap[x][y - 1] + heightmap[x + 1][y - 1] + heightmap[x + 1][y])/3.0f;
+                if((int)round(rh) > h) r = 1;
+                else if((int)round(rh) < h) r = -1;
+
+                // get the magnitude of the lowest corner.
+                int low = (u < 0 || d < 0 || l < 0 || r < 0) ? -1 : 0;
+                int ST = 0;
+                if((u == -1 && d == 1) || (u == 1 && d == -1) || (l == -1 && r == 1) || (l == 1 && r == -1)) ST = 1;
+                int CW = l > low;
+                int CS = d > low;
+                int CE = r > low;
+                int CN = u > low;
+
+                int mask = 0;
+                if(CW) mask |= CORNER_W;
+                if(CS) mask |= CORNER_S;
+                if(CE) mask |= CORNER_E;
+                if(CN) mask |= CORNER_N;
+                if(ST) mask |= IS_STEEP;
+                if(0 == mask) t = 0;
+                else if(1 == mask) t = 4;
+                else if(2 == mask) t = 5;
+                else if(3 == mask) t = 9;
+                else if(4 == mask) t = 6;
+                else if(5 == mask) t = 21;
+                else if(6 == mask) t = 10;
+                else if(7 == mask) t = 13; //?
+                else if(8 == mask) t = 7;
+                else if(9 == mask) t = 8;
+                else if(10 == mask) t = 20;
+                else if(11 == mask) t = 12;
+                else if(12 == mask) t = 11;
+                else if(13 == mask) t = 15;
+                else if(14 == mask) t = 14;
+                else if(17 == mask) t = 17;
+                else if(29 == mask) t = 18;
+                else if(30 == mask) t = 19;
+                else if(23 == mask) t = 16;
+            }
+            /*if(heightmap[x][y] < 9.5f)
             {
                 t = 0;
+                heightmap[x][y] = 9.5f;
             }
-            else if(heightmap[x][y] > 9.2f)
+            else if(heightmap[x][y] > 10.2f)
             {
                 t = 1;
             }
             else
             {
                 t = 2;
-            }
-            int b = r % building_count;
+            }*/
+            int ran = rand();
+            int b = ran % building_count;
 
             tp = &tiles[x][y];
             tp->x        = pixel.x;
             tp->y        = pixel.y;
             tp->terrain  = &terrains[t];
             tp->tile_id  = t;
-            tp->building = 1 == t && heightmap[x][y] > 12.5f && r % ((int)floor((max_height + 1.01f - heightmap[x][y]))) == 0 ? &buildings[b] : NULL;
+            tp->building = 1 == t && heightmap[x][y] > 12.5f && ran % ((int)floor((max_height + 1.01f - heightmap[x][y]))) == 0 ? &buildings[b] : NULL;
         }
     }
 
@@ -289,15 +374,20 @@ Status game_loop(SDL_Renderer* renderer)
 
         /* Make sure all these are within bounds of our grid.
            Loop through this sub-grid and render each texture. */
-        for (int y = MAX(0, y1); y < MIN(GRID_SIZE, y2); y++)
+        /*for (int y = MAX(0, y1); y < MIN(GRID_SIZE, y2); y++)
         {
             for (int x = MAX(0, x1); x < MIN(GRID_SIZE, x2); x++)
+            {*/
+        for (int y = 0; y < GRID_SIZE; y++)
+        {
+            for (int x = 0; x < GRID_SIZE; x++)
             {
                 tp = &tiles[x][y];
                 int rtx = tp->x - camera.x;
                 int rty = tp->y - camera.y;
                 /* Enable for 3D mode. */
-                //rty = tp->y - camera.y - floor(heightmap[x][y]*TILE_HEIGHT);
+                //rty = tp->y - camera.y;
+                /*if(tp->tile_id == 1)*/ rty -= (int) floor(heightmap[x][y]*tp->voffset*TILE_HEIGHT);
 
                 /* Only render if it will be visible on the screen. */
                 if(rtx + TILE_WIDTH  > 0 && rtx < sw && rty + TILE_HEIGHT > 0 && rty < sh)
