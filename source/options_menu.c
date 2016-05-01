@@ -44,7 +44,8 @@ Status options_menu_loop(SDL_Renderer* renderer)
                 /* Loop through the drawables in the side bar. */
                 for (int i = 0; NULL != (menus[0] + i)->texture; i++)
                 {
-                    if (SDL_PointInRect(&((SDL_Point){event.button.x, event.button.y}), (menus[0] + i)->rect))
+                    SDL_Point point = {event.button.x, event.button.y};
+                    if (SDL_TRUE == SDL_PointInRect(&point, (menus[0] + i)->rect))
                     {
                         if (!strcmp((menus[0] + i)->name, "button_options_video"))
                         {

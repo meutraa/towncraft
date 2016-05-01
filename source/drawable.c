@@ -121,7 +121,9 @@ static Drawable* load_drawables_in(SDL_Renderer* renderer, const char* layout_fi
         if (!count)
         {
             /* Assign new values. */
-            strncpy((drawables + i)->name, name, strlen(name));
+            unsigned long l = strlen(name);
+            strncpy((drawables + i)->name, name, l);
+            (drawables + i)->name[l] = '\0';
             (drawables + i)->visible = (1 == visible) ? 1 : 0;
             (drawables + i)->widescreen = (SDL_Rect){  wx, wy, surface->w, surface->h };
             (drawables + i)->monitor = (SDL_Rect){ mx, my, surface->w, surface->h };
