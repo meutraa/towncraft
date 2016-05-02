@@ -208,8 +208,9 @@ Status game_loop(SDL_Renderer* renderer)
         {
             SDL_Point pixel = tile_to_pixel(x , y);
             int t = 1;
+            tp = &tiles[x][y];
             /* Edges are always flat. */
-            if(x == 0 || y == 0 || x == GRID_SIZE - 1 || y == GRID_SIZE - 1)
+            if(x == GRID_SIZE - 1 || y == GRID_SIZE - 1)
             {
                 t = 1;
             }
@@ -221,27 +222,24 @@ Status game_loop(SDL_Renderer* renderer)
                 int CORNER_N = 8;
                 int IS_STEEP = 16;
                 int u = 0, d = 0, l = 0, r = 0, h = heightmap[x][y];
+                int ST = 0;
 
-                float uh = (heightmap[x - 1][y] + heightmap[x][y - 1] + heightmap[x - 1][y - 1])/3.0f;
-                if((int)round(uh) > h) u = 1;
-                else if((int)round(uh) < h) u = -1;
+                if(heightmap[x][y + 1] > h) l = 1;
+                else if(heightmap[x][y + 1] < h) l = -1;
 
-                float lh = (heightmap[x - 1][y] + heightmap[x - 1][y + 1] + heightmap[x][y + 1])/3.0f;
-                if((int)round(lh) > h) l = 1;
-                else if((int)round(lh) < h) l = -1;
+                if(heightmap[x][y + 1] < heightmap[x + 1][y] - 1){ t = 19; ST = 1; }
+                else if(heightmap[x + 1][y] < heightmap[x][y + 1] - 1){ t = 17; ST = 1; }
+                else if(heightmap[x + 1][y + 1] < h - 1){ t = 18; ST = 1; tp->voffset = -1; }
+                else if(heightmap[x][y] < heightmap[x + 1][y + 1] - 1){ t = 16; ST = 1; tp->voffset = 1; }
 
-                float dh = (heightmap[x][y + 1] + heightmap[x + 1][y + 1] + heightmap[x + 1][y])/3.0f;
-                if((int)round(dh) > h) d = 1;
-                else if((int)round(dh) < h) d = -1;
+                if(heightmap[x + 1][y] > h) r = 1;
+                else if(heightmap[x + 1][y] < h) r = -1;
 
-                float rh = (heightmap[x][y - 1] + heightmap[x + 1][y - 1] + heightmap[x + 1][y])/3.0f;
-                if((int)round(rh) > h) r = 1;
-                else if((int)round(rh) < h) r = -1;
+                if(heightmap[x + 1][y + 1] > h) d = 1;
+                else if(heightmap[x + 1][y + 1] < h) d = -1;
 
                 // get the magnitude of the lowest corner.
                 int low = (u < 0 || d < 0 || l < 0 || r < 0) ? -1 : 0;
-                int ST = 0;
-                if((u == -1 && d == 1) || (u == 1 && d == -1) || (l == -1 && r == 1) || (l == 1 && r == -1)) ST = 1;
                 int CW = l > low;
                 int CS = d > low;
                 int CE = r > low;
@@ -253,48 +251,31 @@ Status game_loop(SDL_Renderer* renderer)
                 if(CE) mask |= CORNER_E;
                 if(CN) mask |= CORNER_N;
                 if(ST) mask |= IS_STEEP;
-                if(0 == mask) t = 0;
-                else if(1 == mask) t = 4;
-                else if(2 == mask) t = 5;
-                else if(3 == mask) t = 9;
-                else if(4 == mask) t = 6;
-                else if(5 == mask) t = 21;
-                else if(6 == mask) t = 10;
-                else if(7 == mask) t = 13; //?
-                else if(8 == mask) t = 7;
-                else if(9 == mask) t = 8;
-                else if(10 == mask) t = 20;
-                else if(11 == mask) t = 12;
-                else if(12 == mask) t = 11;
-                else if(13 == mask) t = 15;
-                else if(14 == mask) t = 14;
-                else if(17 == mask) t = 17;
-                else if(29 == mask) t = 18;
-                else if(30 == mask) t = 19;
-                else if(23 == mask) t = 16;
+                if(0 == mask){ t = 1; tp->voffset = 0;       }
+                else if(1 == mask){ t = 4; tp->voffset = 0;  }
+                else if(2 == mask){ t = 5; tp->voffset = 1;  }
+                else if(3 == mask){ t = 9; tp->voffset = 1;  }
+                else if(4 == mask){ t = 6; tp->voffset = 0;  }
+                else if(5 == mask){ t = 21; tp->voffset = 0; }
+                else if(6 == mask){ t = 10; tp->voffset = 1; }
+                else if(7 == mask){ t = 13; tp->voffset = 1; }
+                else if(8 == mask){ t = 7; tp->voffset = 0;  }
+                else if(9 == mask){ t = 8; tp->voffset = 0;  }
+                else if(10 == mask){ t = 20; tp->voffset = 1; }
+                else if(11 == mask){ t = 12; tp->voffset = 1; }
+                else if(12 == mask){ t = 11; tp->voffset = 0; }
+                else if(13 == mask){ t = 15; tp->voffset = 0; }
+                else if(14 == mask){ t = 14; tp->voffset = 1; }
             }
-            /*if(heightmap[x][y] < 9.5f)
-            {
-                t = 0;
-                heightmap[x][y] = 9.5f;
-            }
-            else if(heightmap[x][y] > 10.2f)
-            {
-                t = 1;
-            }
-            else
-            {
-                t = 2;
-            }*/
+
             int ran = rand();
             int b = ran % building_count;
 
-            tp = &tiles[x][y];
             tp->x        = pixel.x;
             tp->y        = pixel.y;
             tp->terrain  = &terrains[t];
             tp->tile_id  = t;
-            tp->building = 1 == t && heightmap[x][y] > 12.5f && ran % ((int)floor((max_height + 1.01f - heightmap[x][y]))) == 0 ? &buildings[b] : NULL;
+            tp->building = 1 == t && ran % 6 == 0 ? &buildings[b] : NULL;
         }
     }
 
@@ -386,8 +367,18 @@ Status game_loop(SDL_Renderer* renderer)
                 int rtx = tp->x - camera.x;
                 int rty = tp->y - camera.y;
                 /* Enable for 3D mode. */
-                //rty = tp->y - camera.y;
-                /*if(tp->tile_id == 1)*/ rty -= (int) floor(heightmap[x][y]*tp->voffset*TILE_HEIGHT);
+                if(heightmap[x + 1][y + 1] > 0)
+                {
+                    rty -= (heightmap[x + 1][y + 1])*(int) floor(TILE_HEIGHT / 6.0f);
+                }
+                if(tp->voffset == 1)
+                {
+                    rty += (int)floor(TILE_HEIGHT / 6.0f);
+                }
+                if(tp->voffset == -1)
+                {
+                    rty -= (int)floor(TILE_HEIGHT / 6.0f);
+                }
 
                 /* Only render if it will be visible on the screen. */
                 if(rtx + TILE_WIDTH  > 0 && rtx < sw && rty + TILE_HEIGHT > 0 && rty < sh)
@@ -397,10 +388,10 @@ Status game_loop(SDL_Renderer* renderer)
                     SDL_RenderCopy(renderer, tp->terrain->texture, NULL, &rect_terrain);
                     if (tp->building)
                     {
-                        rect_building.x = rtx;
-                        rect_building.h = tp->building->height;
-                        rect_building.y = rect_terrain.y - rect_building.h + TILE_HEIGHT;
-                        SDL_RenderCopy(renderer, tp->building->texture, NULL, &rect_building);
+                        //rect_building.x = rtx;
+                        //rect_building.h = tp->building->height;
+                        //rect_building.y = rect_terrain.y - rect_building.h + (int) floor(TILE_HEIGHT / 3.0f);
+                        //SDL_RenderCopy(renderer, tp->building->texture, NULL, &rect_building);
                     }
                 }
             }
