@@ -26,36 +26,49 @@ static const char* building_images[building_count + 1] = {
     NULL,
 };
 
-static const char* terrain_images[terrain_count + 1] = {
-    "resources/images/tileset/0001.png",
-    "resources/images/tileset/0002.png",
-    "resources/images/tileset/0003.png",
-    "resources/images/tileset/0004.png",
-    "resources/images/tileset/0005.png",
-    "resources/images/tileset/0006.png",
-    "resources/images/tileset/0007.png",
-    "resources/images/tileset/0008.png",
-    "resources/images/tileset/0009.png",
-    "resources/images/tileset/0010.png",
-    "resources/images/tileset/0011.png",
-    "resources/images/tileset/0012.png",
-    "resources/images/tileset/0013.png",
-    "resources/images/tileset/0014.png",
-    "resources/images/tileset/0015.png",
-    "resources/images/tileset/0016.png",
-    "resources/images/tileset/0017.png",
-    "resources/images/tileset/0018.png",
-    "resources/images/tileset/0019.png",
-    "resources/images/tileset/0020.png",
-    "resources/images/tileset/0021.png",
-    "resources/images/tileset/0022.png",
-    NULL,
+
+#define GRASS_PATH "resources/images/grass/"
+static const char* grass_images[terrain_count + 1] = {
+    GRASS_PATH "0001.png", GRASS_PATH "0002.png", GRASS_PATH "0003.png",
+    GRASS_PATH "0004.png", GRASS_PATH "0005.png", GRASS_PATH "0006.png",
+    GRASS_PATH "0007.png", GRASS_PATH "0008.png", GRASS_PATH "0009.png",
+    GRASS_PATH "0010.png", GRASS_PATH "0011.png", GRASS_PATH "0012.png",
+    GRASS_PATH "0013.png", GRASS_PATH "0014.png", GRASS_PATH "0015.png",
+    GRASS_PATH "0016.png", GRASS_PATH "0017.png", GRASS_PATH "0018.png",
+    GRASS_PATH "0019.png", GRASS_PATH "0020.png", GRASS_PATH "0021.png",
+    GRASS_PATH "0022.png", NULL,
+};
+
+#define SAND_PATH "resources/images/sand/"
+static const char* sand_images[terrain_count + 1] = {
+    SAND_PATH "0001.png", SAND_PATH "0002.png", SAND_PATH "0003.png",
+    SAND_PATH "0004.png", SAND_PATH "0005.png", SAND_PATH "0006.png",
+    SAND_PATH "0007.png", SAND_PATH "0008.png", SAND_PATH "0009.png",
+    SAND_PATH "0010.png", SAND_PATH "0011.png", SAND_PATH "0012.png",
+    SAND_PATH "0013.png", SAND_PATH "0014.png", SAND_PATH "0015.png",
+    SAND_PATH "0016.png", SAND_PATH "0017.png", SAND_PATH "0018.png",
+    SAND_PATH "0019.png", SAND_PATH "0020.png", SAND_PATH "0021.png",
+    SAND_PATH "0022.png", NULL,
+};
+
+#define SG_PATH "resources/images/sand-grass/"
+static const char* sg_images[terrain_count + 1] = {
+    SG_PATH "0001.png", SG_PATH "0002.png", SG_PATH "0003.png",
+    SG_PATH "0004.png", SG_PATH "0005.png", SG_PATH "0006.png",
+    SG_PATH "0007.png", SG_PATH "0008.png", SG_PATH "0009.png",
+    SG_PATH "0010.png", SG_PATH "0011.png", SG_PATH "0012.png",
+    SG_PATH "0013.png", SG_PATH "0014.png", SG_PATH "0015.png",
+    SG_PATH "0016.png", SG_PATH "0017.png", SG_PATH "0018.png",
+    SG_PATH "0019.png", SG_PATH "0020.png", SG_PATH "0021.png",
+    SG_PATH "0022.png", NULL,
 };
 
 /* Free up some space in the stack. */
 const SDL_Color white = { 255, 255, 255, 0 };
 Building buildings[building_count];
-Terrain terrains[terrain_count];
+Terrain grass[terrain_count];
+Terrain sand[terrain_count];
+Terrain sand_grass[terrain_count];
 
 /* This is just to stop repetative stuff. */
 #define printbuf(x, y, format, ...) \
@@ -70,9 +83,12 @@ static inline int  MAX(int a, int b)    { return (a > b) ? a : b;      }
 #define KEYCOUNT 283
 
 /* The grid of tiles. */
-#define GRID_SIZE 64 + 1
+#define GRID_SIZE (1 << 7) + 1
 Tile tiles[GRID_SIZE][GRID_SIZE];
 int heightmap[GRID_SIZE][GRID_SIZE];
+#define MAX_HEIGHT 16.0f
+#define FLATNESS 1 << 5
+
 
 /* Tile dimensions must be divisible by exp2(DEFAULT_SCALE). */
 static const int DEFAULT_SCALE = 3;
@@ -189,25 +205,32 @@ Status game_loop(SDL_Renderer* renderer)
 
     for (int i = 0; i < terrain_count; i++)
     {
-        SDL_Surface* s = IMG_Load(terrain_images[i]);
-        terrains[i].texture = SDL_CreateTextureFromSurface(renderer, s);
+        SDL_Surface* s = IMG_Load(grass_images[i]);
+        grass[i].texture = SDL_CreateTextureFromSurface(renderer, s);
+        SDL_FreeSurface(s);
+
+        s = IMG_Load(sand_images[i]);
+        sand[i].texture = SDL_CreateTextureFromSurface(renderer, s);
+        SDL_FreeSurface(s);
+
+        s = IMG_Load(sg_images[i]);
+        sand_grass[i].texture = SDL_CreateTextureFromSurface(renderer, s);
         SDL_FreeSurface(s);
     }
 
-    diamond_square(0, 0, GRID_SIZE - 1, GRID_SIZE - 1, 16.0f, 16);
-
-    float max_height = 0;
-    for (int y = 0; y < GRID_SIZE; y++)
-        for (int x = 0; x < GRID_SIZE; x++)
-            if(max_height < heightmap[x][y]) max_height = heightmap[x][y];
+    /* Set corner heights. */
+    //memset(heightmap, 0, GRID_SIZE*GRID_SIZE * sizeof(int));
+    //memset(tiles, 0, GRID_SIZE*GRID_SIZE * sizeof(Tile));
+    diamond_square(0, 0, GRID_SIZE - 1, GRID_SIZE - 1, MAX_HEIGHT, FLATNESS);
 
     /* Create and fill the positions of the tiles. */
+    /* FIRST PASS */
     for (int y = 0; y < GRID_SIZE; y++)
     {
         for (int x = 0; x < GRID_SIZE; x++)
         {
             SDL_Point pixel = tile_to_pixel(x , y);
-            int t = 1;
+            int t = 0;
             tp = &tiles[x][y];
             /* Edges are always flat. */
             if(x == GRID_SIZE - 1 || y == GRID_SIZE - 1)
@@ -251,7 +274,18 @@ Status game_loop(SDL_Renderer* renderer)
                 if(CE) mask |= CORNER_E;
                 if(CN) mask |= CORNER_N;
                 if(ST) mask |= IS_STEEP;
-                if(0 == mask){ t = 1; tp->voffset = 0;       }
+                if(0 == mask)
+                {
+                    if(h == 0)
+                    {
+                        t = 1;
+                    }
+                    else
+                    {
+                        t = 0;
+                        tp->voffset = 0;
+                    }
+                }
                 else if(1 == mask){ t = 4; tp->voffset = 0;  }
                 else if(2 == mask){ t = 5; tp->voffset = 1;  }
                 else if(3 == mask){ t = 9; tp->voffset = 1;  }
@@ -270,12 +304,41 @@ Status game_loop(SDL_Renderer* renderer)
 
             int ran = rand();
             int b = ran % building_count;
+            int low_count = 0;
+            if(heightmap[x][y] == 0) low_count++;
+            if(heightmap[x + 1][y] == 0) low_count++;
+            if(heightmap[x][y + 1] == 0) low_count++;
+            if(heightmap[x + 1][y + 1] == 0) low_count++;
 
             tp->x        = pixel.x;
             tp->y        = pixel.y;
-            tp->terrain  = &terrains[t];
+            tp->water    = (heightmap[x]    [y]     == 0
+                         || heightmap[x + 1][y + 1] == 0
+                         || heightmap[x]    [y + 1] == 0
+                         || heightmap[x + 1][y]     == 0);
+            if(low_count >= 2)
+            {
+                tp->terrain = tp->water ? &sand[t] : &grass[t];
+            }
+            else
+            {
+                tp->terrain = tp->water ? &sand_grass[t] : &grass[t];
+            }
             tp->tile_id  = t;
             tp->building = 1 == t && ran % 6 == 0 ? &buildings[b] : NULL;
+        }
+    }
+    /* SECOND PASS */
+    for (int y = 1; y < GRID_SIZE - 1; y++)
+    {
+        for (int x = 1; x < GRID_SIZE - 1; x++)
+        {
+            int wc = tiles[x - 1][y - 1].water
+             + tiles[x - 1][y + 1].water
+             + tiles[x + 1][y - 1].water
+             + tiles[x + 1][y + 1].water;
+
+            if(wc > 0) tiles[x][y].terrain = &sand[tiles[x][y].tile_id];
         }
     }
 
@@ -367,7 +430,10 @@ Status game_loop(SDL_Renderer* renderer)
                 int rtx = tp->x - camera.x;
                 int rty = tp->y - camera.y;
                 /* Enable for 3D mode. */
-                if(heightmap[x + 1][y + 1] > 0)
+                if(x == GRID_SIZE - 1 || y == GRID_SIZE - 1)
+                {
+                }
+                else if(heightmap[x + 1][y + 1] > 0)
                 {
                     rty -= (heightmap[x + 1][y + 1])*(int) floor(TILE_HEIGHT / 6.0f);
                 }
@@ -385,7 +451,13 @@ Status game_loop(SDL_Renderer* renderer)
                 {
                     rect_terrain.x = rtx;
                     rect_terrain.y = rty;
+
                     SDL_RenderCopy(renderer, tp->terrain->texture, NULL, &rect_terrain);
+                    if(tp->water)
+                    {
+                        rect_terrain.y -= (int)floor(TILE_HEIGHT / 6.0f);
+                        SDL_RenderCopy(renderer, grass[2].texture, NULL, &rect_terrain);
+                    }
                     if (tp->building)
                     {
                         //rect_building.x = rtx;
@@ -434,7 +506,9 @@ Status game_loop(SDL_Renderer* renderer)
     destroy_drawables(drawables);
     TTF_CloseFont(debug_font);
     for (int i = 0; i < building_count; SDL_DestroyTexture(buildings[i++].texture));
-    for (int i = 0; i <  terrain_count; SDL_DestroyTexture( terrains[i++].texture));
+    for (int i = 0; i <  terrain_count; SDL_DestroyTexture( grass[i++].texture));
+    for (int i = 0; i <  terrain_count; SDL_DestroyTexture( sand[i++].texture));
+    for (int i = 0; i <  terrain_count; SDL_DestroyTexture( sand_grass[i++].texture));
 
     SDL_RenderSetLogicalSize(renderer, DESIGN_WIDTH, DESIGN_HEIGHT);
     return status;

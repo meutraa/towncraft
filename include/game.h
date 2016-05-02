@@ -25,6 +25,7 @@ typedef struct Tile {
     Terrain* terrain;   /*!< a pointer to a Terrain. */
     int tile_id;        /*!< an id. */
     int voffset;
+    int water;
     int x;              /*!< x position of tile. */
     int y;              /*!< y position of tile. */
 } Tile;
