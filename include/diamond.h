@@ -7,8 +7,8 @@
 
 #define GRID_SIZE (1 << 7) + 1
 #define ROUGHNESS 0.05f
-#define HEIGHT 32
-#define LOWER_HEIGHT 16.0f
+#define HEIGHT 12
+#define LOWER_HEIGHT 4.0f
 
 /*! \fn void fill_heightmap(float height[GRID_SIZE][GRID_SIZE], int size, const int max, const float roughness)
 

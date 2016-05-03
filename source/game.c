@@ -208,6 +208,12 @@ Status game_loop(SDL_Renderer* renderer)
                 hxy1 = hxy;
                 hx1y1 = hx1y;
             }
+            else if(x == GRID_SIZE - 1 && y == GRID_SIZE - 1)
+            {
+                hx1y = hxy;
+                hxy1 = hxy;
+                hx1y1 = hxy;
+            }
 
             int u = 0, d = 0, l = 0, r = 0, h = hxy;
             int ST = 0, t = 0;
