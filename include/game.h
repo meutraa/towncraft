@@ -8,21 +8,12 @@
 #include "SDL.h"
 #include "status.h"
 
-typedef struct Terrain {
-    SDL_Texture* texture;       /*!< a pointer to an SDL_Texture */
-} Terrain;
-
-typedef struct Building {
-    SDL_Texture* texture;       /*!< a pointer to an SDL_Texture */
-    int height;                 /*!< an SDL_Rect pointer that defines the current position and size. */
-} Building;
-
 /*!
     \brief A structure that contains some values for tiles.
 */
 typedef struct Tile {
-    Building* building; /*!< a pointer to an Building. */
-    Terrain* terrain;   /*!< a pointer to a Terrain. */
+    SDL_Texture* building; /*!< a pointer to an Building. */
+    SDL_Texture* terrain;   /*!< a pointer to a Terrain. */
     int tile_id;        /*!< an id. */
     int voffset;
     int water;

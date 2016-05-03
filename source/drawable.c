@@ -62,9 +62,7 @@ static Drawable* load_drawables_in(SDL_Renderer* renderer, const char* layout_fi
     int mode, font_size;
     unsigned char r, g, b, a;
     SDL_Surface* surface;
-    Drawable* drawables;
-
-    drawables = malloc(sizeof(Drawable) * (unsigned long)(length + 1));
+    Drawable* drawables = malloc(sizeof(Drawable) * (unsigned long)(length + 1));
     (drawables + length)->texture = NULL;     // Null terminate the memory block.
 
     for (int i = 0; fgets(line, 256, file);)

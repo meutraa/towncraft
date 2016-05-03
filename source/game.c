@@ -13,10 +13,7 @@
 #include "text.h"
 #include "diamond.h"
 
-#define building_count 7
-#define  terrain_count 22
-
-static const char* building_images[building_count + 1] = {
+static const char* building_images[] = {
     "resources/images/building-mega.tga",
     "resources/images/building-1.tga",
     "resources/images/building-2.tga",
@@ -27,9 +24,10 @@ static const char* building_images[building_count + 1] = {
     NULL,
 };
 
+const char* layout = "resources/layouts/game_ui.csv";
 
 #define GRASS_PATH "resources/images/grass/"
-static const char* grass_images[terrain_count + 1] = {
+static const char* grass_images[] = {
     GRASS_PATH "0001.png", GRASS_PATH "0002.png", GRASS_PATH "0003.png",
     GRASS_PATH "0004.png", GRASS_PATH "0005.png", GRASS_PATH "0006.png",
     GRASS_PATH "0007.png", GRASS_PATH "0008.png", GRASS_PATH "0009.png",
@@ -41,7 +39,7 @@ static const char* grass_images[terrain_count + 1] = {
 };
 
 #define SAND_PATH "resources/images/sand/"
-static const char* sand_images[terrain_count + 1] = {
+static const char* sand_images[] = {
     SAND_PATH "0001.png", SAND_PATH "0002.png", SAND_PATH "0003.png",
     SAND_PATH "0004.png", SAND_PATH "0005.png", SAND_PATH "0006.png",
     SAND_PATH "0007.png", SAND_PATH "0008.png", SAND_PATH "0009.png",
@@ -53,7 +51,7 @@ static const char* sand_images[terrain_count + 1] = {
 };
 
 #define SG_PATH "resources/images/sand-grass/"
-static const char* sg_images[terrain_count + 1] = {
+static const char* sg_images[] = {
     SG_PATH "0001.png", SG_PATH "0002.png", SG_PATH "0003.png",
     SG_PATH "0004.png", SG_PATH "0005.png", SG_PATH "0006.png",
     SG_PATH "0007.png", SG_PATH "0008.png", SG_PATH "0009.png",
@@ -70,10 +68,7 @@ TTF_Font* debug_font;
 const SDL_Color white = { 255, 255, 255, 0 };
 int fps = 60;
 
-Building buildings[building_count];
-Terrain grass[terrain_count];
-Terrain sand[terrain_count];
-Terrain sand_grass[terrain_count];
+SDL_Texture **buildings, **grass, **sand, **sand_grass;
 Drawable* drawables;
 
 /* This is just to stop repetative stuff. */
@@ -81,7 +76,8 @@ Drawable* drawables;
     sprintf(strbuf, format, __VA_ARGS__); \
     render_text(renderer, debug_font, strbuf, white, x, y, camera.scale);
 
-static inline void SHIFT(int* a, int b) { if(b > 0) *a >>= b; else if(b < 0) *a <<= abs(b); }
+static inline void SHIFT (int* a, int b) { if(b > 0) *a >>= b; else if(b < 0) *a <<= abs(b); }
+static inline int  LENGTH(void** array)  { int l = 0; while(NULL != array[l]) l++; return l; }
 
 /* The number of keys SDL2 defines. */
 #define KEYCOUNT 283
@@ -100,13 +96,6 @@ static const int TILE_HEIGHT   = 96  << DEFAULT_SCALE;
 static SDL_Rect rect_terrain  = { 0, 0, TILE_WIDTH, TILE_HEIGHT };
 static SDL_Rect rect_building = { 0, 0, TILE_WIDTH, 0 };
 
-/*!
-    \brief Scales all the UI elements, and updates the scale value in the camera.
-
-    \var drawables an array of Drawables that need to be scaled.
-    \var count the size of the Drawable array.
-    \var bits for +ve bits: camera.scale >> bits, for -ve bits: camera.scale << bits
-*/
 static void change_scale(Camera* camera, SDL_Renderer* renderer, Drawable* d, int bits)
 {
     SHIFT(&((*camera).scale), bits);
@@ -136,33 +125,22 @@ static SDL_Point tile_to_pixel(int x, int y)
     };
 }
 
-static void load_textures(SDL_Renderer* renderer)
+static SDL_Texture** load_textures(SDL_Renderer* renderer, const char* image_paths[])
 {
-    /* Fill our structure arrays. */
-    for (int i = 0; i < building_count; i++)
+    int l = LENGTH((void**) image_paths);
+    SDL_Texture** textures = malloc((unsigned long) (l + 1) * sizeof(SDL_Texture*));
+
+    for(int i = 0; i < l; i++)
     {
-        SDL_Surface* s = IMG_Load(building_images[i]);
-        buildings[i].texture = SDL_CreateTextureFromSurface(renderer, s);
-        buildings[i].height  = s->h << DEFAULT_SCALE;
+        SDL_Surface* s = IMG_Load(image_paths[i]);
+        textures[i] = SDL_CreateTextureFromSurface(renderer, s);
         SDL_FreeSurface(s);
     }
-
-    for (int i = 0; i < terrain_count; i++)
-    {
-        SDL_Surface* s = IMG_Load(grass_images[i]);
-        grass[i].texture = SDL_CreateTextureFromSurface(renderer, s);
-        SDL_FreeSurface(s);
-
-        s = IMG_Load(sand_images[i]);
-        sand[i].texture = SDL_CreateTextureFromSurface(renderer, s);
-        SDL_FreeSurface(s);
-
-        s = IMG_Load(sg_images[i]);
-        sand_grass[i].texture = SDL_CreateTextureFromSurface(renderer, s);
-        SDL_FreeSurface(s);
-    }
+    textures[l] = NULL;
+    return textures;
 }
 
+/* UNPURE FUNCTIONS */
 static void generate_map(void)
 {
     /* Set corner heights. */
@@ -232,57 +210,42 @@ static void generate_map(void)
             int CN = u > low ?  8 : 0;
             ST     = ST      ? 16 : 0;
             int mask = CW | CS | CE | CN | ST;
-            if(0 == mask)
-            {
-                if(h == 0)
-                {
-                    t = 1;
-                }
-                else
-                {
-                    t = 0;
-                }
-            }
-            else if(1 == mask) { t = 4;   }
+            if(0 == mask)        t = h == 0;
+            else if(1 == mask)   t = 4;
             else if(2 == mask) { t = 5;  tp->voffset = 1; }
             else if(3 == mask) { t = 9;  tp->voffset = 1; }
-            else if(4 == mask) { t = 6;   }
-            else if(5 == mask) { t = 21;  }
+            else if(4 == mask)   t = 6;
+            else if(5 == mask)   t = 21;
             else if(6 == mask) { t = 10; tp->voffset = 1; }
             else if(7 == mask) { t = 13; tp->voffset = 1; }
-            else if(8 == mask) { t = 7;   }
-            else if(9 == mask) { t = 8;   }
+            else if(8 == mask)   t = 7;
+            else if(9 == mask)   t = 8;
             else if(10 == mask){ t = 20; tp->voffset = 1; }
             else if(11 == mask){ t = 12; tp->voffset = 1; }
-            else if(12 == mask){ t = 11;  }
-            else if(13 == mask){ t = 15;  }
+            else if(12 == mask)  t = 11;
+            else if(13 == mask)  t = 15;
             else if(14 == mask){ t = 14; tp->voffset = 1; }
 
-            int ran = rand();
-            int b = ran % building_count;
-            int low_count = 0;
-            if(hxy == 0) low_count++;
-            if(hx1y == 0) low_count++;
-            if(hxy1 == 0) low_count++;
-            if(hx1y1 == 0) low_count++;
+            int b = rand() % LENGTH((void**) building_images);
+            int low_count = !hxy + !hx1y + !hxy1 + !hx1y1;
 
             tp->x = pixel.x;
             tp->y = pixel.y;
             tp->water = (hxy <= 0 || hx1y1 <= 0 || hxy1 <= 0 || hx1y <= 0);
             if(hxy < 0)
             {
-                tp->terrain = &sand[t];
+                tp->terrain = sand[t];
             }
             else if(low_count >= 2)
             {
-                tp->terrain = tp->water ? &sand[t] : &grass[t];
+                tp->terrain = tp->water ? sand[t] : grass[t];
             }
             else
             {
-                tp->terrain = tp->water ? &sand_grass[t] : &grass[t];
+                tp->terrain = tp->water ? sand_grass[t] : grass[t];
             }
             tp->tile_id  = t;
-            tp->building = !tp->water && tp->tile_id == 0 && ran % 6 == 0 ? &buildings[b] : NULL;
+            tp->building = !tp->water && tp->tile_id == 0 && rand() % 6 == 0 ? buildings[b] : NULL;
         }
     }
     /* SECOND PASS */
@@ -295,7 +258,7 @@ static void generate_map(void)
              + tiles[x + 1][y - 1].water
              + tiles[x + 1][y + 1].water;
 
-            if(wc > 0) tiles[x][y].terrain = &sand[tiles[x][y].tile_id];
+            if(wc > 0) tiles[x][y].terrain = sand[tiles[x][y].tile_id];
         }
     }
 }
@@ -340,11 +303,11 @@ static void render_grid(SDL_Renderer* renderer, Camera camera)
                 rect_terrain.x = rtx;
                 rect_terrain.y = rty;
 
-                SDL_RenderCopy(renderer, tp->terrain->texture, NULL, &rect_terrain);
+                SDL_RenderCopy(renderer, tp->terrain, NULL, &rect_terrain);
                 if(tp->water)
                 {
                     rect_terrain.y = rtw;
-                    SDL_RenderCopy(renderer, grass[2].texture, NULL, &rect_terrain);
+                    SDL_RenderCopy(renderer, grass[2], NULL, &rect_terrain);
                 }
                 if (tp->building)
                 {
@@ -391,24 +354,24 @@ Status game_loop(SDL_Renderer* renderer)
     srand((unsigned int)time(NULL));
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
 
-    /* Things required for rendering of text on the UI. */
-    debug_font  = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
+    /* Initialise globals. */
+    debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
+    drawables  = load_drawables(renderer, layout);
+    buildings  = load_textures(renderer, building_images);
+    grass      = load_textures(renderer, grass_images);
+    sand       = load_textures(renderer, sand_images);
+    sand_grass = load_textures(renderer, sg_images);
+    generate_map();
 
     /* Assume 60 for scroll speed to not become infinity. */
     int frames = 0;
     int mouse_x, mouse_y;
 
-    /* Load in the game UI. */
-    const char* layout = "resources/layouts/game_ui.csv";
-    drawables = load_drawables(renderer, layout);
-
-    load_textures(renderer);
-    generate_map();
-
     /* Initialise the camera and update everything for the DEFAULT_SCALE. */
     Camera camera = { 1, 0, 0 };
     change_scale(&camera, renderer, drawables, -(DEFAULT_SCALE));
     camera.x = (TILE_WIDTH >> 1) - (DESIGN_WIDTH << (DEFAULT_SCALE - 1));
+    camera.y = tile_to_pixel((GRID_SIZE >> 1) - 1, (GRID_SIZE >> 1) - 1).y + (TILE_HEIGHT >> 1);
 
     unsigned int start_time = SDL_GetTicks();
     render_grid(renderer, camera);
@@ -429,7 +392,7 @@ Status game_loop(SDL_Renderer* renderer)
             else if (SDL_MOUSEWHEEL == event.type)
             {
                 /* Zoom in is 1, zoom out is -1 */
-                if ((-1 == event.wheel.y && camera.scale < 64) || (1 == event.wheel.y && camera.scale > 1))
+                if (-1 == event.wheel.y || (1 == event.wheel.y && camera.scale > 1))
                 {
                     change_scale(&camera, renderer, drawables, event.wheel.y);
                     int factor = 1 == event.wheel.y ? camera.scale : -(camera.scale >> 1);
@@ -483,10 +446,14 @@ Status game_loop(SDL_Renderer* renderer)
     /* Free any allocated memory. */
     destroy_drawables(drawables);
     TTF_CloseFont(debug_font);
-    for (int i = 0; i < building_count; SDL_DestroyTexture(buildings[i++].texture));
-    for (int i = 0; i <  terrain_count; SDL_DestroyTexture(grass[i++].texture));
-    for (int i = 0; i <  terrain_count; SDL_DestroyTexture(sand[i++].texture));
-    for (int i = 0; i <  terrain_count; SDL_DestroyTexture(sand_grass[i++].texture));
+    for (int i = 0; buildings[i]  != NULL; SDL_DestroyTexture(buildings[i++]));
+    for (int i = 0; grass[i]      != NULL; SDL_DestroyTexture(grass[i++]));
+    for (int i = 0; sand[i]       != NULL; SDL_DestroyTexture(sand[i++]));
+    for (int i = 0; sand_grass[i] != NULL; SDL_DestroyTexture(sand_grass[i++]));
+    free(buildings);
+    free(grass);
+    free(sand);
+    free(sand_grass);
 
     SDL_RenderSetLogicalSize(renderer, DESIGN_WIDTH, DESIGN_HEIGHT);
     return status;
