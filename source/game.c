@@ -12,6 +12,7 @@
 #include "status.h"
 #include "text.h"
 #include "diamond.h"
+#include "macros.h"
 
 static const int maskmap[32] = {
     0, 4, 5, 9, 6, 21, 10, 13, 7, 8, 20, 12, 11, 15, 14, [23] = 16, [27] = 17, [29] = 18, [30] = 19
@@ -165,51 +166,43 @@ static void generate_map(void)
     floatmap[0][0]                         = (rand() % HEIGHT) - LOWER_HEIGHT;
     floatmap[GRID_SIZE - 1][GRID_SIZE - 1] = (rand() % HEIGHT) - LOWER_HEIGHT;
     fill_heightmap(floatmap, GRID_SIZE - 1, ROUGHNESS);
-    for(int y = 0; y < GRID_SIZE; y++)
-        for(int x = 0; x < GRID_SIZE; x++)
-            heightmap[x][y] = (int) floor(floatmap[x][y]);
+    forXY(0, GRID_SIZE) heightmap[x][y] = (int) floor(floatmap[x][y]);
 
     /* Create and fill the positions of the tiles. */
     /* FIRST PASS */
-    for (int y = 0; y < GRID_SIZE; y++)
+    forXY(0, GRID_SIZE)
     {
-        for (int x = 0; x < GRID_SIZE; x++)
-        {
-            SDL_Point pixel = tile_to_pixel(x , y);
+        SDL_Point pixel = tile_to_pixel(x , y);
 
-            int heights[4];
-            get_corner_heights(heights, x, y);
+        int heights[4];
+        get_corner_heights(heights, x, y);
 
-            /* get lowest corner. */
-            int low = 10000;
-            for(int i = 0; i < 4; i++) if(heights[i] < low) low = heights[i];
+        /* get lowest corner. */
+        int low = 10000;
+        for(int i = 0; i < 4; i++) if(heights[i] < low) low = heights[i];
 
-            int u = heights[0], d = heights[3], l = heights[2], r = heights[1];
-            int ST = abs(u - d) >= 2 || abs(l - r) >= 2;
-            int mask = (l > low) | ((d > low) << 1) | ((r > low) << 2) | ((u > low) << 3) | (ST << 4);
-            int id = !mask ? !u : maskmap[mask];
-            int b = rand() % LENGTH((void**) building_images);
+        int u = heights[0], d = heights[3], l = heights[2], r = heights[1];
+        int ST = abs(u - d) >= 2 || abs(l - r) >= 2;
+        int mask = (l > low) | ((d > low) << 1) | ((r > low) << 2) | ((u > low) << 3) | (ST << 4);
+        int id = !mask ? !u : maskmap[mask];
+        int b = rand() % LENGTH((void**) building_images);
 
-            Tile* tp = &tiles[x][y];
-            tp->x = pixel.x;
-            tp->y = pixel.y;
-            tp->voffset = voffsetmap[mask];
-            tp->water = u <= 0 || l <= 0 || r <= 0 || d <= 0;
-            tp->terrain = u + d + l + r >= 2 ? grass[id] : sand[id];
-            tp->tile_id  = id;
-            tp->building = !tp->water && tp->tile_id == 0 && rand() % 6 == 0 ? buildings[b] : NULL;
-        }
+        Tile* tp = &tiles[x][y];
+        tp->x = pixel.x;
+        tp->y = pixel.y;
+        tp->voffset = voffsetmap[mask];
+        tp->water = u <= 0 || l <= 0 || r <= 0 || d <= 0;
+        tp->terrain = u + d + l + r >= 2 ? grass[id] : sand[id];
+        tp->tile_id  = id;
+        tp->building = !tp->water && tp->tile_id == 0 && rand() % 6 == 0 ? buildings[b] : NULL;
     }
     /* SECOND PASS */
-    for (int y = 1; y < GRID_SIZE - 1; y++)
+    forXY(1, GRID_SIZE - 1)
     {
-        for (int x = 1; x < GRID_SIZE - 1; x++)
+        /* \TODO if tile's corners are higher than tiles height, set as sand_grass. */
+        if(tiles[x - 1][y - 1].water + tiles[x - 1][y + 1].water + tiles[x + 1][y - 1].water + + tiles[x + 1][y + 1].water)
         {
-            /* \TODO if tile's corners are higher than tiles height, set as sand_grass. */
-            if(tiles[x - 1][y - 1].water + tiles[x - 1][y + 1].water + tiles[x + 1][y - 1].water + + tiles[x + 1][y + 1].water)
-            {
-                tiles[x][y].terrain = sand[tiles[x][y].tile_id];
-            }
+            tiles[x][y].terrain = sand[tiles[x][y].tile_id];
         }
     }
 }
@@ -219,60 +212,42 @@ static void render_grid(SDL_Renderer* renderer, Camera cam)
     SDL_RenderClear(renderer);
     const int sw = DESIGN_WIDTH*cam.scale;
     const int sh = DESIGN_HEIGHT*cam.scale;
-    for (int y = 0; y < GRID_SIZE; y++)
+    forXY(0, GRID_SIZE)
     {
-        for (int x = 0; x < GRID_SIZE; x++)
+        Tile* tp = &tiles[x][y];
+        int shift = (int) floor(TILE_HEIGHT / 6.0f);
+        rect.x = tp->x - cam.x;
+        rect.y = tp->y - cam.y;
+        int rtw = rect.y - shift;
+
+        int heights[4];
+        get_corner_heights(heights, x, y);
+
+        /* The shift for tile height and tile ids. */
+        rect.y += (tp->voffset - heights[3]) * shift;
+
+        /* Only render if it will be visible on the screen. */
+        if(rect.x + TILE_WIDTH > 0 && rect.x < sw && rect.y + TILE_HEIGHT > 0 && rect.y < sh)
         {
-            Tile* tp = &tiles[x][y];
-            int shift = (int) floor(TILE_HEIGHT / 6.0f);
-            rect.x = tp->x - cam.x;
-            rect.y = tp->y - cam.y;
-            int rtw = rect.y - shift;
-
-            int heights[4];
-            get_corner_heights(heights, x, y);
-
-            /* The shift for tile height and tile ids. */
-            rect.y += (tp->voffset - heights[3]) * shift;
-
-            /* Only render if it will be visible on the screen. */
-            if(rect.x + TILE_WIDTH > 0 && rect.x < sw && rect.y + TILE_HEIGHT > 0 && rect.y < sh)
+            SDL_RenderCopy(renderer, tp->terrain, NULL, &rect);
+            if(tp->water)
             {
-                SDL_RenderCopy(renderer, tp->terrain, NULL, &rect);
-                if(tp->water)
-                {
-                    rect.y = rtw;
-                    SDL_RenderCopy(renderer, grass[2], NULL, &rect);
-                }
-                if (tp->building)
-                {
-                    /*rect_building.x = rtx;
-                    rect_building.h = tp->building->height;
-                    rect_building.y = rect.y - rect_building.h + (int) floor(TILE_HEIGHT);
-                    SDL_RenderCopy(renderer, tp->building->texture, NULL, &rect_building);*/
-                }
+                rect.y = rtw;
+                SDL_RenderCopy(renderer, grass[2], NULL, &rect);
+            }
+            if (tp->building)
+            {
+                /*rect_building.x = rtx;
+                rect_building.h = tp->building->height;
+                rect_building.y = rect.y - rect_building.h + (int) floor(TILE_HEIGHT);
+                SDL_RenderCopy(renderer, tp->building->texture, NULL, &rect_building);*/
             }
         }
     }
     /* Copy the game_ui layout drawables to the renderer. */
     render_drawables(renderer, drawables);
 
-    /* Get the data we need for the debugging UI. */
-    int mouse_x, mouse_y;
-    SDL_GetMouseState(&mouse_x, &mouse_y);
-    int centre[2] = {cam.x + (DESIGN_WIDTH*cam.scale >> 1), cam.y + (DESIGN_HEIGHT*cam.scale >> 1) };
-    int mouse[2]  = {cam.x + cam.scale*mouse_x, cam.y + cam.scale*mouse_y };
-    SDL_Point mouse_tile = pixel_to_tile(mouse[0],  mouse[1]);
-    SDL_Point cnr_tile   = pixel_to_tile(cam.x,  cam.y);
-    SDL_Point ctr_tile   = pixel_to_tile(centre[0], centre[1]);
-
-    /* Print the UI debugging infomation. */
-    printbuf(200, 680, "%d, %d",  cam.x,        cam.y);
-    printbuf(200, 700, "%d, %d",  cnr_tile.x,   cnr_tile.y);
-    printbuf(603, 680, "%d, %d",  centre[0],    centre[1]);
-    printbuf(603, 700, "%d, %d",  ctr_tile.x,   ctr_tile.y);
-    printbuf(1014, 680, "%d, %d", mouse[0],     mouse[1]);
-    printbuf(1014, 700, "%d, %d", mouse_tile.x, mouse_tile.y);
+    /* Print the UI infomation. */
     printbuf(1080, 4, "%d", cam.scale);
     printbuf(1200, 4, "%d", fps);
 
