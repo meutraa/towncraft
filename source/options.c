@@ -4,7 +4,7 @@ int vsync = 1;
 
 int fullscreen = 0;
 
-int scroll_speed = 15;
+int scroll_speed = 30;
 
 char render_scale_quality[] = "nearest";
 
