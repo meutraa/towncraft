@@ -62,7 +62,7 @@ int main(void)
       | ((fullscreen == 2) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)
     );
 
-    if (NULL == window)
+    if(!window)
     {
         fprintf(stderr, "\nCould not create window: %s\n", SDL_GetError());
         exit(EXIT_FAILURE);
@@ -71,7 +71,7 @@ int main(void)
     /* Create the renderer for the SDL_Window. */
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | (vsync ? SDL_RENDERER_PRESENTVSYNC : 0));
 
-    if (NULL == renderer)
+    if(!renderer)
     {
         fprintf(stderr, "\nCould not create renderer: %s\n", SDL_GetError());
         exit(EXIT_FAILURE);
@@ -81,7 +81,7 @@ int main(void)
     Mix_Music* chiptune = Mix_LoadMUS("resources/audio/music/rolemusic_the_pirate_and_the_dancer.ogg");
 
     /* Start the main loop. */
-    while (status != QUIT_PROGRAM)
+    while(status != QUIT_PROGRAM)
     {
         if(SWITCHTO_MAINMENU == status)
         {

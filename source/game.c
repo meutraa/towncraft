@@ -73,7 +73,7 @@ static const char* sg_images[] = {
 char strbuf[32];
 TTF_Font* debug_font;
 const SDL_Color white = { 255, 255, 255, 0 };
-int fps = 60;
+int fps;
 
 SDL_Texture **buildings, **grass, **sand, **sand_grass;
 Drawable* drawables;
@@ -84,10 +84,7 @@ Drawable* drawables;
     render_text(renderer, debug_font, strbuf, white, x, y, cam.scale);
 
 static inline void SHIFT (int* a, int b) { if(b > 0) *a >>= b; else if(b < 0) *a <<= abs(b); }
-static inline int  LENGTH(void** array)  { int l = 0; while(NULL != array[l]) l++; return l; }
-
-/* The number of keys SDL2 defines. */
-#define KEYCOUNT 283
+static inline int  LENGTH(void** array)  { int l = 0; while(array[l]) l++; return l; }
 
 /* The grid of tiles. */
 static Tile tiles[GRID_SIZE][GRID_SIZE];
@@ -107,7 +104,7 @@ static void change_scale(Camera* cam, SDL_Renderer* renderer, Drawable* d, int b
 {
     SHIFT(&(cam->scale), bits);
     SDL_RenderSetLogicalSize(renderer, cam->scale * resolution_width, cam->scale * resolution_height);
-    for(int i = 0; NULL != (d + i)->texture; i++)
+    for(int i = 0; (d + i)->texture; i++)
     {
         SHIFT(&((d + i)->rect->x), bits);
         SHIFT(&((d + i)->rect->y), bits);
@@ -179,26 +176,21 @@ static void generate_map(void)
         for (int x = 0; x < GRID_SIZE; x++)
         {
             SDL_Point pixel = tile_to_pixel(x , y);
-            Tile* tp = &tiles[x][y];
 
             int heights[4];
             get_corner_heights(heights, x, y);
-            int u = heights[0], d = heights[3], l = heights[2], r = heights[1];
-
-            tp->voffset = 0;
 
             /* get lowest corner. */
             int low = 10000;
             for(int i = 0; i < 4; i++) if(heights[i] < low) low = heights[i];
 
-            /* Is slope steep? */
+            int u = heights[0], d = heights[3], l = heights[2], r = heights[1];
             int ST = abs(u - d) >= 2 || abs(l - r) >= 2;
-
             int mask = (l > low) | ((d > low) << 1) | ((r > low) << 2) | ((u > low) << 3) | (ST << 4);
             int id = !mask ? !u : maskmap[mask];
-
             int b = rand() % LENGTH((void**) building_images);
 
+            Tile* tp = &tiles[x][y];
             tp->x = pixel.x;
             tp->y = pixel.y;
             tp->voffset = voffsetmap[mask];
@@ -240,11 +232,8 @@ static void render_grid(SDL_Renderer* renderer, Camera cam)
             int heights[4];
             get_corner_heights(heights, x, y);
 
-            /* The shift for tile height. */
-            rect.y -= heights[3] * shift;
-
-            /* The shift for tile ids. */
-            rect.y += tp->voffset * shift;
+            /* The shift for tile height and tile ids. */
+            rect.y += (tp->voffset - heights[3]) * shift;
 
             /* Only render if it will be visible on the screen. */
             if(rect.x + TILE_WIDTH > 0 && rect.x < sw && rect.y + TILE_HEIGHT > 0 && rect.y < sh)
@@ -278,7 +267,7 @@ static void render_grid(SDL_Renderer* renderer, Camera cam)
     SDL_Point ctr_tile   = pixel_to_tile(centre[0], centre[1]);
 
     /* Print the UI debugging infomation. */
-    printbuf(200, 680, "%d, %d",  cam.x,     cam.y);
+    printbuf(200, 680, "%d, %d",  cam.x,        cam.y);
     printbuf(200, 700, "%d, %d",  cnr_tile.x,   cnr_tile.y);
     printbuf(603, 680, "%d, %d",  centre[0],    centre[1]);
     printbuf(603, 700, "%d, %d",  ctr_tile.x,   ctr_tile.y);
@@ -294,13 +283,14 @@ static void render_grid(SDL_Renderer* renderer, Camera cam)
 Status game_loop(SDL_Renderer* renderer)
 {
     Status status = NORMAL;
+    int key_status[283] = { 0 };
     SDL_Event event;
 
-    int key_status[KEYCOUNT] = { 0 };
     srand((unsigned int)time(NULL));
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
 
     /* Initialise globals. */
+    fps = 60;
     debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
     drawables  = load_drawables(renderer, layout);
     buildings  = load_textures(renderer, building_images);
@@ -351,14 +341,13 @@ Status game_loop(SDL_Renderer* renderer)
         }
 
         /* Quit the program if Escape is pressed. */
-        if(key_status[41]) { status = SWITCHTO_MAINMENU; break; }
+        if(key_status[41]) status = SWITCHTO_MAINMENU;
 
-        /* Update the cam co-ordinates if scroll conditions are met. */
-        int speed = (int) (cam.scale * scroll_speed);
-        if(key_status[80] || (fullscreen && 0 == mouse_x)) cam.x -= speed; render = 1;
-        if(key_status[79] || (fullscreen && 1279 == mouse_x)) cam.x += speed; render = 1;
-        if(key_status[82] || (fullscreen && 0 == mouse_y)) cam.y -= speed >> 1; render = 1;
-        if(key_status[81] || (fullscreen && 719 == mouse_y)) cam.y += speed >> 1; render = 1;
+#define SCROLL(a, b, c, d, e) if(key_status[a] || (fullscreen && b == c)) { d += (int)(cam.scale * scroll_speed * e); render = 1; }
+        SCROLL(80, 0,    mouse_x, cam.x, -1)
+        SCROLL(79, 1279, mouse_x, cam.x,  1)
+        SCROLL(82, 0,    mouse_y, cam.y, -0.5)
+        SCROLL(81, 719,  mouse_y, cam.y,  0.5)
 
         /* Calculate the frame rate. */
         unsigned int dt = SDL_GetTicks() - start_frame;

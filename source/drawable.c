@@ -23,7 +23,7 @@ static int TEXT_COUNT = 13, IMG_COUNT = 7, COLOR_COUNT = 12;
 
 void destroy_drawables(Drawable* drawables)
 {
-    for (int i = 0; NULL != (drawables + i)->texture; i++)
+    for (int i = 0; (drawables + i)->texture; i++)
     {
         SDL_DestroyTexture((drawables + i)->texture);
     }
@@ -32,13 +32,13 @@ void destroy_drawables(Drawable* drawables)
 
 void destroy_textures(SDL_Texture** textures)
 {
-    for(int i = 0; NULL != textures[i]; SDL_DestroyTexture(textures[i++]));
+    for(int i = 0; textures[i]; SDL_DestroyTexture(textures[i++]));
     free(textures);
 }
 
 void render_drawables(SDL_Renderer* renderer, Drawable* drawables)
 {
-    for (int i = 0; NULL != (drawables + i)->texture; i++)
+    for (int i = 0; (drawables + i)->texture; i++)
     {
         if ((drawables + i)->visible)
         {
@@ -51,13 +51,9 @@ static Drawable* load_drawables_in(SDL_Renderer* renderer, const char* layout_fi
 {
     /* If we do not have the number of drawables, get it. */
     int length = 0;
-    if(NULL == count)
-    {
-        load_drawables_in(NULL, layout_file, &length);
-    }
-
+    if(!count) load_drawables_in(NULL, layout_file, &length);
     FILE* file = fopen(layout_file, "r");
-    if (NULL == file)
+    if (!file)
     {
         fprintf(stderr, "%s: file not readable\n\n", layout_file);
         return NULL;
@@ -80,10 +76,7 @@ static Drawable* load_drawables_in(SDL_Renderer* renderer, const char* layout_fi
                 fprintf(stderr, "%s:%d:%s\n^^ file not readable ^^\n\n", layout_file, i, line);
                 continue;
             }
-            if (!count)
-            {
-                surface = IMG_Load(path);
-            }
+            if (!count) surface = IMG_Load(path);
         }
         else if (TEXT_COUNT == sscanf(line, TEXT_FORMAT, &visible, name, path, &font_size, &mode, &r, &g, &b, &a, &wx, &wy, &mx, &my))
         {
@@ -119,10 +112,7 @@ static Drawable* load_drawables_in(SDL_Renderer* renderer, const char* layout_fi
             continue;
         }
 
-        if(count)
-        {
-            (*count)++;
-        }
+        if(count) (*count)++;
         else
         {
             /* Assign new values. */

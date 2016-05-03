@@ -5,6 +5,7 @@
 #include "SDL_mixer.h"
 #include "drawable.h"
 #include "status.h"
+#include "macros.h"
 
 Status main_menu_loop(SDL_Renderer* renderer)
 {
@@ -21,18 +22,8 @@ Status main_menu_loop(SDL_Renderer* renderer)
         {
             if (SDL_KEYDOWN == event.type)
             {
-                if (41 == event.key.keysym.scancode) // ESC - Close the program.
-                {
-                    status = QUIT_PROGRAM;
-                }
-                else if (82 == event.key.keysym.scancode)
-                {
-                    Mix_VolumeMusic(MIX_MAX_VOLUME);
-                }
-                else if (81 == event.key.keysym.scancode)
-                {
-                    Mix_VolumeMusic(0);
-                }
+                if     (82 == event.key.keysym.scancode) Mix_VolumeMusic(MIX_MAX_VOLUME);
+                else if(81 == event.key.keysym.scancode) Mix_VolumeMusic(0);
             }
             else if (SDL_MOUSEBUTTONDOWN == event.type && SDL_BUTTON_LEFT == event.button.button)
             {
@@ -41,18 +32,10 @@ Status main_menu_loop(SDL_Renderer* renderer)
                     SDL_Point point = {event.button.x, event.button.y};
                     if (SDL_TRUE == SDL_PointInRect(&point, (drawables + i)->rect))
                     {
-                        if (!strcmp((drawables + i)->name, "button_quit"))
-                        {
-                            return QUIT_PROGRAM;
-                        }
-                        if (!strcmp((drawables + i)->name, "button_options"))
-                        {
-                            return SWITCHTO_OPTIONS;
-                        }
-                        if (!strcmp((drawables + i)->name, "button_new"))
-                        {
-                            return SWITCHTO_GAME;
-                        }
+                        char* name = (drawables + i)->name;
+                             SETEQ(name, "button_quit",    status, QUIT_PROGRAM)
+                        else SETEQ(name, "button_options", status, SWITCHTO_OPTIONS)
+                        else SETEQ(name, "button_new",     status, SWITCHTO_GAME)
                     }
                 }
             }
