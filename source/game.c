@@ -81,7 +81,7 @@ Drawable* drawables;
 /* This is just to stop repetative stuff. */
 #define printbuf(x, y, format, ...) \
     sprintf(strbuf, format, __VA_ARGS__); \
-    render_text(renderer, debug_font, strbuf, white, x, y, camera.scale);
+    render_text(renderer, debug_font, strbuf, white, x, y, cam.scale);
 
 static inline void SHIFT (int* a, int b) { if(b > 0) *a >>= b; else if(b < 0) *a <<= abs(b); }
 static inline int  LENGTH(void** array)  { int l = 0; while(NULL != array[l]) l++; return l; }
@@ -103,19 +103,20 @@ static const int TILE_HEIGHT   = 96  << DEFAULT_SCALE;
 static SDL_Rect rect  = { 0, 0, TILE_WIDTH, TILE_HEIGHT };
 static SDL_Rect rect_building = { 0, 0, TILE_WIDTH, 0 };
 
-static void change_scale(Camera* camera, SDL_Renderer* renderer, Drawable* d, int bits)
+static void change_scale(Camera* cam, SDL_Renderer* renderer, Drawable* d, int bits)
 {
-    SHIFT(&((*camera).scale), bits);
-    SDL_RenderSetLogicalSize(renderer, (*camera).scale * resolution_width, (*camera).scale * resolution_height);
-    for(int i = 0; NULL != (*(d + i)).texture; i++)
+    SHIFT(&(cam->scale), bits);
+    SDL_RenderSetLogicalSize(renderer, cam->scale * resolution_width, cam->scale * resolution_height);
+    for(int i = 0; NULL != (d + i)->texture; i++)
     {
-        SHIFT(&((*(d + i)).rect->x), bits);
-        SHIFT(&((*(d + i)).rect->y), bits);
-        SHIFT(&((*(d + i)).rect->w), bits);
-        SHIFT(&((*(d + i)).rect->h), bits);
+        SHIFT(&((d + i)->rect->x), bits);
+        SHIFT(&((d + i)->rect->y), bits);
+        SHIFT(&((d + i)->rect->w), bits);
+        SHIFT(&((d + i)->rect->h), bits);
     }
 }
 
+/* \TODO this is broken. */
 static SDL_Point pixel_to_tile(int x, int y)
 {
     return (SDL_Point) {
@@ -221,19 +222,19 @@ static void generate_map(void)
     }
 }
 
-static void render_grid(SDL_Renderer* renderer, Camera camera)
+static void render_grid(SDL_Renderer* renderer, Camera cam)
 {
     SDL_RenderClear(renderer);
-    const int sw = DESIGN_WIDTH*camera.scale;
-    const int sh = DESIGN_HEIGHT*camera.scale;
+    const int sw = DESIGN_WIDTH*cam.scale;
+    const int sh = DESIGN_HEIGHT*cam.scale;
     for (int y = 0; y < GRID_SIZE; y++)
     {
         for (int x = 0; x < GRID_SIZE; x++)
         {
             Tile* tp = &tiles[x][y];
             int shift = (int) floor(TILE_HEIGHT / 6.0f);
-            rect.x = tp->x - camera.x;
-            rect.y = tp->y - camera.y;
+            rect.x = tp->x - cam.x;
+            rect.y = tp->y - cam.y;
             int rtw = rect.y - shift;
 
             int heights[4];
@@ -270,20 +271,20 @@ static void render_grid(SDL_Renderer* renderer, Camera camera)
     /* Get the data we need for the debugging UI. */
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
-    int centre[2] = {camera.x + (DESIGN_WIDTH*camera.scale >> 1), camera.y + (DESIGN_HEIGHT*camera.scale >> 1) };
-    int mouse[2]  = {camera.x + camera.scale*mouse_x, camera.y + camera.scale*mouse_y };
+    int centre[2] = {cam.x + (DESIGN_WIDTH*cam.scale >> 1), cam.y + (DESIGN_HEIGHT*cam.scale >> 1) };
+    int mouse[2]  = {cam.x + cam.scale*mouse_x, cam.y + cam.scale*mouse_y };
     SDL_Point mouse_tile = pixel_to_tile(mouse[0],  mouse[1]);
-    SDL_Point cnr_tile   = pixel_to_tile(camera.x,  camera.y);
+    SDL_Point cnr_tile   = pixel_to_tile(cam.x,  cam.y);
     SDL_Point ctr_tile   = pixel_to_tile(centre[0], centre[1]);
 
     /* Print the UI debugging infomation. */
-    printbuf(200, 680, "%d, %d",  camera.x,     camera.y);
+    printbuf(200, 680, "%d, %d",  cam.x,     cam.y);
     printbuf(200, 700, "%d, %d",  cnr_tile.x,   cnr_tile.y);
     printbuf(603, 680, "%d, %d",  centre[0],    centre[1]);
     printbuf(603, 700, "%d, %d",  ctr_tile.x,   ctr_tile.y);
     printbuf(1014, 680, "%d, %d", mouse[0],     mouse[1]);
     printbuf(1014, 700, "%d, %d", mouse_tile.x, mouse_tile.y);
-    printbuf(1080, 4, "%d", camera.scale);
+    printbuf(1080, 4, "%d", cam.scale);
     printbuf(1200, 4, "%d", fps);
 
     /* Finish and render the frame. */
@@ -312,13 +313,13 @@ Status game_loop(SDL_Renderer* renderer)
     int frames = 0;
     int mouse_x, mouse_y;
 
-    /* Initialise the camera and update everything for the DEFAULT_SCALE. */
-    Camera camera = { 1, 0, 0 };
-    change_scale(&camera, renderer, drawables, -(DEFAULT_SCALE));
+    /* Initialise the cam and update everything for the DEFAULT_SCALE. */
+    Camera cam = { 1, 0, 0 };
+    change_scale(&cam, renderer, drawables, -(DEFAULT_SCALE));
 
-    /* Set the camera to the centre of the map. */
-    camera.x = (TILE_WIDTH >> 1) - (DESIGN_WIDTH << (DEFAULT_SCALE - 1));
-    camera.y = tile_to_pixel(((GRID_SIZE - 1) >> 1) - 1, ((GRID_SIZE - 1) >> 1) - 1).y + (TILE_HEIGHT >> 1);
+    /* Set the cam to the centre of the map. */
+    cam.x = (TILE_WIDTH >> 1) - (DESIGN_WIDTH << (DEFAULT_SCALE - 1));
+    cam.y = tile_to_pixel(((GRID_SIZE - 1) >> 1) - 1, ((GRID_SIZE - 1) >> 1) - 1).y + (TILE_HEIGHT >> 1);
 
     unsigned int start_time = SDL_GetTicks();
     int render = 1;
@@ -338,47 +339,31 @@ Status game_loop(SDL_Renderer* renderer)
             else if (SDL_MOUSEWHEEL == event.type)
             {
                 /* Zoom in is 1, zoom out is -1 */
-                if (-1 == event.wheel.y || (1 == event.wheel.y && camera.scale > 1))
+                if (-1 == event.wheel.y || (1 == event.wheel.y && cam.scale > 1))
                 {
-                    change_scale(&camera, renderer, drawables, event.wheel.y);
-                    int factor = 1 == event.wheel.y ? camera.scale : -(camera.scale >> 1);
-                    camera.x += factor * (zoom_mode == 0 ? DESIGN_WIDTH  >> 1 : mouse_x);
-                    camera.y += factor * (zoom_mode == 0 ? DESIGN_HEIGHT >> 1 : mouse_y);
+                    change_scale(&cam, renderer, drawables, event.wheel.y);
+                    int factor = 1 == event.wheel.y ? cam.scale : -(cam.scale >> 1);
+                    cam.x += factor * (zoom_mode == 0 ? DESIGN_WIDTH  >> 1 : mouse_x);
+                    cam.y += factor * (zoom_mode == 0 ? DESIGN_HEIGHT >> 1 : mouse_y);
                     render = 1;
                 }
             }
         }
 
         /* Quit the program if Escape is pressed. */
-        if (key_status[41])
-        {
-            status = SWITCHTO_MAINMENU;
-            break;
-        }
+        if(key_status[41]) { status = SWITCHTO_MAINMENU; break; }
 
-        /* Update the camera co-ordinates if scroll conditions are met. */
-        int speed = (int) (camera.scale * scroll_speed);
-        if (key_status[80] || (fullscreen && 0 == mouse_x)) // left
-        {
-            camera.x -= speed; render = 1;
-        }
-        if (key_status[79] || (fullscreen && 1279 == mouse_x)) // right
-        {
-            camera.x += speed; render = 1;
-        }
-        if (key_status[82] || (fullscreen && 0 == mouse_y)) // up
-        {
-            camera.y -= speed >> 1; render = 1;
-        }
-        if (key_status[81] || (fullscreen && 719 == mouse_y)) // down
-        {
-            camera.y += speed >> 1; render = 1;
-        }
+        /* Update the cam co-ordinates if scroll conditions are met. */
+        int speed = (int) (cam.scale * scroll_speed);
+        if(key_status[80] || (fullscreen && 0 == mouse_x)) cam.x -= speed; render = 1;
+        if(key_status[79] || (fullscreen && 1279 == mouse_x)) cam.x += speed; render = 1;
+        if(key_status[82] || (fullscreen && 0 == mouse_y)) cam.y -= speed >> 1; render = 1;
+        if(key_status[81] || (fullscreen && 719 == mouse_y)) cam.y += speed >> 1; render = 1;
 
         /* Calculate the frame rate. */
         unsigned int dt = SDL_GetTicks() - start_frame;
         if(dt < 16) SDL_Delay(16 - dt);
-        if (SDL_GetTicks() - start_time >= 1000)
+        if(SDL_GetTicks() - start_time >= 1000)
         {
             fps = frames;
             frames = -1;
@@ -386,21 +371,16 @@ Status game_loop(SDL_Renderer* renderer)
             render = 1;
         }
         frames++;
-        if(render){ render_grid(renderer, camera); render = 0; }
+        if(render){ render_grid(renderer, cam); render = 0; }
     }
 
     /* Free any allocated memory. */
     destroy_drawables(drawables);
     TTF_CloseFont(debug_font);
-    for (int i = 0; buildings[i]  != NULL; SDL_DestroyTexture(buildings[i++]));
-    for (int i = 0; grass[i]      != NULL; SDL_DestroyTexture(grass[i++]));
-    for (int i = 0; sand[i]       != NULL; SDL_DestroyTexture(sand[i++]));
-    for (int i = 0; sand_grass[i] != NULL; SDL_DestroyTexture(sand_grass[i++]));
-    free(buildings);
-    free(grass);
-    free(sand);
-    free(sand_grass);
-
+    destroy_textures(buildings);
+    destroy_textures(grass);
+    destroy_textures(sand);
+    destroy_textures(sand_grass);
     SDL_RenderSetLogicalSize(renderer, DESIGN_WIDTH, DESIGN_HEIGHT);
     return status;
 }

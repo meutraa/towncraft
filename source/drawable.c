@@ -30,6 +30,12 @@ void destroy_drawables(Drawable* drawables)
     free(drawables);
 }
 
+void destroy_textures(SDL_Texture** textures)
+{
+    for(int i = 0; NULL != textures[i]; SDL_DestroyTexture(textures[i++]));
+    free(textures);
+}
+
 void render_drawables(SDL_Renderer* renderer, Drawable* drawables)
 {
     for (int i = 0; NULL != (drawables + i)->texture; i++)

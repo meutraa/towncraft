@@ -23,6 +23,8 @@ typedef struct Drawable {
     SDL_Rect monitor;           /*!< an SDL_Rect containing positions for a 16:10 aspect ratio. */
 } Drawable;
 
+void destroy_textures(SDL_Texture** textures);
+
 /*! \fn void destroy_drawables(Drawable drawables[])
     \brief Frees all memory contained in the Drawable.
 
