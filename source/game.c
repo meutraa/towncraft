@@ -93,7 +93,7 @@ static const int TILE_WIDTH    = 128 << DEFAULT_SCALE;
 static const int TILE_HEIGHT   = 96  << DEFAULT_SCALE;
 
 /* Rectangles for rendering loop. */
-static SDL_Rect rect_terrain  = { 0, 0, TILE_WIDTH, TILE_HEIGHT };
+static SDL_Rect rect  = { 0, 0, TILE_WIDTH, TILE_HEIGHT };
 static SDL_Rect rect_building = { 0, 0, TILE_WIDTH, 0 };
 
 static void change_scale(Camera* camera, SDL_Renderer* renderer, Drawable* d, int bits)
@@ -141,6 +141,21 @@ static SDL_Texture** load_textures(SDL_Renderer* renderer, const char* image_pat
 }
 
 /* UNPURE FUNCTIONS */
+
+/* Gives bound safe values for corner heights.
+    heights[0] = top    corner height
+    heights[1] = right  corner height
+    heights[2] = left   corner height
+    heights[3] = bottom corner height
+*/
+static void get_corner_heights(int heights[4], int x, int y)
+{
+    heights[0] = heightmap[x][y];
+    heights[1] = heightmap[x == GRID_SIZE - 1 ? x : x + 1][y];
+    heights[2] = heightmap[x][y == GRID_SIZE - 1 ? y : y + 1];
+    heights[3] = heightmap[x == GRID_SIZE - 1 ? x : x + 1][y == GRID_SIZE - 1 ? y : y + 1];
+}
+
 static void generate_map(void)
 {
     /* Set corner heights. */
@@ -161,50 +176,23 @@ static void generate_map(void)
         {
             SDL_Point pixel = tile_to_pixel(x , y);
             Tile* tp = &tiles[x][y];
-            int hxy = heightmap[x][y];
-            int hx1y = heightmap[x + 1][y];
-            int hxy1 = heightmap[x][y + 1];
-            int hx1y1 = heightmap[x + 1][y + 1];
 
-            if(x == GRID_SIZE - 1)
-            {
-                hx1y = hxy;
-                hx1y1 = hxy1;
-            }
-            if(y == GRID_SIZE - 1)
-            {
-                hxy1 = hxy;
-                hx1y1 = hx1y1 == hxy1 ? hxy : hx1y;
-            }
+            int heights[4];
+            get_corner_heights(heights, x, y);
+            int u = heights[0], d = heights[3], l = heights[2], r = heights[1];
 
-            int u = 0, d = 0, l = 0, r = 0, h = hxy;
-            int ST = 0, t = 0;
-
-            if(hxy1 > h) l = 1;
-            else if(hxy1 < h) l = -1;
-
-            if(hxy1 < hx1y - 1)     { t = 19; ST = 1; }
-            else if(hx1y < hxy1 - 1){ t = 17; ST = 1; }
-            else if(hx1y1 < h - 1)  { t = 18; ST = 1; tp->voffset = -1; }
-            else if(hxy < hx1y1 - 1){ t = 16; ST = 1; tp->voffset = 1;  }
-
-            if(hx1y > h) r = 1;
-            else if(hx1y < h) r = -1;
-
-            if(hx1y1 > h) d = 1;
-            else if(hx1y1 < h) d = -1;
-
+            int t = 0;
             tp->voffset = 0;
 
-            // get the magnitude of the lowest corner.
-            int low = (u < 0 || d < 0 || l < 0 || r < 0) ? -1 : 0;
-            int CW = l > low ?  1 : 0;
-            int CS = d > low ?  2 : 0;
-            int CE = r > low ?  4 : 0;
-            int CN = u > low ?  8 : 0;
-            ST     = ST      ? 16 : 0;
-            int mask = CW | CS | CE | CN | ST;
-            if(0 == mask)        t = h == 0;
+            /* get lowest corner. */
+            int low = 10000;
+            for(int i = 0; i < 4; i++) if(heights[i] < low) low = heights[i];
+
+            /* Is slope steep? */
+            int ST = abs(u - d) >= 2 || abs(l - r) >= 2;
+
+            int mask = (l > low) | ((d > low) << 1) | ((r > low) << 2) | ((u > low) << 3) | (ST << 4);
+            if(0 == mask)        t = u == 0;
             else if(1 == mask)   t = 4;
             else if(2 == mask) { t = 5;  tp->voffset = 1; }
             else if(3 == mask) { t = 9;  tp->voffset = 1; }
@@ -219,25 +207,17 @@ static void generate_map(void)
             else if(12 == mask)  t = 11;
             else if(13 == mask)  t = 15;
             else if(14 == mask){ t = 14; tp->voffset = 1; }
+            else if(23 == mask){ t = 16; tp->voffset = 1; }
+            else if(27 == mask)  t = 17;
+            else if(29 == mask){ t = 18; tp->voffset = -1; }
+            else if(30 == mask)  t = 19;
 
             int b = rand() % LENGTH((void**) building_images);
-            int low_count = !hxy + !hx1y + !hxy1 + !hx1y1;
 
             tp->x = pixel.x;
             tp->y = pixel.y;
-            tp->water = (hxy <= 0 || hx1y1 <= 0 || hxy1 <= 0 || hx1y <= 0);
-            if(hxy < 0)
-            {
-                tp->terrain = sand[t];
-            }
-            else if(low_count >= 2)
-            {
-                tp->terrain = tp->water ? sand[t] : grass[t];
-            }
-            else
-            {
-                tp->terrain = tp->water ? sand_grass[t] : grass[t];
-            }
+            tp->water = u <= 0 || l <= 0 || r <= 0 || d <= 0;
+            tp->terrain = u + d + l + r >= 2 ? grass[t] : sand[t];
             tp->tile_id  = t;
             tp->building = !tp->water && tp->tile_id == 0 && rand() % 6 == 0 ? buildings[b] : NULL;
         }
@@ -247,12 +227,11 @@ static void generate_map(void)
     {
         for (int x = 1; x < GRID_SIZE - 1; x++)
         {
-            int wc = tiles[x - 1][y - 1].water
-             + tiles[x - 1][y + 1].water
-             + tiles[x + 1][y - 1].water
-             + tiles[x + 1][y + 1].water;
-
-            if(wc > 0) tiles[x][y].terrain = sand[tiles[x][y].tile_id];
+            /* \TODO if tile's corners is heigher than tiles height, set as sand_grass. */
+            if(tiles[x - 1][y - 1].water + tiles[x - 1][y + 1].water + tiles[x + 1][y - 1].water + + tiles[x + 1][y + 1].water)
+            {
+                tiles[x][y].terrain = sand[tiles[x][y].tile_id];
+            }
         }
     }
 }
@@ -267,47 +246,34 @@ static void render_grid(SDL_Renderer* renderer, Camera camera)
         for (int x = 0; x < GRID_SIZE; x++)
         {
             Tile* tp = &tiles[x][y];
-            int shift = (int)floor(TILE_HEIGHT / 6.0f);
-            int rtx = tp->x - camera.x;
-            int rty = tp->y - camera.y;
-            int rtw = rty - shift;
+            int shift = (int) floor(TILE_HEIGHT / 6.0f);
+            rect.x = tp->x - camera.x;
+            rect.y = tp->y - camera.y;
+            int rtw = rect.y - shift;
 
-            /* Enable for 3D mode. */
-            if(x != GRID_SIZE - 1 && y != GRID_SIZE - 1)
-            {
-                rty -= heightmap[x + 1][y + 1] * shift;
-            }
-            else if(x != GRID_SIZE - 1 && y == GRID_SIZE - 1)
-            {
-                rty -= heightmap[x + 1][y] * shift;
-            }
-            else if(x == GRID_SIZE - 1 && y != GRID_SIZE - 1)
-            {
-                rty -= heightmap[x][y + 1] * shift;
-            }
-            else
-            {
-                rty -= heightmap[x][y] * shift;
-            }
-            rty += tp->voffset * shift;
+            int heights[4];
+            get_corner_heights(heights, x, y);
+
+            /* The shift for tile height. */
+            rect.y -= heights[3] * shift;
+
+            /* The shift for tile types. */
+            rect.y += tp->voffset * shift;
 
             /* Only render if it will be visible on the screen. */
-            if(rtx + TILE_WIDTH > 0 && rtx < sw && rty + TILE_HEIGHT > 0 && rty < sh)
+            if(rect.x + TILE_WIDTH > 0 && rect.x < sw && rect.y + TILE_HEIGHT > 0 && rect.y < sh)
             {
-                rect_terrain.x = rtx;
-                rect_terrain.y = rty;
-
-                SDL_RenderCopy(renderer, tp->terrain, NULL, &rect_terrain);
+                SDL_RenderCopy(renderer, tp->terrain, NULL, &rect);
                 if(tp->water)
                 {
-                    rect_terrain.y = rtw;
-                    SDL_RenderCopy(renderer, grass[2], NULL, &rect_terrain);
+                    rect.y = rtw;
+                    SDL_RenderCopy(renderer, grass[2], NULL, &rect);
                 }
                 if (tp->building)
                 {
                     /*rect_building.x = rtx;
                     rect_building.h = tp->building->height;
-                    rect_building.y = rect_terrain.y - rect_building.h + (int) floor(TILE_HEIGHT);
+                    rect_building.y = rect.y - rect_building.h + (int) floor(TILE_HEIGHT);
                     SDL_RenderCopy(renderer, tp->building->texture, NULL, &rect_building);*/
                 }
             }
