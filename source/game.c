@@ -166,21 +166,15 @@ static void generate_map(void)
             int hxy1 = heightmap[x][y + 1];
             int hx1y1 = heightmap[x + 1][y + 1];
 
-            if(x == GRID_SIZE - 1 && y != GRID_SIZE - 1)
+            if(x == GRID_SIZE - 1)
             {
                 hx1y = hxy;
                 hx1y1 = hxy1;
             }
-            else if(x != GRID_SIZE - 1 && y == GRID_SIZE - 1)
+            if(y == GRID_SIZE - 1)
             {
                 hxy1 = hxy;
-                hx1y1 = hx1y;
-            }
-            else if(x == GRID_SIZE - 1 && y == GRID_SIZE - 1)
-            {
-                hx1y = hxy;
-                hxy1 = hxy;
-                hx1y1 = hxy;
+                hx1y1 = hx1y1 == hxy1 ? hxy : hx1y;
             }
 
             int u = 0, d = 0, l = 0, r = 0, h = hxy;
@@ -371,7 +365,7 @@ Status game_loop(SDL_Renderer* renderer)
     Camera camera = { 1, 0, 0 };
     change_scale(&camera, renderer, drawables, -(DEFAULT_SCALE));
     camera.x = (TILE_WIDTH >> 1) - (DESIGN_WIDTH << (DEFAULT_SCALE - 1));
-    camera.y = tile_to_pixel((GRID_SIZE >> 1) - 1, (GRID_SIZE >> 1) - 1).y + (TILE_HEIGHT >> 1);
+    camera.y = tile_to_pixel(((GRID_SIZE - 1) >> 1) - 1, ((GRID_SIZE - 1) >> 1) - 1).y + (TILE_HEIGHT >> 1);
 
     unsigned int start_time = SDL_GetTicks();
     render_grid(renderer, camera);
