@@ -7,52 +7,36 @@ static float frand()
     return (float)rand()/(float)(RAND_MAX);
 }
 
+static float add(int x, int y, float height[GRID_SIZE][GRID_SIZE], int* c)
+{
+    if(x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE)
+    {
+        (*c)++;
+        return height[x][y];
+    }
+    return 0.0f;
+}
+
 static void square(float height[GRID_SIZE][GRID_SIZE], int x, int y, int size, float offset)
 {
-    int count = 0;
+    int c = 0;
     float total = 0.0f;
-    if(x - size >= 0 && x - size < GRID_SIZE && y - size >= 0 && y - size < GRID_SIZE){
-        count++;
-        total += height[x - size][y - size];
-    }
-    if(x + size >= 0 && x + size < GRID_SIZE && y - size >= 0 && y - size < GRID_SIZE){
-        count++;
-        total += height[x + size][y - size];
-    }
-    if(x + size >= 0 && x + size < GRID_SIZE && y + size >= 0 && y + size < GRID_SIZE){
-        count++;
-        total += height[x + size][y + size];
-    }
-    if(x - size >= 0 && x - size < GRID_SIZE && y + size >= 0 && y + size < GRID_SIZE){
-        count++;
-        total += height[x - size][y + size];
-    }
-    total /= (float)count;
-    height[x][y] = total + offset;
+    total += add(x - size, y - size, height, &c);
+    total += add(x + size, y - size, height, &c);
+    total += add(x + size, y + size, height, &c);
+    total += add(x - size, y + size, height, &c);
+    height[x][y] = total / c + offset;
 }
 
 static void diamond(float height[GRID_SIZE][GRID_SIZE], int x, int y, int size, float offset)
 {
-    int count = 0;
+    int c = 0;
     float total = 0.0f;
-    if(x >= 0 && x < GRID_SIZE && y - size >= 0 && y - size < GRID_SIZE){
-        count++;
-        total += height[x][y - size];
-    }
-    if(x + size >= 0 && x + size < GRID_SIZE && y >= 0 && y < GRID_SIZE){
-        count++;
-        total += height[x + size][y];
-    }
-    if(x >= 0 && x < GRID_SIZE && y + size >= 0 && y + size < GRID_SIZE){
-        count++;
-        total += height[x][y + size];
-    }
-    if(x - size >= 0 && x - size < GRID_SIZE && y >= 0 && y < GRID_SIZE){
-        count++;
-        total += height[x - size][y];
-    }
-    total /= (float)count;
-    height[x][y] = total + offset;
+    total += add(x, y - size, height, &c);
+    total += add(x + size, y, height, &c);
+    total += add(x, y - size, height, &c);
+    total += add(x - size, y, height, &c);
+    height[x][y] = total / c + offset;
 }
 
 void fill_heightmap(float height[GRID_SIZE][GRID_SIZE], int size, const float roughness)

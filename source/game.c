@@ -215,16 +215,18 @@ Status game_loop(SDL_Renderer* renderer)
             if(hxy1 > h) l = 1;
             else if(hxy1 < h) l = -1;
 
-            if(hxy1 < hx1y - 1){ t = 19; ST = 1; }
+            if(hxy1 < hx1y - 1)     { t = 19; ST = 1; }
             else if(hx1y < hxy1 - 1){ t = 17; ST = 1; }
-            else if(hx1y1 < h - 1){ t = 18; ST = 1; tp->voffset = -1; }
-            else if(hxy < hx1y1 - 1){ t = 16; ST = 1; tp->voffset = 1; }
+            else if(hx1y1 < h - 1)  { t = 18; ST = 1; tp->voffset = -1; }
+            else if(hxy < hx1y1 - 1){ t = 16; ST = 1; tp->voffset = 1;  }
 
             if(hx1y > h) r = 1;
             else if(hx1y < h) r = -1;
 
             if(hx1y1 > h) d = 1;
             else if(hx1y1 < h) d = -1;
+
+            tp->voffset = 0;
 
             // get the magnitude of the lowest corner.
             int low = (u < 0 || d < 0 || l < 0 || r < 0) ? -1 : 0;
@@ -243,22 +245,21 @@ Status game_loop(SDL_Renderer* renderer)
                 else
                 {
                     t = 0;
-                    tp->voffset = 0;
                 }
             }
-            else if(1 == mask){ t = 4; }
-            else if(2 == mask){ t = 5; tp->voffset = 1;  }
-            else if(3 == mask){ t = 9; tp->voffset = 1;  }
-            else if(4 == mask){ t = 6; }
-            else if(5 == mask){ t = 21; }
-            else if(6 == mask){ t = 10; tp->voffset = 1; }
-            else if(7 == mask){ t = 13; tp->voffset = 1; }
-            else if(8 == mask){ t = 7; }
-            else if(9 == mask){ t = 8; }
+            else if(1 == mask) { t = 4;   }
+            else if(2 == mask) { t = 5;  tp->voffset = 1; }
+            else if(3 == mask) { t = 9;  tp->voffset = 1; }
+            else if(4 == mask) { t = 6;   }
+            else if(5 == mask) { t = 21;  }
+            else if(6 == mask) { t = 10; tp->voffset = 1; }
+            else if(7 == mask) { t = 13; tp->voffset = 1; }
+            else if(8 == mask) { t = 7;   }
+            else if(9 == mask) { t = 8;   }
             else if(10 == mask){ t = 20; tp->voffset = 1; }
             else if(11 == mask){ t = 12; tp->voffset = 1; }
-            else if(12 == mask){ t = 11; }
-            else if(13 == mask){ t = 15; }
+            else if(12 == mask){ t = 11;  }
+            else if(13 == mask){ t = 15;  }
             else if(14 == mask){ t = 14; tp->voffset = 1; }
 
             int ran = rand();
