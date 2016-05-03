@@ -13,6 +13,13 @@
 #include "text.h"
 #include "diamond.h"
 
+static const int maskmap[32] = {
+    0, 4, 5, 9, 6, 21, 10, 13, 7, 8, 20, 12, 11, 15, 14, [23] = 16, [27] = 17, [29] = 18, [30] = 19
+};
+static const int voffsetmap[32] = {
+    [2] = 1, [3] = 1, [6] = 1, [7] = 1, [10] = 1, [11] = 1, [14] = 1, [23] = 1, [29] = -1,
+};
+
 static const char* building_images[] = {
     "resources/images/building-mega.tga",
     "resources/images/building-1.tga",
@@ -143,11 +150,7 @@ static SDL_Texture** load_textures(SDL_Renderer* renderer, const char* image_pat
 /* UNPURE FUNCTIONS */
 
 /* Gives bound safe values for corner heights.
-    heights[0] = top    corner height
-    heights[1] = right  corner height
-    heights[2] = left   corner height
-    heights[3] = bottom corner height
-*/
+   [0] = top, [1] = right, [2] = left, [3] = bottom */
 static void get_corner_heights(int heights[4], int x, int y)
 {
     heights[0] = heightmap[x][y];
@@ -181,7 +184,6 @@ static void generate_map(void)
             get_corner_heights(heights, x, y);
             int u = heights[0], d = heights[3], l = heights[2], r = heights[1];
 
-            int t = 0;
             tp->voffset = 0;
 
             /* get lowest corner. */
@@ -192,33 +194,16 @@ static void generate_map(void)
             int ST = abs(u - d) >= 2 || abs(l - r) >= 2;
 
             int mask = (l > low) | ((d > low) << 1) | ((r > low) << 2) | ((u > low) << 3) | (ST << 4);
-            if(0 == mask)        t = u == 0;
-            else if(1 == mask)   t = 4;
-            else if(2 == mask) { t = 5;  tp->voffset = 1; }
-            else if(3 == mask) { t = 9;  tp->voffset = 1; }
-            else if(4 == mask)   t = 6;
-            else if(5 == mask)   t = 21;
-            else if(6 == mask) { t = 10; tp->voffset = 1; }
-            else if(7 == mask) { t = 13; tp->voffset = 1; }
-            else if(8 == mask)   t = 7;
-            else if(9 == mask)   t = 8;
-            else if(10 == mask){ t = 20; tp->voffset = 1; }
-            else if(11 == mask){ t = 12; tp->voffset = 1; }
-            else if(12 == mask)  t = 11;
-            else if(13 == mask)  t = 15;
-            else if(14 == mask){ t = 14; tp->voffset = 1; }
-            else if(23 == mask){ t = 16; tp->voffset = 1; }
-            else if(27 == mask)  t = 17;
-            else if(29 == mask){ t = 18; tp->voffset = -1; }
-            else if(30 == mask)  t = 19;
+            int id = !mask ? !u : maskmap[mask];
 
             int b = rand() % LENGTH((void**) building_images);
 
             tp->x = pixel.x;
             tp->y = pixel.y;
+            tp->voffset = voffsetmap[mask];
             tp->water = u <= 0 || l <= 0 || r <= 0 || d <= 0;
-            tp->terrain = u + d + l + r >= 2 ? grass[t] : sand[t];
-            tp->tile_id  = t;
+            tp->terrain = u + d + l + r >= 2 ? grass[id] : sand[id];
+            tp->tile_id  = id;
             tp->building = !tp->water && tp->tile_id == 0 && rand() % 6 == 0 ? buildings[b] : NULL;
         }
     }
@@ -227,7 +212,7 @@ static void generate_map(void)
     {
         for (int x = 1; x < GRID_SIZE - 1; x++)
         {
-            /* \TODO if tile's corners is heigher than tiles height, set as sand_grass. */
+            /* \TODO if tile's corners are higher than tiles height, set as sand_grass. */
             if(tiles[x - 1][y - 1].water + tiles[x - 1][y + 1].water + tiles[x + 1][y - 1].water + + tiles[x + 1][y + 1].water)
             {
                 tiles[x][y].terrain = sand[tiles[x][y].tile_id];
@@ -257,7 +242,7 @@ static void render_grid(SDL_Renderer* renderer, Camera camera)
             /* The shift for tile height. */
             rect.y -= heights[3] * shift;
 
-            /* The shift for tile types. */
+            /* The shift for tile ids. */
             rect.y += tp->voffset * shift;
 
             /* Only render if it will be visible on the screen. */
@@ -330,17 +315,18 @@ Status game_loop(SDL_Renderer* renderer)
     /* Initialise the camera and update everything for the DEFAULT_SCALE. */
     Camera camera = { 1, 0, 0 };
     change_scale(&camera, renderer, drawables, -(DEFAULT_SCALE));
+
+    /* Set the camera to the centre of the map. */
     camera.x = (TILE_WIDTH >> 1) - (DESIGN_WIDTH << (DEFAULT_SCALE - 1));
     camera.y = tile_to_pixel(((GRID_SIZE - 1) >> 1) - 1, ((GRID_SIZE - 1) >> 1) - 1).y + (TILE_HEIGHT >> 1);
 
     unsigned int start_time = SDL_GetTicks();
-    render_grid(renderer, camera);
+    int render = 1;
     while (NORMAL == status)
     {
         /* Clear the renderer and get mouse co-ordinates. */
         SDL_GetMouseState(&mouse_x, &mouse_y);
         unsigned int start_frame = SDL_GetTicks();
-        int render = 0;
 
         /* Process any events in the queue. */
         while (SDL_PollEvent(&event))
@@ -400,7 +386,7 @@ Status game_loop(SDL_Renderer* renderer)
             render = 1;
         }
         frames++;
-        if(render) render_grid(renderer, camera);
+        if(render){ render_grid(renderer, camera); render = 0; }
     }
 
     /* Free any allocated memory. */

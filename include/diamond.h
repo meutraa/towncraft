@@ -6,7 +6,7 @@
 #define DIAMOND_H
 
 #define GRID_SIZE (1 << 7) + 1
-#define ROUGHNESS 0.05f
+#define ROUGHNESS 0.075f
 #define HEIGHT 12
 #define LOWER_HEIGHT 4.0f
 
