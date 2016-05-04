@@ -45,6 +45,7 @@ Drawable* drawables;
 SDL_Window* win;
 SDL_GLContext* con;
 SDL_Renderer* ren;
+int key_status[283];
 
 static inline int  LENGTH(void** array)  { int l = 0; while(array[l]) l++; return l; }
 
@@ -55,7 +56,7 @@ static int heightmap[GRID_SIZE][GRID_SIZE];
 /* Tile dimensions must be divisible by exp2(DEFAULT_SCALE). */
 static const int TILE_WIDTH  = 64;
 static const int TILE_HEIGHT = 32;
-static const int TILE_DEPTH  = 4;
+static const int TILE_DEPTH  = 8;
 
 static SDL_Rect src_rects[3][22];
 
@@ -192,6 +193,14 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
     while(status)
     {
         status = event_loop();
+        int render = 0;
+    #define SCROLL(a, b, c, d, e) if(key_status[a] || (fullscreen && b == c)) \
+        { glTranslatef(scroll_speed * d, scroll_speed * e, 0); render = 1; }
+        SCROLL(80, 0,    100,  1.0f,  0.0f)
+        SCROLL(79, 1279, 100, -1.0f,  0.0f)
+        SCROLL(82, 0,    100,  0.0f,  0.5f)
+        SCROLL(81, 719,  100,  0.0f, -0.5f)
+        if(render) render_grid();
         SDL_Delay(16);
     }
 
@@ -203,7 +212,6 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
 static int event_loop()
 {
     SDL_Event event;
-    int key_status[283] = { 0 };
     while(SDL_PollEvent(&event))
     {
         if(SDL_KEYUP == event.type || SDL_KEYDOWN == event.type)
