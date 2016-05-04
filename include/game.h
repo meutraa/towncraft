@@ -31,11 +31,11 @@ typedef struct Camera {
     int y;                  /*!< the top left pixel on the grid */
 } Camera;
 
-/*! Status game_loop(SDL_Renderer* renderer)
+/*! Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
     \brief Starts a loop that renders the game screen.
     \param renderer used for all rendering inside the game.
     \return QUIT_PROGRAM or NORMAL enums.
 */
-Status game_loop(SDL_Renderer* renderer);
+Status game_loop(SDL_Window* window, SDL_Renderer* renderer);
 
 #endif

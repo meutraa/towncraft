@@ -58,7 +58,8 @@ int main(void)
     window = SDL_CreateWindow(GAME_NAME,
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         resolution_width, resolution_height,
-        ((fullscreen == 1) ? SDL_WINDOW_FULLSCREEN : 0)
+        SDL_WINDOW_OPENGL
+      | ((fullscreen == 1) ? SDL_WINDOW_FULLSCREEN : 0)
       | ((fullscreen == 2) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)
     );
 
@@ -95,7 +96,7 @@ int main(void)
         else if(SWITCHTO_GAME == status)
         {
             Mix_FadeOutMusic(100);
-            status = game_loop(renderer);
+            status = game_loop(window, renderer);
         }
     }
     Mix_FreeMusic(chiptune);

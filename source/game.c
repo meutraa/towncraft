@@ -5,14 +5,18 @@
 #include <string.h>
 #include <time.h>
 
+#include <SDL2/SDL_opengl.h>
+
 #include "SDL_image.h"
 #include "constants.h"
 #include "drawable.h"
 #include "options.h"
-#include "status.h"
 #include "text.h"
 #include "diamond.h"
 #include "macros.h"
+#include "status.h"
+
+static int event_loop();
 
 static const int maskmap[32] = {
     0, 4, 5, 9, 6, 21, 10, 13, 7, 8, 20, 12, 11, 15, 14, [23] = 16, [27] = 17, [29] = 18, [30] = 19
@@ -43,13 +47,10 @@ int fps;
 
 SDL_Texture *terrain, **buildings;
 Drawable* drawables;
+SDL_Window* win;
+SDL_GLContext* con;
+SDL_Renderer* ren;
 
-/* This is just to stop repetative stuff. */
-#define printbuf(x, y, format, ...) \
-    sprintf(strbuf, format, __VA_ARGS__); \
-    render_text(renderer, debug_font, strbuf, white, x, y, cam.scale);
-
-static inline void SHIFT (int* a, int b) { if(b > 0) *a >>= b; else if(b < 0) *a <<= abs(b); }
 static inline int  LENGTH(void** array)  { int l = 0; while(array[l]) l++; return l; }
 
 /* The grid of tiles. */
@@ -61,10 +62,6 @@ static const int TILE_WIDTH  = 64;
 static const int TILE_HEIGHT = 48;
 
 static SDL_Rect src_rects[3][22];
-
-/* Rectangles for rendering loop. */
-static SDL_Rect rect  = { 0, 0, TILE_WIDTH, TILE_HEIGHT };
-static SDL_Rect rect_building = { 0, 0, TILE_WIDTH, 0 };
 
 static SDL_Point pixel_to_tile(int x, int y)
 {
@@ -81,23 +78,6 @@ static SDL_Point tile_to_pixel(int x, int y)
         (x + y) * ((int)floor(TILE_HEIGHT / 3.0f))
     };
 }
-
-static SDL_Texture** load_textures(SDL_Renderer* renderer, const char* image_paths[])
-{
-    int l = LENGTH((void**) image_paths);
-    SDL_Texture** textures = malloc((unsigned long) (l + 1) * sizeof(SDL_Texture*));
-
-    for(int i = 0; i < l; i++)
-    {
-        SDL_Surface* s = IMG_Load(image_paths[i]);
-        textures[i] = SDL_CreateTextureFromSurface(renderer, s);
-        SDL_FreeSurface(s);
-    }
-    textures[l] = NULL;
-    return textures;
-}
-
-/* UNPURE FUNCTIONS */
 
 /* Gives bound safe values for corner heights.
    [0] = top, [1] = right, [2] = left, [3] = bottom */
@@ -142,7 +122,7 @@ static void generate_map(void)
         tp->water = u <= 0 || l <= 0 || r <= 0 || d <= 0;
         tp->terrain_id = u + d + l + r >= 2 ? 0 : 2;
         tp->tile_id  = !mask ? !u : maskmap[mask];
-        tp->building = !tp->water && tp->tile_id == 0 && rand() % 6 == 0 ? buildings[rand() % building_count] : NULL;
+        //tp->building = !tp->water && tp->tile_id == 0 && rand() % 6 == 0 ? buildings[rand() % building_count] : NULL;
     }
     /* SECOND PASS */
     forXY(1, GRID_SIZE - 1)
@@ -158,152 +138,77 @@ static void generate_map(void)
         tiles[x][y].src = &src_rects[tiles[x][y].terrain_id][tiles[x][y].tile_id];
     }
 }
-
-static void render_grid(SDL_Renderer* renderer, Camera cam)
+int r = 128, g = 0, b = 48;
+static void render_grid()
 {
-    SDL_RenderClear(renderer);
-    int shift = (int) floor(TILE_HEIGHT / 6.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    /* To see the clipping work, comment out all instances of cam.scale in the next 15 lines or so. */
+        glScalef(0.99f, 0.99f, 0.0f);    // Rotate The cube around the Y axis
+        glScalef(0.99f, 0.99f, 0.0f);
+        glColor3f(r, g, b);
 
-    /* Min y is tr, max x is bl */
-    const int tlx = pixel_to_tile(cam.x, cam.y).x;
-    const int try = pixel_to_tile(cam.x + DESIGN_WIDTH*cam.scale, cam.y).y;
-    const int bly = pixel_to_tile(cam.x, cam.y + DESIGN_HEIGHT*cam.scale).y;
-    const int brx = pixel_to_tile(cam.x + DESIGN_WIDTH*cam.scale, cam.y + DESIGN_HEIGHT*cam.scale).x;
+        glBegin( GL_QUADS );
+            glVertex2i(0, 0);
+            glVertex2i(DESIGN_WIDTH, 0);
+            glVertex2i(DESIGN_WIDTH, DESIGN_HEIGHT);
+            glVertex2i(0, DESIGN_HEIGHT);
+        glEnd();                       /* Done Drawing The Quad */
 
-    for(int y = try < 0 ? 0 : try; y < ((bly > GRID_SIZE) ? GRID_SIZE : bly); y++)
-    for(int x = tlx < 0 ? 0 : tlx; x < ((brx > GRID_SIZE) ? GRID_SIZE : brx); x++)
-    {
-        Tile* tp = &tiles[x][y];
-        rect.x = tp->x - cam.x;
-        rect.y = tp->y - cam.y + tp->voffset;
-
-        /* Only render if it will be visible on the screen. */
-        if(rect.x + TILE_WIDTH > 0 && rect.x < DESIGN_WIDTH*cam.scale && rect.y + TILE_HEIGHT > 0 && rect.y < DESIGN_HEIGHT*cam.scale)
-        {
-            SDL_RenderCopyEx(renderer, terrain, tp->src, &rect, 0.0, NULL, SDL_FLIP_NONE);
-            if(tp->water)
-            {
-                rect.y = tp->y - cam.y - shift;
-                SDL_RenderCopyEx(renderer, terrain, &src_rects[0][2], &rect, 0.0, NULL, SDL_FLIP_NONE);
-            }
-            if (tp->building)
-            {
-                /*rect_building.x = rtx;
-                rect_building.h = tp->building->height;
-                rect_building.y = rect.y - rect_building.h + (int) floor(TILE_HEIGHT);
-                SDL_RenderCopy(renderer, tp->building->texture, NULL, &rect_building);*/
-            }
-        }
-    }
-    /* Copy the game_ui layout drawables to the renderer. */
-    render_drawables(renderer, drawables, cam.scale);
-
-    /* Print the UI infomation. */
-    printbuf(1080, 4, "%d", cam.scale);
-    printbuf(1200, 4, "%d", fps);
-
-    /* Finish and render the frame. */
-    SDL_RenderPresent(renderer);
+    SDL_GL_SwapWindow(win);
 }
 
-Status game_loop(SDL_Renderer* renderer)
+Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
 {
-    Status status = NORMAL;
-    int key_status[283] = { 0 };
-    SDL_Event event;
+    win = window;
+    ren = renderer;
+    con = SDL_GL_CreateContext(win);
+
+    //GLfloat aspect = DESIGN_WIDTH / DESIGN_HEIGHT;
+    //glViewport(0, 0, (GLsizei) DESIGN_WIDTH, (GLsizei) DESIGN_HEIGHT);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0, DESIGN_WIDTH, DESIGN_HEIGHT, 0.0, 0.0, 1.0);
+
+    //glMatrixMode(GL_MODELVIEW);
+    //glLoadIdentity();
 
     srand((unsigned int)time(NULL));
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
 
     /* Initialise globals. */
-    /* Fill src_rects. */
-    for(int i = 0; i < 3; i++) for(int j = 0; j < 22; j++)
-    {
-        src_rects[i][j] = (SDL_Rect) {j*TILE_WIDTH, i*TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT};
-    }
-    fps = 60;
-    debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
-    drawables  = load_drawables(renderer, layout);
-    buildings  = load_textures(renderer, building_images);
-    SDL_Surface* s = IMG_Load(terrain_path);
-    terrain = SDL_CreateTextureFromSurface(renderer, s);
-    SDL_FreeSurface(s);
     generate_map();
 
-    /* Assume 60 for scroll speed to not become infinity. */
-    int frames = 0;
-    int mouse_x, mouse_y;
-
-    /* Initialise the cam and set to the center of the grid. */
-    Camera cam = {
-        1, 0, 0
-        //(TILE_WIDTH / 2) - (DESIGN_WIDTH / 2),
-        //tile_to_pixel(((GRID_SIZE - 1) / 2) - 1, ((GRID_SIZE - 1) / 2) - 1).y - DESIGN_HEIGHT / 2
-    };
-
-    unsigned int start_time = SDL_GetTicks();
-    int render = 1;
-    while (NORMAL == status)
+    int status = 1;
+    while(status)
     {
-        /* Clear the renderer and get mouse co-ordinates. */
-        SDL_GetMouseState(&mouse_x, &mouse_y);
-        unsigned int start_frame = SDL_GetTicks();
+        status = event_loop();
 
-        /* Process any events in the queue. */
-        while (SDL_PollEvent(&event))
-        {
-            if (SDL_KEYUP == event.type || SDL_KEYDOWN == event.type)
-            {
-                key_status[event.key.keysym.scancode] = event.type == SDL_KEYUP ? 0 : 1;
-            }
-            else if (SDL_MOUSEWHEEL == event.type)
-            {
-                /* Zoom in is 1, zoom out is -1 */
-                if (-1 == event.wheel.y || (1 == event.wheel.y && cam.scale > 1))
-                {
-                    SHIFT(&cam.scale, event.wheel.y);
-                    SDL_RenderSetLogicalSize(renderer, cam.scale * resolution_width, cam.scale * resolution_height);
-                    int factor = 1 == event.wheel.y ? cam.scale : -(cam.scale >> 1);
-                    cam.x += factor * (zoom_mode == 0 ? DESIGN_WIDTH  >> 1 : mouse_x);
-                    cam.y += factor * (zoom_mode == 0 ? DESIGN_HEIGHT >> 1 : mouse_y);
-                    render = 1;
-                }
-            }
-        }
-
-        /* Quit the program if Escape is pressed. */
-        if(key_status[41]) status = SWITCHTO_MAINMENU;
-
-#define SCROLL(a, b, c, d, e) if(key_status[a] || (fullscreen && b == c)) { d += (int)(scroll_speed*cam.scale * e); render = 1; }
-        SCROLL(80, 0,    mouse_x, cam.x, -1)
-        SCROLL(79, 1279, mouse_x, cam.x,  1)
-        SCROLL(82, 0,    mouse_y, cam.y, -0.5)
-        SCROLL(81, 719,  mouse_y, cam.y,  0.5)
-
-        /* Calculate the frame rate. */
-        unsigned int dt = SDL_GetTicks() - start_frame;
-        if(dt < 16) SDL_Delay(16 - dt);
-        if(SDL_GetTicks() - start_time >= 1000)
-        {
-            fps = frames;
-            frames = -1;
-            start_time = SDL_GetTicks();
-            render = 1;
-
-            SDL_Point tile = pixel_to_tile(cam.x + mouse_x*cam.scale, cam.y + mouse_y*cam.scale);
-            printf("Mouse tile: %d, %d\n", tile.x, tile.y);
-        }
-        frames++;
-        if(render){ render_grid(renderer, cam); render = 0; }
+        render_grid();
     }
 
     /* Free any allocated memory. */
-    destroy_drawables(drawables);
-    TTF_CloseFont(debug_font);
-    destroy_textures(buildings);
-    SDL_DestroyTexture(terrain);
-    SDL_RenderSetLogicalSize(renderer, DESIGN_WIDTH, DESIGN_HEIGHT);
-    return status;
+    SDL_GL_DeleteContext(con);
+    return SWITCHTO_MAINMENU;
+}
+
+static int event_loop()
+{
+    SDL_Event event;
+    int key_status[283] = { 0 };
+    while(SDL_PollEvent(&event))
+    {
+        if(SDL_KEYUP == event.type || SDL_KEYDOWN == event.type)
+        {
+            key_status[event.key.keysym.scancode] = event.type == SDL_KEYUP ? 0 : 1;
+            if(key_status[41]) return 0;
+        }
+        else if(SDL_MOUSEWHEEL == event.type)
+        {
+            /* Zoom in is 1, zoom out is -1 */
+            if(event.wheel.y)
+            {
+            }
+        }
+    }
+    return 1;
 }
