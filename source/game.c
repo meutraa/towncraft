@@ -40,11 +40,6 @@ const char* layout = "resources/layouts/game_ui.csv";
 const char* terrain_path = "resources/images/terrains.png";
 
 /* Free up some space in the stack. */
-char strbuf[32];
-TTF_Font* debug_font;
-const SDL_Color white = { 255, 255, 255, 0 };
-int fps;
-
 SDL_Texture *terrain, **buildings;
 Drawable* drawables;
 SDL_Window* win;
@@ -59,7 +54,8 @@ static int heightmap[GRID_SIZE][GRID_SIZE];
 
 /* Tile dimensions must be divisible by exp2(DEFAULT_SCALE). */
 static const int TILE_WIDTH  = 64;
-static const int TILE_HEIGHT = 48;
+static const int TILE_HEIGHT = 32;
+static const int TILE_DEPTH  = 4;
 
 static SDL_Rect src_rects[3][22];
 
@@ -75,7 +71,7 @@ static SDL_Point tile_to_pixel(int x, int y)
 {
     return (SDL_Point) {
         (x - y) * (TILE_WIDTH >> 1),
-        (x + y) * ((int)floor(TILE_HEIGHT / 3.0f))
+        (x + y) * (TILE_HEIGHT >> 1)
     };
 }
 
@@ -138,22 +134,9 @@ static void generate_map(void)
         tiles[x][y].src = &src_rects[tiles[x][y].terrain_id][tiles[x][y].tile_id];
     }
 }
-int r = 128, g = 0, b = 48;
+
 static void render_grid()
 {
-    glClear(GL_COLOR_BUFFER_BIT);
-
-        glScalef(0.99f, 0.99f, 0.0f);    // Rotate The cube around the Y axis
-        glScalef(0.99f, 0.99f, 0.0f);
-        glColor3f(r, g, b);
-
-        glBegin( GL_QUADS );
-            glVertex2i(0, 0);
-            glVertex2i(DESIGN_WIDTH, 0);
-            glVertex2i(DESIGN_WIDTH, DESIGN_HEIGHT);
-            glVertex2i(0, DESIGN_HEIGHT);
-        glEnd();                       /* Done Drawing The Quad */
-
     SDL_GL_SwapWindow(win);
 }
 
@@ -163,20 +146,46 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
     ren = renderer;
     con = SDL_GL_CreateContext(win);
 
-    //GLfloat aspect = DESIGN_WIDTH / DESIGN_HEIGHT;
-    //glViewport(0, 0, (GLsizei) DESIGN_WIDTH, (GLsizei) DESIGN_HEIGHT);
-
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0.0, DESIGN_WIDTH, DESIGN_HEIGHT, 0.0, 0.0, 1.0);
+    glOrtho(-DESIGN_WIDTH/2, DESIGN_WIDTH/2, DESIGN_HEIGHT, -DESIGN_HEIGHT, 0.0, 1.0);
 
-    //glMatrixMode(GL_MODELVIEW);
-    //glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
     srand((unsigned int)time(NULL));
 
     /* Initialise globals. */
     generate_map();
+
+    glClearColor(1, 1, 1, 1);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    /* Render map. */
+    for(int j = 0; j < GRID_SIZE - 1; j++)
+    for(int i = 0; i < GRID_SIZE - 1; i++)
+    {
+        SDL_Point p1 = tile_to_pixel(i, j);
+        SDL_Point p2 = tile_to_pixel(i + 1, j);
+        SDL_Point p3 = tile_to_pixel(i + 1, j + 1);
+        SDL_Point p4 = tile_to_pixel(i, j + 1);
+
+        int height = TILE_DEPTH * heightmap[i][j];
+
+        if(tiles[i][j].tile_id == 0)
+        {
+            glColor3ub(52, 187, 52);
+            glBegin(GL_TRIANGLES);
+                glVertex2i(p1.x, p1.y + height);
+                glVertex2i(p2.x, p2.y + height);
+                glVertex2i(p4.x, p4.y + height);
+
+                glVertex2i(p4.x, p4.y + height);
+                glVertex2i(p3.x, p3.y + height);
+                glVertex2i(p2.x, p2.y + height);
+            glEnd();
+        }
+    }
 
     int status = 1;
     while(status)

@@ -5,7 +5,7 @@ WARNINGS := -Wall -Wextra -Wpedantic \
             -Wuninitialized -Wconversion -Wstrict-prototypes -Wunused-macros -Wcomments
 
 LDFLAGS := -lGL -lGLU -lm -lSDL2_image -lSDL2_ttf -lSDL2_mixer $(shell sdl2-config --libs)
-CFLAGS  := -ggdb3 $(WARNINGS) -O3 -std=c99 $(shell sdl2-config --cflags) -I/usr/include/SDL2
+CFLAGS  := -ggdb3 $(WARNINGS) -O0 -std=c99 $(shell sdl2-config --cflags) -I/usr/include/SDL2
 
 SRCDIR := source
 HDRDIR := include
