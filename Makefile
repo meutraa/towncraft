@@ -5,7 +5,7 @@ WARNINGS := -Wall -Wextra -Wpedantic \
             -Wuninitialized -Wconversion -Wstrict-prototypes -Wunused-macros -Wcomments
 
 LDFLAGS := -lm -lSDL2_image -lSDL2_ttf -lSDL2_mixer $(shell pkg-config --libs sdl2)
-CFLAGS  := -ggdb3 $(WARNINGS) -O0 -std=c99 $(shell pkg-config --cflags sdl2) -I/usr/include/SDL2
+CFLAGS  := -ggdb3 $(WARNINGS) -O3 -std=c99 $(shell pkg-config --cflags sdl2) -I/usr/include/SDL2
 
 SRCDIR := source
 HDRDIR := include
@@ -42,7 +42,7 @@ dirs:
 	@mkdir -p $(OBJDIR)
 
 cachegrind:
-	@clang -O0 -std=c99 $(shell pkg-config --cflags sdl2) -g -o towncraft source/* $(LDFLAGS) -I$(HDRDIR)
+	@clang $(CFLAGS) -o towncraft source/* $(LDFLAGS) -I$(HDRDIR)
 
 tidy:
 	clang-tidy source/*.c -checks="*,-google*" -- -Iinclude -I/usr/include/SDL2

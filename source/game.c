@@ -144,15 +144,12 @@ static void get_corner_heights(int heights[4], int x, int y)
 
 static void generate_map(void)
 {
-    /* Set corner heights. */
-    heightmap[0][GRID_SIZE - 1]             = (rand() % HEIGHT) - LOWER_HEIGHT;
-    heightmap[GRID_SIZE - 1][0]             = (rand() % HEIGHT) - LOWER_HEIGHT;
-    heightmap[0][0]                         = (rand() % HEIGHT) - LOWER_HEIGHT;
-    heightmap[GRID_SIZE - 1][GRID_SIZE - 1] = (rand() % HEIGHT) - LOWER_HEIGHT;
     fill_heightmap(heightmap, GRID_SIZE - 1, ROUGHNESS);
-    //forXY(0, GRID_SIZE) heightmap[x][y] = (int) floor(floatmap[x][y]);
+
+    const int building_count = LENGTH((void**) building_images);
 
     /* Create and fill the positions of the tiles. */
+    /* This loop runs upwards of one million times so take out constants! */
     /* FIRST PASS */
     forXY(0, GRID_SIZE)
     {
@@ -160,25 +157,26 @@ static void generate_map(void)
 
         int heights[4];
         get_corner_heights(heights, x, y);
-
-        /* get lowest corner. */
-        int low = 10000;
-        for(int i = 0; i < 4; i++) if(heights[i] < low) low = heights[i];
-
         int u = heights[0], d = heights[3], l = heights[2], r = heights[1];
+
+        /* Get lowest corner. Loop deliberately unrolled.*/
+        int low = u;
+        if(d < low) low = d;
+        if(l < low) low = l;
+        if(r < low) low = r;
+
         int ST = abs(u - d) >= 2 || abs(l - r) >= 2;
         int mask = (l > low) | ((d > low) << 1) | ((r > low) << 2) | ((u > low) << 3) | (ST << 4);
         int id = !mask ? !u : maskmap[mask];
-        int b = rand() % LENGTH((void**) building_images);
 
         Tile* tp = &tiles[x][y];
         tp->x = pixel.x;
         tp->y = pixel.y;
-        tp->voffset = (voffsetmap[mask] - heights[3]) * (int) floor(TILE_HEIGHT / 6.0f);
+        tp->voffset = (voffsetmap[mask] - heights[3]) * (int)(TILE_HEIGHT / 6.0f);
         tp->water = u <= 0 || l <= 0 || r <= 0 || d <= 0;
         tp->terrain = u + d + l + r >= 2 ? grass[id] : sand[id];
         tp->tile_id  = id;
-        tp->building = !tp->water && tp->tile_id == 0 && rand() % 6 == 0 ? buildings[b] : NULL;
+        tp->building = !tp->water && tp->tile_id == 0 && rand() % 6 == 0 ? buildings[rand() % building_count] : NULL;
     }
     /* SECOND PASS */
     forXY(1, GRID_SIZE - 1)
@@ -303,7 +301,7 @@ Status game_loop(SDL_Renderer* renderer)
         /* Quit the program if Escape is pressed. */
         if(key_status[41]) status = SWITCHTO_MAINMENU;
 
-#define SCROLL(a, b, c, d, e) if(key_status[a] || (fullscreen && b == c)) { d += (int)(scroll_speed * e); render = 1; }
+#define SCROLL(a, b, c, d, e) if(key_status[a] || (fullscreen && b == c)) { d += (int)(scroll_speed*cam.scale * e); render = 1; }
         SCROLL(80, 0,    mouse_x, cam.x, -1)
         SCROLL(79, 1279, mouse_x, cam.x,  1)
         SCROLL(82, 0,    mouse_y, cam.y, -0.5)

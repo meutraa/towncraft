@@ -5,9 +5,7 @@
 #ifndef DIAMOND_H
 #define DIAMOND_H
 
-#define GRID_SIZE ((1 << 11) + 1)
-#define HEIGHT 12
-#define LOWER_HEIGHT 4
+#define GRID_SIZE ((1 << 10) + 1)
 extern const float ROUGHNESS;
 
 /*! \fn void fill_heightmap(float height[GRID_SIZE][GRID_SIZE], int size, const int max, const float roughness)
