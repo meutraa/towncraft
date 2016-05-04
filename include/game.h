@@ -8,13 +8,20 @@
 #include "SDL.h"
 #include "status.h"
 
+typedef enum TerrainID {
+    SAND,
+    GRASS,
+    SAND_GRASS,
+} TerrainID;
+
 /*!
     \brief A structure that contains some values for tiles.
 */
 typedef struct Tile {
-    SDL_Texture* building; /*!< a pointer to an Building. */
+    SDL_Texture* building;  /*!< a pointer to an Building. */
     SDL_Texture* terrain;   /*!< a pointer to a Terrain. */
-    int tile_id;        /*!< an id. */
+    int tile_id;            /*!< an id. */
+    TerrainID terrainid;
     int voffset;
     int water;
     int x;              /*!< x position of tile. */

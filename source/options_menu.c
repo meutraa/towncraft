@@ -50,8 +50,8 @@ Status options_menu_loop(SDL_Renderer* renderer)
         }
 
         /* Copy the drawables to the window. */
-        render_drawables(renderer, menus[0]);
-        render_drawables(renderer, menus[menu]);
+        render_drawables(renderer, menus[0], 1);
+        render_drawables(renderer, menus[menu], 1);
         SDL_RenderPresent(renderer);
     }
 

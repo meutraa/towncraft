@@ -32,13 +32,13 @@ void destroy_textures(SDL_Texture** textures);
 */
 void destroy_drawables(Drawable* drawables);
 
-/*! \fn void render_drawables(SDL_Renderer* renderer, Drawable* drawables)
+/*! \fn void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int scale)
     \brief Copys an array of drawables to the renderer provided.
 
     \param renderer the SDL_Renderer used to render textures.
     \param drawables a pointer to an array of drawables.
 */
-void render_drawables(SDL_Renderer* renderer, Drawable* drawables);
+void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int scale);
 
 /*! \fn void load_drawables(SDL_Renderer* renderer, Drawable drawables[], const char* layout_file)
     \brief Takes a layout file and fills the drawables array.

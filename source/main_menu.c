@@ -42,7 +42,7 @@ Status main_menu_loop(SDL_Renderer* renderer)
         }
 
         /* Copy all the scalables to the window. */
-        render_drawables(renderer, drawables);
+        render_drawables(renderer, drawables, 1);
 
         /* Draw the renderer. */
         SDL_RenderPresent(renderer);

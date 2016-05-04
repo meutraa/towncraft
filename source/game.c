@@ -94,32 +94,18 @@ static int heightmap[GRID_SIZE][GRID_SIZE];
 
 /* Tile dimensions must be divisible by exp2(DEFAULT_SCALE). */
 static const int DEFAULT_SCALE = 3;
-static const int TILE_WIDTH    = 128 << DEFAULT_SCALE;
-static const int TILE_HEIGHT   = 96  << DEFAULT_SCALE;
+static const int TILE_WIDTH    = 64;
+static const int TILE_HEIGHT   = 48;
 
 /* Rectangles for rendering loop. */
 static SDL_Rect rect  = { 0, 0, TILE_WIDTH, TILE_HEIGHT };
 static SDL_Rect rect_building = { 0, 0, TILE_WIDTH, 0 };
 
-static void change_scale(Camera* cam, SDL_Renderer* renderer, Drawable* d, int bits)
-{
-    SHIFT(&(cam->scale), bits);
-    SDL_RenderSetLogicalSize(renderer, cam->scale * resolution_width, cam->scale * resolution_height);
-    for(int i = 0; (d + i)->texture; i++)
-    {
-        SHIFT(&((d + i)->rect->x), bits);
-        SHIFT(&((d + i)->rect->y), bits);
-        SHIFT(&((d + i)->rect->w), bits);
-        SHIFT(&((d + i)->rect->h), bits);
-    }
-}
-
-/* \TODO this is broken. */
 static SDL_Point pixel_to_tile(int x, int y)
 {
     return (SDL_Point) {
-        (int) floor(((x / (float)TILE_WIDTH) + (y / (float)TILE_HEIGHT)) - 0.5f),
-        (int) floor(((y / (float)TILE_HEIGHT) - (x / (float)TILE_WIDTH)) + 0.5f)
+        (int) floor(((x / (float)TILE_WIDTH) + (3.0f * y / (float)TILE_HEIGHT * 2.0f)) - 0.5f),
+        (int) floor(((3.0f * y / (float)TILE_HEIGHT * 2.0f) - (x / (float)TILE_WIDTH)) + 0.5f)
     };
 }
 
@@ -127,7 +113,7 @@ static SDL_Point tile_to_pixel(int x, int y)
 {
     return (SDL_Point) {
         (x - y) * (TILE_WIDTH >> 1),
-        (x + y) * ((int)floor((TILE_HEIGHT * 2.0f / 3.0f)) >> 1)
+        (x + y) * ((int)floor(TILE_HEIGHT / 3.0f))
     };
 }
 
@@ -190,7 +176,7 @@ static void generate_map(void)
         Tile* tp = &tiles[x][y];
         tp->x = pixel.x;
         tp->y = pixel.y;
-        tp->voffset = voffsetmap[mask];
+        tp->voffset = (voffsetmap[mask] - heights[3]) * (int) floor(TILE_HEIGHT / 6.0f);
         tp->water = u <= 0 || l <= 0 || r <= 0 || d <= 0;
         tp->terrain = u + d + l + r >= 2 ? grass[id] : sand[id];
         tp->tile_id  = id;
@@ -210,29 +196,20 @@ static void generate_map(void)
 static void render_grid(SDL_Renderer* renderer, Camera cam)
 {
     SDL_RenderClear(renderer);
-    const int sw = DESIGN_WIDTH*cam.scale;
-    const int sh = DESIGN_HEIGHT*cam.scale;
+    int shift = (int) floor(TILE_HEIGHT / 6.0f);
     forXY(0, GRID_SIZE)
     {
         Tile* tp = &tiles[x][y];
-        int shift = (int) floor(TILE_HEIGHT / 6.0f);
         rect.x = tp->x - cam.x;
-        rect.y = tp->y - cam.y;
-        int rtw = rect.y - shift;
-
-        int heights[4];
-        get_corner_heights(heights, x, y);
-
-        /* The shift for tile height and tile ids. */
-        rect.y += (tp->voffset - heights[3]) * shift;
+        rect.y = tp->y - cam.y + tp->voffset;
 
         /* Only render if it will be visible on the screen. */
-        if(rect.x + TILE_WIDTH > 0 && rect.x < sw && rect.y + TILE_HEIGHT > 0 && rect.y < sh)
+        if(rect.x + TILE_WIDTH > 0 && rect.x < DESIGN_WIDTH*cam.scale && rect.y + TILE_HEIGHT > 0 && rect.y < DESIGN_HEIGHT*cam.scale)
         {
             SDL_RenderCopy(renderer, tp->terrain, NULL, &rect);
             if(tp->water)
             {
-                rect.y = rtw;
+                rect.y = tp->y - cam.y - shift;
                 SDL_RenderCopy(renderer, grass[2], NULL, &rect);
             }
             if (tp->building)
@@ -245,7 +222,7 @@ static void render_grid(SDL_Renderer* renderer, Camera cam)
         }
     }
     /* Copy the game_ui layout drawables to the renderer. */
-    render_drawables(renderer, drawables);
+    render_drawables(renderer, drawables, cam.scale);
 
     /* Print the UI infomation. */
     printbuf(1080, 4, "%d", cam.scale);
@@ -278,13 +255,12 @@ Status game_loop(SDL_Renderer* renderer)
     int frames = 0;
     int mouse_x, mouse_y;
 
-    /* Initialise the cam and update everything for the DEFAULT_SCALE. */
-    Camera cam = { 1, 0, 0 };
-    change_scale(&cam, renderer, drawables, -(DEFAULT_SCALE));
-
-    /* Set the cam to the centre of the map. */
-    cam.x = (TILE_WIDTH >> 1) - (DESIGN_WIDTH << (DEFAULT_SCALE - 1));
-    cam.y = tile_to_pixel(((GRID_SIZE - 1) >> 1) - 1, ((GRID_SIZE - 1) >> 1) - 1).y + (TILE_HEIGHT >> 1);
+    /* Initialise the cam and set to the center of the grid. */
+    Camera cam = {
+        1,
+        (TILE_WIDTH / 2) - (DESIGN_WIDTH / 2),
+        tile_to_pixel(((GRID_SIZE - 1) / 2) - 1, ((GRID_SIZE - 1) / 2) - 1).y - DESIGN_HEIGHT / 2
+    };
 
     unsigned int start_time = SDL_GetTicks();
     int render = 1;
@@ -306,7 +282,8 @@ Status game_loop(SDL_Renderer* renderer)
                 /* Zoom in is 1, zoom out is -1 */
                 if (-1 == event.wheel.y || (1 == event.wheel.y && cam.scale > 1))
                 {
-                    change_scale(&cam, renderer, drawables, event.wheel.y);
+                    SHIFT(&cam.scale, event.wheel.y);
+                    SDL_RenderSetLogicalSize(renderer, cam.scale * resolution_width, cam.scale * resolution_height);
                     int factor = 1 == event.wheel.y ? cam.scale : -(cam.scale >> 1);
                     cam.x += factor * (zoom_mode == 0 ? DESIGN_WIDTH  >> 1 : mouse_x);
                     cam.y += factor * (zoom_mode == 0 ? DESIGN_HEIGHT >> 1 : mouse_y);
@@ -318,7 +295,7 @@ Status game_loop(SDL_Renderer* renderer)
         /* Quit the program if Escape is pressed. */
         if(key_status[41]) status = SWITCHTO_MAINMENU;
 
-#define SCROLL(a, b, c, d, e) if(key_status[a] || (fullscreen && b == c)) { d += (int)(cam.scale * scroll_speed * e); render = 1; }
+#define SCROLL(a, b, c, d, e) if(key_status[a] || (fullscreen && b == c)) { d += (int)(scroll_speed * e); render = 1; }
         SCROLL(80, 0,    mouse_x, cam.x, -1)
         SCROLL(79, 1279, mouse_x, cam.x,  1)
         SCROLL(82, 0,    mouse_y, cam.y, -0.5)
@@ -333,6 +310,9 @@ Status game_loop(SDL_Renderer* renderer)
             frames = -1;
             start_time = SDL_GetTicks();
             render = 1;
+
+            SDL_Point tile = pixel_to_tile(cam.x + mouse_x*cam.scale, cam.y + mouse_y*cam.scale);
+            printf("Mouse tile: %d, %d\n", tile.x, tile.y);
         }
         frames++;
         if(render){ render_grid(renderer, cam); render = 0; }

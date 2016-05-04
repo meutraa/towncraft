@@ -36,13 +36,15 @@ void destroy_textures(SDL_Texture** textures)
     free(textures);
 }
 
-void render_drawables(SDL_Renderer* renderer, Drawable* drawables)
+void render_drawables(SDL_Renderer* renderer, Drawable* drawables, int scale)
 {
-    for (int i = 0; (drawables + i)->texture; i++)
+    for(int i = 0; (drawables + i)->texture; i++)
     {
-        if ((drawables + i)->visible)
+        Drawable* d = (drawables + i);
+        if(d->visible)
         {
-            SDL_RenderCopy(renderer, (drawables + i)->texture, NULL, (drawables + i)->rect);
+            SDL_Rect scaled_rect = {d->rect->x * scale, d->rect->y * scale, d->rect->w * scale, d->rect->h * scale};
+            SDL_RenderCopy(renderer, d->texture, NULL, &scaled_rect);
         }
     }
 }
