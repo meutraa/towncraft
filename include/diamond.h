@@ -5,7 +5,7 @@
 #ifndef DIAMOND_H
 #define DIAMOND_H
 
-#define GRID_SIZE ((1 << 7) + 1)
+#define GRID_SIZE ((1 << 11) + 1)
 #define HEIGHT 12
 #define LOWER_HEIGHT 4
 extern const float ROUGHNESS;

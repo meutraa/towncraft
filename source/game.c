@@ -102,8 +102,8 @@ static SDL_Rect rect_building = { 0, 0, TILE_WIDTH, 0 };
 static SDL_Point pixel_to_tile(int x, int y)
 {
     return (SDL_Point) {
-        (int) floor(((x / (float)TILE_WIDTH) + (3.0f * y / (float)TILE_HEIGHT * 2.0f)) - 0.5f),
-        (int) floor(((3.0f * y / (float)TILE_HEIGHT * 2.0f) - (x / (float)TILE_WIDTH)) + 0.5f)
+        (int) floor(((x / (float)TILE_WIDTH) + (3.0f * y / (float)TILE_HEIGHT / 2.0f)) - 0.5f),
+        (int) floor(((3.0f * y / (float)TILE_HEIGHT / 2.0f) - (x / (float)TILE_WIDTH)) + 0.5f)
     };
 }
 
@@ -195,7 +195,17 @@ static void render_grid(SDL_Renderer* renderer, Camera cam)
 {
     SDL_RenderClear(renderer);
     int shift = (int) floor(TILE_HEIGHT / 6.0f);
-    forXY(0, GRID_SIZE)
+
+    /* To see the clipping work, comment out all instances of cam.scale in the next 15 lines or so. */
+
+    /* Min y is tr, max x is bl */
+    const int tlx = pixel_to_tile(cam.x, cam.y).x;
+    const int try = pixel_to_tile(cam.x + DESIGN_WIDTH*cam.scale, cam.y).y;
+    const int bly = pixel_to_tile(cam.x, cam.y + DESIGN_HEIGHT*cam.scale).y;
+    const int brx = pixel_to_tile(cam.x + DESIGN_WIDTH*cam.scale, cam.y + DESIGN_HEIGHT*cam.scale).x;
+
+    for(int y = try < 0 ? 0 : try; y < ((bly > GRID_SIZE) ? GRID_SIZE : bly); y++)
+    for(int x = tlx < 0 ? 0 : tlx; x < ((brx > GRID_SIZE) ? GRID_SIZE : brx); x++)
     {
         Tile* tp = &tiles[x][y];
         rect.x = tp->x - cam.x;
@@ -255,9 +265,9 @@ Status game_loop(SDL_Renderer* renderer)
 
     /* Initialise the cam and set to the center of the grid. */
     Camera cam = {
-        1,
-        (TILE_WIDTH / 2) - (DESIGN_WIDTH / 2),
-        tile_to_pixel(((GRID_SIZE - 1) / 2) - 1, ((GRID_SIZE - 1) / 2) - 1).y - DESIGN_HEIGHT / 2
+        1, 0, 0
+        //(TILE_WIDTH / 2) - (DESIGN_WIDTH / 2),
+        //tile_to_pixel(((GRID_SIZE - 1) / 2) - 1, ((GRID_SIZE - 1) / 2) - 1).y - DESIGN_HEIGHT / 2
     };
 
     unsigned int start_time = SDL_GetTicks();
