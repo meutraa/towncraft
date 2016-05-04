@@ -183,11 +183,11 @@ static void render_grid(SDL_Renderer* renderer, Camera cam)
         /* Only render if it will be visible on the screen. */
         if(rect.x + TILE_WIDTH > 0 && rect.x < DESIGN_WIDTH*cam.scale && rect.y + TILE_HEIGHT > 0 && rect.y < DESIGN_HEIGHT*cam.scale)
         {
-            SDL_RenderCopy(renderer, terrain, tp->src, &rect);
+            SDL_RenderCopyEx(renderer, terrain, tp->src, &rect, 0.0, NULL, SDL_FLIP_NONE);
             if(tp->water)
             {
                 rect.y = tp->y - cam.y - shift;
-                SDL_RenderCopy(renderer, terrain, &src_rects[0][2], &rect);
+                SDL_RenderCopyEx(renderer, terrain, &src_rects[0][2], &rect, 0.0, NULL, SDL_FLIP_NONE);
             }
             if (tp->building)
             {
