@@ -137,28 +137,6 @@ static void generate_map(void)
 
 static void render_grid()
 {
-    SDL_GL_SwapWindow(win);
-}
-
-Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
-{
-    win = window;
-    ren = renderer;
-    con = SDL_GL_CreateContext(win);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(-DESIGN_WIDTH/2, DESIGN_WIDTH/2, DESIGN_HEIGHT, -DESIGN_HEIGHT, 0.0, 1.0);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    srand((unsigned int)time(NULL));
-
-    /* Initialise globals. */
-    generate_map();
-
-    glClearColor(1, 1, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
     /* Render map. */
@@ -186,13 +164,35 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
             glEnd();
         }
     }
+    SDL_GL_SwapWindow(win);
+}
+
+Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
+{
+    win = window;
+    ren = renderer;
+    con = SDL_GL_CreateContext(win);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-DESIGN_WIDTH/2, DESIGN_WIDTH/2, DESIGN_HEIGHT, -DESIGN_HEIGHT, 0.0, 1.0);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    srand((unsigned int)time(NULL));
+
+    /* Initialise globals. */
+    generate_map();
+
+    glClearColor(1, 1, 1, 1);
 
     int status = 1;
+    render_grid();
     while(status)
     {
         status = event_loop();
-
-        render_grid();
+        SDL_Delay(16);
     }
 
     /* Free any allocated memory. */
@@ -216,6 +216,9 @@ static int event_loop()
             /* Zoom in is 1, zoom out is -1 */
             if(event.wheel.y)
             {
+                GLfloat scale = (GLfloat) (event.wheel.y < 0 ? 0.8 : 1.25);
+                glScalef(scale, scale, 0);
+                render_grid();
             }
         }
     }
