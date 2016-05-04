@@ -89,11 +89,9 @@ static inline int  LENGTH(void** array)  { int l = 0; while(array[l]) l++; retur
 
 /* The grid of tiles. */
 static Tile tiles[GRID_SIZE][GRID_SIZE];
-static float floatmap[GRID_SIZE][GRID_SIZE];
 static int heightmap[GRID_SIZE][GRID_SIZE];
 
 /* Tile dimensions must be divisible by exp2(DEFAULT_SCALE). */
-static const int DEFAULT_SCALE = 3;
 static const int TILE_WIDTH    = 64;
 static const int TILE_HEIGHT   = 48;
 
@@ -147,12 +145,12 @@ static void get_corner_heights(int heights[4], int x, int y)
 static void generate_map(void)
 {
     /* Set corner heights. */
-    floatmap[0][GRID_SIZE - 1]             = (rand() % HEIGHT) - LOWER_HEIGHT;
-    floatmap[GRID_SIZE - 1][0]             = (rand() % HEIGHT) - LOWER_HEIGHT;
-    floatmap[0][0]                         = (rand() % HEIGHT) - LOWER_HEIGHT;
-    floatmap[GRID_SIZE - 1][GRID_SIZE - 1] = (rand() % HEIGHT) - LOWER_HEIGHT;
-    fill_heightmap(floatmap, GRID_SIZE - 1, ROUGHNESS);
-    forXY(0, GRID_SIZE) heightmap[x][y] = (int) floor(floatmap[x][y]);
+    heightmap[0][GRID_SIZE - 1]             = (rand() % HEIGHT) - LOWER_HEIGHT;
+    heightmap[GRID_SIZE - 1][0]             = (rand() % HEIGHT) - LOWER_HEIGHT;
+    heightmap[0][0]                         = (rand() % HEIGHT) - LOWER_HEIGHT;
+    heightmap[GRID_SIZE - 1][GRID_SIZE - 1] = (rand() % HEIGHT) - LOWER_HEIGHT;
+    fill_heightmap(heightmap, GRID_SIZE - 1, ROUGHNESS);
+    //forXY(0, GRID_SIZE) heightmap[x][y] = (int) floor(floatmap[x][y]);
 
     /* Create and fill the positions of the tiles. */
     /* FIRST PASS */

@@ -5,10 +5,10 @@
 #ifndef DIAMOND_H
 #define DIAMOND_H
 
-#define GRID_SIZE (1 << 7) + 1
-#define ROUGHNESS 0.075f
+#define GRID_SIZE ((1 << 7) + 1)
 #define HEIGHT 12
-#define LOWER_HEIGHT 4.0f
+#define LOWER_HEIGHT 4
+extern const float ROUGHNESS;
 
 /*! \fn void fill_heightmap(float height[GRID_SIZE][GRID_SIZE], int size, const int max, const float roughness)
 
@@ -19,6 +19,6 @@
     \param max the same as size.
     \param roughness determines how spikey the land will be.
 */
-void fill_heightmap(float height[GRID_SIZE][GRID_SIZE], int size, const float roughness);
+void fill_heightmap(int height[GRID_SIZE][GRID_SIZE], int size, const float roughness);
 
 #endif
