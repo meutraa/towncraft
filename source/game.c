@@ -134,7 +134,6 @@ static void generate_map(void)
 
         int ST = abs(u - d) >= 2 || abs(l - r) >= 2;
         int mask = (l > low) | ((d > low) << 1) | ((r > low) << 2) | ((u > low) << 3) | (ST << 4);
-        int id = !mask ? !u : maskmap[mask];
 
         Tile* tp = &tiles[x][y];
         tp->x = pixel.x;
@@ -142,7 +141,7 @@ static void generate_map(void)
         tp->voffset = (voffsetmap[mask] - heights[3]) * (int)(TILE_HEIGHT / 6.0f);
         tp->water = u <= 0 || l <= 0 || r <= 0 || d <= 0;
         tp->terrain_id = u + d + l + r >= 2 ? 0 : 2;
-        tp->tile_id  = id;
+        tp->tile_id  = !mask ? !u : maskmap[mask];
         tp->building = !tp->water && tp->tile_id == 0 && rand() % 6 == 0 ? buildings[rand() % building_count] : NULL;
     }
     /* SECOND PASS */
