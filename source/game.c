@@ -33,42 +33,7 @@ static const char* building_images[] = {
 };
 
 const char* layout = "resources/layouts/game_ui.csv";
-
-#define GRASS_PATH "resources/images/grass/"
-static const char* grass_images[] = {
-    GRASS_PATH "0001.png", GRASS_PATH "0002.png", GRASS_PATH "0003.png",
-    GRASS_PATH "0004.png", GRASS_PATH "0005.png", GRASS_PATH "0006.png",
-    GRASS_PATH "0007.png", GRASS_PATH "0008.png", GRASS_PATH "0009.png",
-    GRASS_PATH "0010.png", GRASS_PATH "0011.png", GRASS_PATH "0012.png",
-    GRASS_PATH "0013.png", GRASS_PATH "0014.png", GRASS_PATH "0015.png",
-    GRASS_PATH "0016.png", GRASS_PATH "0017.png", GRASS_PATH "0018.png",
-    GRASS_PATH "0019.png", GRASS_PATH "0020.png", GRASS_PATH "0021.png",
-    GRASS_PATH "0022.png", NULL,
-};
-
-#define SAND_PATH "resources/images/sand/"
-static const char* sand_images[] = {
-    SAND_PATH "0001.png", SAND_PATH "0002.png", SAND_PATH "0003.png",
-    SAND_PATH "0004.png", SAND_PATH "0005.png", SAND_PATH "0006.png",
-    SAND_PATH "0007.png", SAND_PATH "0008.png", SAND_PATH "0009.png",
-    SAND_PATH "0010.png", SAND_PATH "0011.png", SAND_PATH "0012.png",
-    SAND_PATH "0013.png", SAND_PATH "0014.png", SAND_PATH "0015.png",
-    SAND_PATH "0016.png", SAND_PATH "0017.png", SAND_PATH "0018.png",
-    SAND_PATH "0019.png", SAND_PATH "0020.png", SAND_PATH "0021.png",
-    SAND_PATH "0022.png", NULL,
-};
-
-#define SG_PATH "resources/images/sand-grass/"
-static const char* sg_images[] = {
-    SG_PATH "0001.png", SG_PATH "0002.png", SG_PATH "0003.png",
-    SG_PATH "0004.png", SG_PATH "0005.png", SG_PATH "0006.png",
-    SG_PATH "0007.png", SG_PATH "0008.png", SG_PATH "0009.png",
-    SG_PATH "0010.png", SG_PATH "0011.png", SG_PATH "0012.png",
-    SG_PATH "0013.png", SG_PATH "0014.png", SG_PATH "0015.png",
-    SG_PATH "0016.png", SG_PATH "0017.png", SG_PATH "0018.png",
-    SG_PATH "0019.png", SG_PATH "0020.png", SG_PATH "0021.png",
-    SG_PATH "0022.png", NULL,
-};
+const char* terrain_path = "resources/images/terrains.png";
 
 /* Free up some space in the stack. */
 char strbuf[32];
@@ -76,7 +41,7 @@ TTF_Font* debug_font;
 const SDL_Color white = { 255, 255, 255, 0 };
 int fps;
 
-SDL_Texture **buildings, **grass, **sand, **sand_grass;
+SDL_Texture *terrain, **buildings;
 Drawable* drawables;
 
 /* This is just to stop repetative stuff. */
@@ -92,8 +57,10 @@ static Tile tiles[GRID_SIZE][GRID_SIZE];
 static int heightmap[GRID_SIZE][GRID_SIZE];
 
 /* Tile dimensions must be divisible by exp2(DEFAULT_SCALE). */
-static const int TILE_WIDTH    = 64;
-static const int TILE_HEIGHT   = 48;
+static const int TILE_WIDTH  = 64;
+static const int TILE_HEIGHT = 48;
+
+static SDL_Rect src_rects[3][22];
 
 /* Rectangles for rendering loop. */
 static SDL_Rect rect  = { 0, 0, TILE_WIDTH, TILE_HEIGHT };
@@ -174,7 +141,7 @@ static void generate_map(void)
         tp->y = pixel.y;
         tp->voffset = (voffsetmap[mask] - heights[3]) * (int)(TILE_HEIGHT / 6.0f);
         tp->water = u <= 0 || l <= 0 || r <= 0 || d <= 0;
-        tp->terrain = u + d + l + r >= 2 ? grass[id] : sand[id];
+        tp->terrain_id = u + d + l + r >= 2 ? 0 : 2;
         tp->tile_id  = id;
         tp->building = !tp->water && tp->tile_id == 0 && rand() % 6 == 0 ? buildings[rand() % building_count] : NULL;
     }
@@ -184,8 +151,12 @@ static void generate_map(void)
         /* \TODO if tile's corners are higher than tiles height, set as sand_grass. */
         if(tiles[x - 1][y - 1].water + tiles[x - 1][y + 1].water + tiles[x + 1][y - 1].water + + tiles[x + 1][y + 1].water)
         {
-            tiles[x][y].terrain = sand[tiles[x][y].tile_id];
+            tiles[x][y].terrain_id = 2;
         }
+    }
+    forXY(0, GRID_SIZE)
+    {
+        tiles[x][y].src = &src_rects[tiles[x][y].terrain_id][tiles[x][y].tile_id];
     }
 }
 
@@ -212,11 +183,11 @@ static void render_grid(SDL_Renderer* renderer, Camera cam)
         /* Only render if it will be visible on the screen. */
         if(rect.x + TILE_WIDTH > 0 && rect.x < DESIGN_WIDTH*cam.scale && rect.y + TILE_HEIGHT > 0 && rect.y < DESIGN_HEIGHT*cam.scale)
         {
-            SDL_RenderCopy(renderer, tp->terrain, NULL, &rect);
+            SDL_RenderCopy(renderer, terrain, tp->src, &rect);
             if(tp->water)
             {
                 rect.y = tp->y - cam.y - shift;
-                SDL_RenderCopy(renderer, grass[2], NULL, &rect);
+                SDL_RenderCopy(renderer, terrain, &src_rects[0][2], &rect);
             }
             if (tp->building)
             {
@@ -248,13 +219,18 @@ Status game_loop(SDL_Renderer* renderer)
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
 
     /* Initialise globals. */
+    /* Fill src_rects. */
+    for(int i = 0; i < 3; i++) for(int j = 0; j < 22; j++)
+    {
+        src_rects[i][j] = (SDL_Rect) {j*TILE_WIDTH, i*TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT};
+    }
     fps = 60;
     debug_font = TTF_OpenFont("resources/fonts/fleftex_mono_8.ttf", 16);
     drawables  = load_drawables(renderer, layout);
     buildings  = load_textures(renderer, building_images);
-    grass      = load_textures(renderer, grass_images);
-    sand       = load_textures(renderer, sand_images);
-    sand_grass = load_textures(renderer, sg_images);
+    SDL_Surface* s = IMG_Load(terrain_path);
+    terrain = SDL_CreateTextureFromSurface(renderer, s);
+    SDL_FreeSurface(s);
     generate_map();
 
     /* Assume 60 for scroll speed to not become infinity. */
@@ -328,9 +304,7 @@ Status game_loop(SDL_Renderer* renderer)
     destroy_drawables(drawables);
     TTF_CloseFont(debug_font);
     destroy_textures(buildings);
-    destroy_textures(grass);
-    destroy_textures(sand);
-    destroy_textures(sand_grass);
+    SDL_DestroyTexture(terrain);
     SDL_RenderSetLogicalSize(renderer, DESIGN_WIDTH, DESIGN_HEIGHT);
     return status;
 }
