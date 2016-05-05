@@ -7,6 +7,7 @@
 
 #define GL_GLEXT_PROTOTYPES
 
+#include <GL/glu.h>
 #include <SDL2/SDL_opengl.h>
 
 #include "SDL_image.h"
@@ -42,7 +43,7 @@ const char* layout = "resources/layouts/game_ui.csv";
 const char* terrain_path = "resources/images/terrains.png";
 
 /* Free up some space in the stack. */
-SDL_Texture *terrain, **buildings;
+SDL_Texture **buildings;
 Drawable* drawables;
 SDL_Window* win;
 SDL_GLContext* con;
@@ -74,7 +75,7 @@ static SDL_Point tile_to_pixel(int x, int y)
 {
     return (SDL_Point) {
         (x - y) * (TILE_WIDTH >> 1),
-        (x + y) * (TILE_HEIGHT >> 1)
+        ((x + y) * (TILE_HEIGHT >> 1))
     };
 }
 
@@ -138,70 +139,88 @@ static void generate_map(void)
     }
 }
 
-GLuint vbo_id;
-#define vsize (18 * (GRID_SIZE ) * (GRID_SIZE))
-GLint *v;
+static GLuint vbo_id;
+static unsigned long land_count;
+#define vsize (12 * (GRID_SIZE ) * (GRID_SIZE))
+static GLfloat scale;
 
 static void render_grid()
 {
     glClear(GL_COLOR_BUFFER_BIT);
-    // bind VBOs for vertex array and index array
-    glBindBuffer(GL_ARRAY_BUFFER_ARB, vbo_id);         // for vertex coordinates
-    //glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, vboId2); // for indices
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
 
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(2, GL_INT, 0, 0);
 
-    // do same as vertex array except pointer
-    glEnableClientState(GL_VERTEX_ARRAY);             // activate vertex coords array
-    glVertexPointer(3, GL_INT, 0, 0);               // last param is offset, not ptr
-
-    glDrawArrays(GL_TRIANGLES, 0, vsize/3);
-
-    glDisableClientState(GL_VERTEX_ARRAY);            // deactivate vertex array
-    glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
+    glColor3ub(52, 171, 52);
+    glDrawArrays(GL_TRIANGLES, 0, land_count);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     SDL_GL_SwapWindow(win);
 }
 
 Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
 {
     memset(&key_status, 0, 283);
+    scale = 1.0f;
     win = window;
     ren = renderer;
     con = SDL_GL_CreateContext(win);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-DESIGN_WIDTH/2, DESIGN_WIDTH/2, DESIGN_HEIGHT, -DESIGN_HEIGHT, -50, 50);
-
+    //gluPerspective(-90, DESIGN_WIDTH/(DESIGN_HEIGHT), 0.1, 1000000);
+    glOrtho(-DESIGN_WIDTH/2, DESIGN_WIDTH/2, DESIGN_HEIGHT/2, -DESIGN_HEIGHT/2, -1, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    //gluLookAt(0, 0, scale, 0, 0, 0, 0, 1, 0);
 
     srand((unsigned int)time(NULL));
 
     /* Initialise globals. */
     generate_map();
 
-    glClearColor(0, 1, 1, 1);
+    glClearColor(0, 0, 0, 1);
 
-    v = malloc(vsize * sizeof(GLint));
+    /* Create vertex array. */
+    GLint *v = calloc(vsize, sizeof(GLint));
+    unsigned long i = 0;
     forXY(0, GRID_SIZE - 1)
     {
-        int os = (y * GRID_SIZE + x) * 18;
         SDL_Point p1 = tile_to_pixel(x, y);
         SDL_Point p2 = tile_to_pixel(x + 1, y);
         SDL_Point p3 = tile_to_pixel(x + 1, y + 1);
         SDL_Point p4 = tile_to_pixel(x, y + 1);
         int h = TILE_DEPTH * heightmap[x][y];
-        v[os + 0] = p1.x;  v[os + 1] = p1.y;  v[os + 2] = h;
-        v[os + 3] = p2.x;  v[os + 4] = p2.y;  v[os + 5] = h;
-        v[os + 6] = p3.x;  v[os + 7] = p3.y;  v[os + 8] = h;
-        v[os + 9] = p3.x;  v[os + 10] = p3.y; v[os + 11] = h;
-        v[os + 12] = p4.x; v[os + 13] = p4.y; v[os + 14] = h;
-        v[os + 15] = p1.x; v[os + 16] = p1.y; v[os + 17] = h;
+
+        if(tiles[x][y].tile_id == 0)
+        {
+            if(heightmap[x][y] > 0)
+            {
+                v[i++] = p1.x; v[i++] = p1.y - h;
+                v[i++] = p2.x; v[i++] = p2.y - h;
+                v[i++] = p3.x; v[i++] = p3.y - h;
+                v[i++] = p3.x; v[i++] = p3.y - h;
+                v[i++] = p4.x; v[i++] = p4.y - h;
+                v[i++] = p1.x; v[i++] = p1.y - h;
+            }
+            else    // water
+            {
+                /*v[i++] = p1.x; v[i++] = p1.y;
+                v[i++] = p2.x; v[i++] = p2.y;
+                v[i++] = p3.x; v[i++] = p3.y;
+                v[i++] = p3.x; v[i++] = p3.y;
+                v[i++] = p4.x; v[i++] = p4.y;
+                v[i++] = p1.x; v[i++] = p1.y;*/
+            }
+        }
     }
 
+
+    land_count = i;
     glGenBuffers(1, &vbo_id);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLint) * vsize, v, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLint) * i, v, GL_STATIC_DRAW);
     free(v);
 
     int status = 1;
@@ -211,10 +230,10 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
         status = event_loop();
         int render = 0;
     #define SCROLL(a, b, c, d, e) if(key_status[a] || (fullscreen && b == c)) \
-        { glTranslatef(scroll_speed * d, scroll_speed * e, 0); render = 1; }
+        { glTranslatef(scroll_speed * d * scale, scroll_speed * e * scale, 0); render = 1; }
         SCROLL(80, 0,    100,  1.0f,  0.0f)
-        SCROLL(79, 1279, 100, -1.0f,  0.0f)
-        SCROLL(82, 0,    100,  0.0f,  0.5f)
+        SCROLL(79, 1279, 100,  -1.0f,  0.0f)
+        SCROLL(82, 0,    100,  0.0f, 0.5f)
         SCROLL(81, 719,  100,  0.0f, -0.5f)
         if(render) render_grid();
         SDL_Delay(16);
@@ -241,10 +260,37 @@ static int event_loop()
             /* Zoom in is 1, zoom out is -1 */
             if(event.wheel.y)
             {
-                GLfloat scale = (GLfloat) (event.wheel.y < 0 ? 0.8 : 1.25);
-                //glScalef(scale, scale, 0);
-                const GLfloat r[] = { scale, 0, 0, 0,  0, scale, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1 };
-                glMultMatrixf(&r);
+                int mouse_x, mouse_y;
+                SDL_GetMouseState(&mouse_x, &mouse_y);
+                GLfloat gscale = (event.wheel.y < 0 ? 0.8 : 1.25);
+                scale /= gscale;
+
+                //float factor = 1 == event.wheel.y ? scale : -old_scale;
+
+               // float dx = factor*mouse_x;
+               // float dy = factor*mouse_y;
+/*
+                glMatrixMode(GL_PROJECTION);
+                glLoadIdentity();
+                glOrtho(dx,    scale*(DESIGN_WIDTH >> 1) + dx,
+                        scale*(DESIGN_HEIGHT >> 1) + dy,   dy, 0, 1);*/
+                //glMatrixMode(GL_PROJECTION);
+                    //glLoadIdentity();
+
+                //camx -= factor/1000.0f*(DESIGN_WIDTH - mouse_x)/2.0f;
+                //camy += factor/1000.0f*(DESIGN_HEIGHT - mouse_y)/2.0f;
+
+                GLfloat M[] = {
+                    gscale,  0,  0,  0,
+                    0,  gscale,  0,  0,
+                    0,       0,  1,  0,
+                    0,       0,  0,  1,
+                };
+                glMultMatrixf(&M);
+                //gluLookAt(camx, camy, scale, camx, camy, 0, 0, 1, 0);
+                //glMatrixMode(GL_MODELVIEW);
+
+
                 render_grid();
             }
         }
