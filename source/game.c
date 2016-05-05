@@ -7,7 +7,6 @@
 
 #define GL_GLEXT_PROTOTYPES
 
-#include <GL/glu.h>
 #include <SDL2/SDL_opengl.h>
 
 #include "SDL_image.h"
@@ -75,7 +74,7 @@ static SDL_Point tile_to_pixel(int x, int y)
 {
     return (SDL_Point) {
         (x - y) * (TILE_WIDTH >> 1),
-        ((x + y) * (TILE_HEIGHT >> 1))
+        (x + y) * (TILE_HEIGHT >> 1)
     };
 }
 
@@ -169,11 +168,9 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    //gluPerspective(-90, DESIGN_WIDTH/(DESIGN_HEIGHT), 0.1, 1000000);
     glOrtho(-DESIGN_WIDTH/2, DESIGN_WIDTH/2, DESIGN_HEIGHT/2, -DESIGN_HEIGHT/2, -1, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    //gluLookAt(0, 0, scale, 0, 0, 0, 0, 1, 0);
 
     srand((unsigned int)time(NULL));
 
