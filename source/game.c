@@ -5,6 +5,8 @@
 #include <string.h>
 #include <time.h>
 
+#define GL_GLEXT_PROTOTYPES
+
 #include <SDL2/SDL_opengl.h>
 
 #include "SDL_image.h"
@@ -136,47 +138,39 @@ static void generate_map(void)
     }
 }
 
+GLuint vbo_id;
+#define vsize (18 * (GRID_SIZE ) * (GRID_SIZE))
+GLint *v;
+
 static void render_grid()
 {
     glClear(GL_COLOR_BUFFER_BIT);
+    // bind VBOs for vertex array and index array
+    glBindBuffer(GL_ARRAY_BUFFER_ARB, vbo_id);         // for vertex coordinates
+    //glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, vboId2); // for indices
 
-    /* Render map. */
-    for(int j = 0; j < GRID_SIZE - 1; j++)
-    for(int i = 0; i < GRID_SIZE - 1; i++)
-    {
-        SDL_Point p1 = tile_to_pixel(i, j);
-        SDL_Point p2 = tile_to_pixel(i + 1, j);
-        SDL_Point p3 = tile_to_pixel(i + 1, j + 1);
-        SDL_Point p4 = tile_to_pixel(i, j + 1);
 
-        int height = TILE_DEPTH * heightmap[i][j];
+    // do same as vertex array except pointer
+    glEnableClientState(GL_VERTEX_ARRAY);             // activate vertex coords array
+    glVertexPointer(3, GL_INT, 0, 0);               // last param is offset, not ptr
 
-        if(tiles[i][j].tile_id == 0)
-        {
-            glColor3ub(52, 187, 52);
-            glBegin(GL_TRIANGLES);
-                glVertex2i(p1.x, p1.y + height);
-                glVertex2i(p2.x, p2.y + height);
-                glVertex2i(p4.x, p4.y + height);
+    glDrawArrays(GL_TRIANGLES, 0, vsize/3);
 
-                glVertex2i(p4.x, p4.y + height);
-                glVertex2i(p3.x, p3.y + height);
-                glVertex2i(p2.x, p2.y + height);
-            glEnd();
-        }
-    }
+    glDisableClientState(GL_VERTEX_ARRAY);            // deactivate vertex array
+    glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
     SDL_GL_SwapWindow(win);
 }
 
 Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
 {
+    memset(&key_status, 0, 283);
     win = window;
     ren = renderer;
     con = SDL_GL_CreateContext(win);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-DESIGN_WIDTH/2, DESIGN_WIDTH/2, DESIGN_HEIGHT, -DESIGN_HEIGHT, 0.0, 1.0);
+    glOrtho(-DESIGN_WIDTH/2, DESIGN_WIDTH/2, DESIGN_HEIGHT, -DESIGN_HEIGHT, -50, 50);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -186,7 +180,29 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
     /* Initialise globals. */
     generate_map();
 
-    glClearColor(1, 1, 1, 1);
+    glClearColor(0, 1, 1, 1);
+
+    v = malloc(vsize * sizeof(GLint));
+    forXY(0, GRID_SIZE - 1)
+    {
+        int os = (y * GRID_SIZE + x) * 18;
+        SDL_Point p1 = tile_to_pixel(x, y);
+        SDL_Point p2 = tile_to_pixel(x + 1, y);
+        SDL_Point p3 = tile_to_pixel(x + 1, y + 1);
+        SDL_Point p4 = tile_to_pixel(x, y + 1);
+        int h = TILE_DEPTH * heightmap[x][y];
+        v[os + 0] = p1.x;  v[os + 1] = p1.y;  v[os + 2] = h;
+        v[os + 3] = p2.x;  v[os + 4] = p2.y;  v[os + 5] = h;
+        v[os + 6] = p3.x;  v[os + 7] = p3.y;  v[os + 8] = h;
+        v[os + 9] = p3.x;  v[os + 10] = p3.y; v[os + 11] = h;
+        v[os + 12] = p4.x; v[os + 13] = p4.y; v[os + 14] = h;
+        v[os + 15] = p1.x; v[os + 16] = p1.y; v[os + 17] = h;
+    }
+
+    glGenBuffers(1, &vbo_id);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLint) * vsize, v, GL_STATIC_DRAW);
+    free(v);
 
     int status = 1;
     render_grid();
@@ -205,6 +221,7 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
     }
 
     /* Free any allocated memory. */
+    glDeleteBuffers(1, &vbo_id);
     SDL_GL_DeleteContext(con);
     return SWITCHTO_MAINMENU;
 }
@@ -225,7 +242,9 @@ static int event_loop()
             if(event.wheel.y)
             {
                 GLfloat scale = (GLfloat) (event.wheel.y < 0 ? 0.8 : 1.25);
-                glScalef(scale, scale, 0);
+                //glScalef(scale, scale, 0);
+                const GLfloat r[] = { scale, 0, 0, 0,  0, scale, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1 };
+                glMultMatrixf(&r);
                 render_grid();
             }
         }
