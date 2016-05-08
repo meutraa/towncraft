@@ -142,6 +142,8 @@ static GLuint vbo_id;
 static unsigned long land_count;
 #define vsize (12 * (GRID_SIZE ) * (GRID_SIZE))
 static GLfloat scale;
+float dx;
+float dy;
 
 static void render_grid()
 {
@@ -162,15 +164,16 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
 {
     memset(&key_status, 0, 283);
     scale = 1.0f;
+    dx = 0.0f, dy = 0.0f;
     win = window;
     ren = renderer;
     con = SDL_GL_CreateContext(win);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-DESIGN_WIDTH/2, DESIGN_WIDTH/2, DESIGN_HEIGHT/2, -DESIGN_HEIGHT/2, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    glOrtho(0, DESIGN_WIDTH, 0, DESIGN_HEIGHT, -1, 1);
+    //glMatrixMode(GL_MODELVIEW);
+    //glLoadIdentity();
 
     srand((unsigned int)time(NULL));
 
@@ -227,12 +230,19 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
         status = event_loop();
         int render = 0;
     #define SCROLL(a, b, c, d, e) if(key_status[a] || (fullscreen && b == c)) \
-        { glTranslatef(scroll_speed * d * scale, scroll_speed * e * scale, 0); render = 1; }
-        SCROLL(80, 0,    100,  1.0f,  0.0f)
-        SCROLL(79, 1279, 100,  -1.0f,  0.0f)
-        SCROLL(82, 0,    100,  0.0f, 0.5f)
-        SCROLL(81, 719,  100,  0.0f, -0.5f)
-        if(render) render_grid();
+        { dx += scroll_speed * scale * d; \
+          dy += scroll_speed * scale * e; \
+          render = 1; }
+        SCROLL(SDL_SCANCODE_A, 0,    100,  -1.0f,  0.0f)
+        SCROLL(SDL_SCANCODE_D, 1279, 100,  1.0f,  0.0f)
+        SCROLL(SDL_SCANCODE_W, 0,    100,  0.0f, 0.5f)
+        SCROLL(SDL_SCANCODE_S, 719,  100,  0.0f, -0.5f)
+        if(render)
+        {
+            glLoadIdentity();
+            glOrtho(dx, (DESIGN_WIDTH * scale) + dx, dy, (DESIGN_HEIGHT * scale) + dy, -1, 1);
+            render_grid();
+        }
         SDL_Delay(16);
     }
 
@@ -258,35 +268,25 @@ static int event_loop()
             if(event.wheel.y)
             {
                 int mouse_x, mouse_y;
+                int zoomout = event.wheel.y < 0, zoomin = !zoomout;
                 SDL_GetMouseState(&mouse_x, &mouse_y);
-                GLfloat gscale = (event.wheel.y < 0 ? 0.8 : 1.25);
-                scale /= gscale;
+                GLfloat gscale = zoomin ? 0.5 : 2.0f;
+                float oldscale = scale;
+                scale *= gscale;
 
-                //float factor = 1 == event.wheel.y ? scale : -old_scale;
+                if(zoomin)
+                {
+                    dx += mouse_x * scale;
+                    dy += (DESIGN_HEIGHT - mouse_y) * scale;
+                }
+                else
+                {
+                    dx -= mouse_x * oldscale;
+                    dy -= (DESIGN_HEIGHT - mouse_y) * oldscale;
+                }
 
-               // float dx = factor*mouse_x;
-               // float dy = factor*mouse_y;
-/*
-                glMatrixMode(GL_PROJECTION);
                 glLoadIdentity();
-                glOrtho(dx,    scale*(DESIGN_WIDTH >> 1) + dx,
-                        scale*(DESIGN_HEIGHT >> 1) + dy,   dy, 0, 1);*/
-                //glMatrixMode(GL_PROJECTION);
-                    //glLoadIdentity();
-
-                //camx -= factor/1000.0f*(DESIGN_WIDTH - mouse_x)/2.0f;
-                //camy += factor/1000.0f*(DESIGN_HEIGHT - mouse_y)/2.0f;
-
-                GLfloat M[] = {
-                    gscale,  0,  0,  0,
-                    0,  gscale,  0,  0,
-                    0,       0,  1,  0,
-                    0,       0,  0,  1,
-                };
-                glMultMatrixf(&M);
-                //gluLookAt(camx, camy, scale, camx, camy, 0, 0, 1, 0);
-                //glMatrixMode(GL_MODELVIEW);
-
+                glOrtho(dx, (DESIGN_WIDTH * scale) + dx, dy, (DESIGN_HEIGHT * scale) + dy, -1, 1);
 
                 render_grid();
             }
