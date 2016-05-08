@@ -139,7 +139,7 @@ static void generate_map(void)
 }
 
 static GLuint vbo_id;
-static unsigned long land_count;
+static unsigned long land_count, water_count;
 #define vsize (12 * (GRID_SIZE ) * (GRID_SIZE))
 static GLfloat scale;
 float dx;
@@ -154,10 +154,21 @@ static void render_grid()
     glVertexPointer(2, GL_INT, 0, 0);
 
     glColor3ub(52, 171, 52);
-    glDrawArrays(GL_TRIANGLES, 0, land_count);
+    glDrawArrays(GL_TRIANGLES, 0, land_count/2);
+
+    glColor3ub(102, 204, 255);
+    glDrawArrays(GL_TRIANGLES, land_count / 2, (water_count - land_count) / 2);
+
     glDisableClientState(GL_VERTEX_ARRAY);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     SDL_GL_SwapWindow(win);
+}
+
+static void update_view()
+{
+    glLoadIdentity();
+    glOrtho(dx, (DESIGN_WIDTH * scale) + dx, dy, (DESIGN_HEIGHT * scale) + dy, -1, 1);
+    render_grid();
 }
 
 Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
@@ -172,8 +183,6 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0, DESIGN_WIDTH, 0, DESIGN_HEIGHT, -1, 1);
-    //glMatrixMode(GL_MODELVIEW);
-    //glLoadIdentity();
 
     srand((unsigned int)time(NULL));
 
@@ -195,29 +204,37 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
 
         if(tiles[x][y].tile_id == 0)
         {
-            if(heightmap[x][y] > 0)
+            if(h > 0)
             {
-                v[i++] = p1.x; v[i++] = p1.y - h;
-                v[i++] = p2.x; v[i++] = p2.y - h;
-                v[i++] = p3.x; v[i++] = p3.y - h;
-                v[i++] = p3.x; v[i++] = p3.y - h;
-                v[i++] = p4.x; v[i++] = p4.y - h;
-                v[i++] = p1.x; v[i++] = p1.y - h;
+                v[i++] = p1.x; v[i++] = p1.y + h;
+                v[i++] = p2.x; v[i++] = p2.y + h;
+                v[i++] = p3.x; v[i++] = p3.y + h;
+                v[i++] = p3.x; v[i++] = p3.y + h;
+                v[i++] = p4.x; v[i++] = p4.y + h;
+                v[i++] = p1.x; v[i++] = p1.y + h;
             }
-            else    // water
+        }
+    }
+    land_count = i;
+    forXY(0, GRID_SIZE - 1)
+    {
+        SDL_Point p1 = tile_to_pixel(x, y);
+        SDL_Point p2 = tile_to_pixel(x + 1, y);
+        SDL_Point p3 = tile_to_pixel(x + 1, y + 1);
+        SDL_Point p4 = tile_to_pixel(x, y + 1);
+
+            if(heightmap[x][y] <= 0)
             {
-                /*v[i++] = p1.x; v[i++] = p1.y;
+                v[i++] = p1.x; v[i++] = p1.y;
                 v[i++] = p2.x; v[i++] = p2.y;
                 v[i++] = p3.x; v[i++] = p3.y;
                 v[i++] = p3.x; v[i++] = p3.y;
                 v[i++] = p4.x; v[i++] = p4.y;
-                v[i++] = p1.x; v[i++] = p1.y;*/
+                v[i++] = p1.x; v[i++] = p1.y;
             }
-        }
     }
 
-
-    land_count = i;
+    water_count = i;
     glGenBuffers(1, &vbo_id);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLint) * i, v, GL_STATIC_DRAW);
@@ -237,12 +254,7 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
         SCROLL(SDL_SCANCODE_D, 1279, 100,  1.0f,  0.0f)
         SCROLL(SDL_SCANCODE_W, 0,    100,  0.0f, 0.5f)
         SCROLL(SDL_SCANCODE_S, 719,  100,  0.0f, -0.5f)
-        if(render)
-        {
-            glLoadIdentity();
-            glOrtho(dx, (DESIGN_WIDTH * scale) + dx, dy, (DESIGN_HEIGHT * scale) + dy, -1, 1);
-            render_grid();
-        }
+        if(render) update_view();
         SDL_Delay(16);
     }
 
@@ -285,10 +297,7 @@ static int event_loop()
                     dy -= (DESIGN_HEIGHT - mouse_y) * oldscale;
                 }
 
-                glLoadIdentity();
-                glOrtho(dx, (DESIGN_WIDTH * scale) + dx, dy, (DESIGN_HEIGHT * scale) + dy, -1, 1);
-
-                render_grid();
+                update_view();
             }
         }
     }
