@@ -23,6 +23,10 @@ static int event_loop();
 
 const char* layout = "resources/layouts/game_ui.csv";
 
+static const int maskmap[32] = {
+    0, 4, 5, 9, 6, 21, 10, 13, 7, 8, 20, 12, 11, 15, 14, [23] = 16, [27] = 17, [29] = 18, [30] = 19
+};
+
 /* Free up some space in the stack. */
 Drawable* drawables;
 SDL_Window* win;
@@ -48,11 +52,13 @@ static SDL_Point tile_to_pixel(int x, int y)
     };
 }
 
+static Tile tiles[GRID_SIZE][GRID_SIZE];
+
 static GLuint vbo_id;
-static unsigned long land_count;
-#define GRID_TOTAL (GRID_SIZE ) * (GRID_SIZE)
-#define vsize (12 * GRID_TOTAL)
-#define csize (18 * GRID_TOTAL)
+#define TILES ((GRID_SIZE - 1) * (GRID_SIZE - 1))
+
+#define NUM_VERTEX 12
+#define NUM_COLOR 18
 static GLfloat scale;
 float dx;
 float dy;
@@ -65,9 +71,9 @@ static void render_grid()
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glVertexPointer(2, GL_INT, 0, 0);
-    glColorPointer(3, GL_UNSIGNED_BYTE, 0, sizeof(GLint) * land_count);
+    glColorPointer(3, GL_UNSIGNED_BYTE, 0, TILES * NUM_VERTEX * sizeof(GLint));
 
-    glDrawArrays(GL_TRIANGLES, 0, land_count >> 1);
+    glDrawArrays(GL_TRIANGLES, 0, TILES * 6);
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
@@ -100,18 +106,41 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
     /* Create the map. */
     fill_heightmap(heightmap, GRID_SIZE - 1, ROUGHNESS);
 
+    forXY(0, GRID_SIZE - 1)
+    {
+        SDL_Point pixel = tile_to_pixel(x , y);
+
+        int u = hxy, d = h1xy, l = hxy1, r = hx1y;
+
+        /* Get lowest corner. Loop deliberately unrolled.*/
+        int low = u;
+        if(d < low) low = d;
+        if(l < low) low = l;
+        if(r < low) low = r;
+
+        int ST = abs(u - d) >= 2 || abs(l - r) >= 2;
+        int mask = (l > low) | ((d > low) << 1) | ((r > low) << 2) | ((u > low) << 3) | (ST << 4);
+
+        Tile* tp = &tiles[x][y];
+        tp->x = pixel.x;
+        tp->y = pixel.y;
+        tp->water = u <= 0 || l <= 0 || r <= 0 || d <= 0;
+        tp->tile_id  = !mask ? !u : maskmap[mask];
+    }
+
     glClearColor(0, 0, 0, 1);
-    //glShadeModel(GL_FLAT);
+    glShadeModel(GL_FLAT);
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_DITHER);
     glDisable(GL_TEXTURE_2D);
 
     /* Create vertex array. */
-    GLint *v = calloc(vsize, sizeof(GLint));
-    GLubyte *c = calloc(csize, sizeof(GLubyte));
+    unsigned long size_vertices = sizeof(GLint) * NUM_VERTEX * TILES;
+    unsigned long size_colors   = sizeof(GLubyte) * NUM_COLOR * TILES;
+    GLint *v = malloc(size_vertices);
+    GLubyte *c = malloc(size_colors);
     int i = 0, j = 0;
-    land_count = 0;
     forXY(0, GRID_SIZE - 1)
     {
         SDL_Point p1 = tile_to_pixel(x, y);
@@ -134,44 +163,100 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
             add_triangle(p1, p2, p4)
             add_triangle(p4, p2, p3)
         }
-        land_count += 12;
+
+        const int id = tiles[x][y].tile_id;
         /* Add color vertices. */
-        //if(hxy == hx1y && hx1y == hxy1 && hxy1 == h1xy)
+        if(tiles[x][y].water)
         {
-            //add_triangle_color(82, 234, 82)
-            //add_triangle_color(82, 234, 82)
-            GLubyte p = (hxy + 24) * 2;
-            add_triangle_color(p, p, p);
-            add_triangle_color(p, p, p);
+            add_triangle_color(100, 173, 199)
+            add_triangle_color(100, 173, 199)
         }
-        /*else if(4 == tiles[x][y].tile_id)
+        else if(0 == id)
         {
-            add_triangle_color(94, 255, 94);
-            add_triangle_color(80, 228, 80);
+            add_triangle_color(52, 187, 52)
+            add_triangle_color(52, 187, 52)
         }
-        else if(18 == tiles[x][y].tile_id)
+        else if(4 == id)
         {
-            add_triangle_color(63, 187, 63);
-            add_triangle_color(63, 187, 63);
-        }*/
-        //else
+            add_triangle_color(63, 221, 63)
+            add_triangle_color(52, 187, 52)
+        }
+        else if(5 == id)
         {
-            //add_triangle_color(64, 64, 64)
-            //add_triangle_color(64, 64, 64)
+            add_triangle_color(52, 187, 52)
+            add_triangle_color(63, 211, 63)
+        }
+        else if(6 == id)
+        {
+            add_triangle_color(52, 187, 52)
+            add_triangle_color(35, 136, 35)
+        }
+        else if(7 == id)
+        {
+            add_triangle_color(35, 136, 35)
+            add_triangle_color(52, 187, 52)
+        }
+        else if(8 == id || 9 == id)
+        {
+            add_triangle_color(64, 224, 64)
+            add_triangle_color(64, 224, 64)
+        }
+        else if(10 == id || 11 == id)
+        {
+            add_triangle_color(35, 136, 35)
+            add_triangle_color(35, 136, 35)
+        }
+        else if(12 == id)
+        {
+            add_triangle_color(52, 187, 52)
+            add_triangle_color(64, 224, 64)
+        }
+        else if(13 == id)
+        {
+            add_triangle_color(64, 224, 64)
+            add_triangle_color(52, 187, 52)
+        }
+        else if(14 == id)
+        {
+            add_triangle_color(35, 136, 35)
+            add_triangle_color(52, 187, 52)
+        }
+        else if(15 == id)
+        {
+            add_triangle_color(52, 187, 52)
+            add_triangle_color(35, 136, 35)
+        }
+        else if(16 == id || 17 == id)
+        {
+            add_triangle_color(64, 224, 64)
+            add_triangle_color(64, 224, 64)
+        }
+        else if(18 == id || 19 == id)
+        {
+            add_triangle_color(63, 187, 63)
+            add_triangle_color(63, 187, 63)
+        }
+        else if(20 == id)
+        {
+            add_triangle_color(34, 133, 34)
+            add_triangle_color(62, 219, 62)
+        }
+        else if(21 == id)
+        {
+            add_triangle_color(62, 219, 62)
+            add_triangle_color(34, 133, 34)
         }
     }
-
     glGenBuffers(1, &vbo_id);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
 
-    unsigned long all_size = (vsize * sizeof(GLint)) + (csize * sizeof(GLubyte));
-    GLint *all = malloc(all_size);
-    memmove(all, v, vsize * sizeof(GLint));
+    GLint *all = malloc(size_vertices + size_colors);
+    memmove(all, v, size_vertices);
     free(v);
-    memmove(all + vsize, c, csize * sizeof(GLubyte));
+    memmove(all + (NUM_VERTEX * TILES), c, size_colors);
     free(c);
 
-    glBufferData(GL_ARRAY_BUFFER, all_size, all, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, size_vertices + size_colors, all, GL_STATIC_DRAW);
     free(all);
 
     int status = 1;

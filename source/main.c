@@ -86,7 +86,7 @@ int main(void)
     {
         if(SWITCHTO_MAINMENU == status)
         {
-            Mix_FadeInMusicPos(chiptune, -1, 2000, 0.5);
+            //Mix_FadeInMusicPos(chiptune, -1, 2000, 0.5);
             status = main_menu_loop(renderer);
         }
         else if(SWITCHTO_OPTIONS == status)
