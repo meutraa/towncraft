@@ -1,5 +1,5 @@
 before_script:
-  - apt-get update -qq && apt-get install -y -qq clang libepoxy-dev libglfw3-dev
+  - apt-get update -qq && apt-get install -y -qq libepoxy-dev libglfw3-dev
 
 main:
   script:

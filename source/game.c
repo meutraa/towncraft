@@ -40,8 +40,6 @@ static const Color sand_dark  = { (int)(SAND_R * DARK), (int)(SAND_G * DARK), (i
 
 static const Color water      = { 100, 173, 199, 192 };
 
-const char* layout = "resources/layouts/game_ui.csv";
-
 static const int maskmap[32] = {
     0, 4, 5, 9, 6, 21, 10, 13, 7, 8, 20, 12, 11, 15, 14, [23] = 16, [27] = 17, [29] = 18, [30] = 19
 };
@@ -59,7 +57,6 @@ static int heightmap[GRID_SIZE][GRID_SIZE];
 #define hxy1 heightmap[x][y + 1]
 #define h1xy heightmap[x + 1][y + 1]
 
-/* Tile dimensions must be divisible by exp2(DEFAULT_SCALE). */
 static const int TILE_WIDTH  = 64;
 static const int TILE_HEIGHT = 32;
 static const int TILE_DEPTH  = 8;
@@ -79,9 +76,7 @@ static GLuint vbo_id;
 #define NUM_TRIANGLES TILES * 2
 static unsigned long tri_count;
 
-static GLfloat scale;
-float dx;
-float dy;
+static GLfloat scale, dx, dy;
 
 #define NUM_COLOR 12
 static GLubyte* app_tri_colors(GLubyte *ar, Color c)
@@ -135,12 +130,6 @@ static void update_view(GLFWwindow* window)
     render_grid(window);
 }
 
-static void pan(GLFWwindow* win, float* x, float* y, float Dx, float Dy, float speed)
-{
-    *x += speed * Dx;
-    *y += speed * Dy;
-}
-
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     key_status[key] = GLFW_RELEASE == action ? 0 : 1;
@@ -172,10 +161,6 @@ int game_loop(GLFWwindow* window)
     scale = 1.0f;
     dx = 0.0f, dy = 0.0f;
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, DESIGN_WIDTH, 0, DESIGN_HEIGHT, -1, 1);
-
     srand((unsigned int)time(NULL));
 
     /* Create the map. */
@@ -186,32 +171,20 @@ int game_loop(GLFWwindow* window)
     {
         Point pixel = tile_to_pixel(x , y);
 
-        int u = h1xy, d = hxy, l = hxy1, r = hx1y;
-
         /* Get lowest corner. Loop deliberately unrolled.*/
-        int low = u;
-        if(d < low) low = d;
-        if(l < low) low = l;
-        if(r < low) low = r;
+        int low = h1xy;
+        if(hxy < low) low = hxy;
+        if(hxy1 < low) low = hxy1;
+        if(hx1y < low) low = hx1y;
 
-        int ST = abs(u - d) >= 2 || abs(l - r) >= 2;
-        int mask = (l > low) | ((d > low) << 1) | ((r > low) << 2) | ((u > low) << 3) | (ST << 4);
+        int steep = abs(h1xy - hxy) >= 2 || abs(hxy1 - hx1y) >= 2;
+        int mask = (hxy1 > low) | ((hxy > low) << 1) | ((hx1y > low) << 2) | ((h1xy > low) << 3) | (steep << 4);
 
-        Tile* tp = &tiles[x][y];
-        tp->x = pixel.x;
-        tp->y = pixel.y;
-        tp->water = u <= 0 || l <= 0 || r <= 0 || d <= 0;
-        tp->tile_id  = maskmap[mask];
+        tiles[x][y].x = pixel.x;
+        tiles[x][y].y = pixel.y;
+        tiles[x][y].water = h1xy <= 0 || hxy1 <= 0 || hx1y <= 0 || hxy <= 0;
+        tiles[x][y].tile_id = maskmap[mask];
     }
-
-    glClearColor(0, 0, 0, 1);
-    glShadeModel(GL_FLAT);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_DITHER);
-    glDisable(GL_TEXTURE_2D);
 
     /* Create vertex array. */
     /* *2 because we assume every tile has an extra water tile. */
@@ -323,19 +296,19 @@ int game_loop(GLFWwindow* window)
     glBufferData(GL_ARRAY_BUFFER, size_vertices + size_colors, all, GL_STATIC_DRAW);
     free(all);
 
-    render_grid(window);
+    glMatrixMode(GL_PROJECTION);
+    update_view(window);
     while(1)
     {
         glfwPollEvents();
         if(key_status[GLFW_KEY_ESCAPE]) break;
         float speed = scroll_speed * scale;
         int r = 0;
-        if(key_status[GLFW_KEY_A]) { pan(window, &dx, &dy, -1.0f,  0.0f, speed); r = 1; }
-        if(key_status[GLFW_KEY_D]) { pan(window, &dx, &dy,  1.0f,  0.0f, speed); r = 1; }
-        if(key_status[GLFW_KEY_W]) { pan(window, &dx, &dy,  0.0f,  0.5f, speed); r = 1; }
-        if(key_status[GLFW_KEY_S]) { pan(window, &dx, &dy,  0.0f, -0.5f, speed); r = 1; }
+        if(key_status[GLFW_KEY_A]) { dx -= speed; r = 1; }
+        if(key_status[GLFW_KEY_D]) { dx += speed; r = 1; }
+        if(key_status[GLFW_KEY_W]) { dy += speed / 2; r = 1; }
+        if(key_status[GLFW_KEY_S]) { dy -= speed / 2; r = 1; }
         if(r) update_view(window);
-        //SDL_Delay(16);
     }
 
     /* Free any allocated memory. */

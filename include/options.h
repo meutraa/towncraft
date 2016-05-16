@@ -20,15 +20,6 @@ extern int vsync;
 extern int fullscreen;
 
 /*!
-    \brief Defines the zoom mode.
-
-    0 always zoom on the center of the screen.
-    1 zoom and keep the tile on the mouse pointer at the same position as the mouse pointer.
-    2 zoom centered on the mouse pointer.
-*/
-extern int zoom_mode;
-
-/*!
     \brief percent of the screen that will scroll each frame.
 */
 int scroll_speed;
