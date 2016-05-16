@@ -34,7 +34,8 @@ SDL_GLContext* con;
 SDL_Renderer* ren;
 int key_status[283];
 
-static GLenum render_mode = GL_FILL;
+static GLenum render_modes[] = { GL_FILL, GL_FILL, GL_LINE, GL_POINT };
+static int render_mode = 0;
 
 /* The grid of tiles. */
 static int heightmap[GRID_SIZE][GRID_SIZE];
@@ -77,8 +78,17 @@ static void render_grid()
 
     glDrawArrays(GL_TRIANGLES, 0, tri_count * 3);
 
-    glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
+
+    if(render_mode % 4 == 1)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glColor4ub(0, 0, 0, 16);
+        glDrawArrays(GL_TRIANGLES, 0, tri_count * 3);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    glDisableClientState(GL_VERTEX_ARRAY);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     SDL_GL_SwapWindow(win);
 }
@@ -288,8 +298,7 @@ static int event_loop()
             if(SDL_SCANCODE_RETURN == event.key.keysym.scancode
                 && SDL_KEYDOWN == event.key.type && 0 == event.key.repeat)
             {
-                render_mode = render_mode == GL_FILL ? GL_LINE : GL_FILL;
-                glPolygonMode(GL_FRONT_AND_BACK, render_mode);
+                glPolygonMode(GL_FRONT_AND_BACK, render_modes[++render_mode % 4]);
                 render_grid();
             }
         }
