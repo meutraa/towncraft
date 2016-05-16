@@ -5,15 +5,12 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "SDL.h"
-#include "status.h"
+#include <GLFW/glfw3.h>
 
 /*!
     \brief A structure that contains some values for tiles.
 */
 typedef struct Tile {
-    SDL_Texture* building;  /*!< a pointer to an Building. */
-    SDL_Rect* src;          /*!< a pointer to a Terrain. */
     int tile_id;            /*!< an id. */
     int terrain_id;
     int voffset;
@@ -36,6 +33,6 @@ typedef struct Camera {
     \param renderer used for all rendering inside the game.
     \return QUIT_PROGRAM or NORMAL enums.
 */
-Status game_loop(SDL_Window* window, SDL_Renderer* renderer);
+int game_loop(GLFWwindow* window);
 
 #endif

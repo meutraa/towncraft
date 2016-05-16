@@ -1,3 +1,6 @@
+#include <epoxy/gl.h>
+#include <epoxy/glx.h>
+
 #include "game.h"
 
 #include <stdio.h>
@@ -6,24 +9,17 @@
 #include <string.h>
 #include <time.h>
 
-#define GL_GLEXT_PROTOTYPES
-
-#include <SDL2/SDL_opengl.h>
-
-#include "SDL_image.h"
-#include "constants.h"
-#include "drawable.h"
 #include "options.h"
-#include "text.h"
+#include "constants.h"
 #include "diamond.h"
-#include "macros.h"
-#include "status.h"
-
-static int event_loop();
 
 typedef struct Color {
     GLubyte r, g, b, a;
 } Color;
+
+typedef struct Point {
+    GLint x, y;
+} Point;
 
 #define DARK 0.56f
 #define LIGHT 1.23f
@@ -51,10 +47,6 @@ static const int maskmap[32] = {
 };
 
 /* Free up some space in the stack. */
-Drawable* drawables;
-SDL_Window* win;
-SDL_GLContext* con;
-SDL_Renderer* ren;
 int key_status[283];
 
 static GLenum render_modes[] = { GL_FILL, GL_FILL, GL_LINE, GL_POINT };
@@ -62,15 +54,19 @@ static int render_mode = 0;
 
 /* The grid of tiles. */
 static int heightmap[GRID_SIZE][GRID_SIZE];
+#define hxy heightmap[x][y]
+#define hx1y heightmap[x + 1][y]
+#define hxy1 heightmap[x][y + 1]
+#define h1xy heightmap[x + 1][y + 1]
 
 /* Tile dimensions must be divisible by exp2(DEFAULT_SCALE). */
 static const int TILE_WIDTH  = 64;
 static const int TILE_HEIGHT = 32;
 static const int TILE_DEPTH  = 8;
 
-static SDL_Point tile_to_pixel(int x, int y)
+static Point tile_to_pixel(int x, int y)
 {
-    return (SDL_Point) {
+    return (Point) {
         (x - y) * (TILE_WIDTH >> 1),
         (x + y) * (TILE_HEIGHT >> 1)
     };
@@ -97,7 +93,7 @@ static GLubyte* app_tri_colors(GLubyte *ar, Color c)
 }
 
 #define NUM_VERTEX 6
-static GLint* app_tri_vertices(GLint *ar, SDL_Point p1, SDL_Point p2, SDL_Point p3)
+static GLint* app_tri_vertices(GLint *ar, Point p1, Point p2, Point p3)
 {
     *(ar++) = p1.x; *(ar++) = p1.y;
     *(ar++) = p2.x; *(ar++) = p2.y;
@@ -105,7 +101,7 @@ static GLint* app_tri_vertices(GLint *ar, SDL_Point p1, SDL_Point p2, SDL_Point 
     return ar;
 }
 
-static void render_grid()
+static void render_grid(GLFWwindow* window)
 {
     glClear(GL_COLOR_BUFFER_BIT);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
@@ -129,24 +125,52 @@ static void render_grid()
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    SDL_GL_SwapWindow(win);
+    glfwSwapBuffers(window);
 }
 
-static void update_view()
+static void update_view(GLFWwindow* window)
 {
     glLoadIdentity();
     glOrtho(dx, (DESIGN_WIDTH * scale) + dx, dy, (DESIGN_HEIGHT * scale) + dy, -1, 1);
-    render_grid();
+    render_grid(window);
 }
 
-Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
+static void pan(GLFWwindow* win, float* x, float* y, float Dx, float Dy, float speed)
 {
-    memset(&key_status, 0, 283);
+    *x += speed * Dx;
+    *y += speed * Dy;
+}
+
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    key_status[key] = GLFW_RELEASE == action ? 0 : 1;
+    if(GLFW_KEY_ENTER == key && action == GLFW_PRESS)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, render_modes[++render_mode % 4]);
+        render_grid(window);
+    }
+}
+
+static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    double mouse_x, mouse_y;
+    int zoomin = yoffset > 0;
+    glfwGetCursorPos(window, &mouse_x, &mouse_y);
+    float oldscale = scale;
+    scale *= zoomin ? 0.5 : 2.0f;
+    dx += mouse_x * (zoomin ? scale : -oldscale);
+    dy += (DESIGN_HEIGHT - mouse_y) * (zoomin ? scale : -oldscale);
+    update_view(window);
+}
+
+int game_loop(GLFWwindow* window)
+{
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+
+    memset(&key_status, 0, 348);
     scale = 1.0f;
     dx = 0.0f, dy = 0.0f;
-    win = window;
-    ren = renderer;
-    con = SDL_GL_CreateContext(win);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -160,7 +184,7 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
     for(int y = 0; y < GRID_SIZE - 1; y++)
     for(int x = 0; x < GRID_SIZE - 1; x++)
     {
-        SDL_Point pixel = tile_to_pixel(x , y);
+        Point pixel = tile_to_pixel(x , y);
 
         int u = h1xy, d = hxy, l = hxy1, r = hx1y;
 
@@ -201,7 +225,7 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
     for(int y = 0; y < GRID_SIZE - 1; y++)
     for(int x = 0; x < GRID_SIZE - 1; x++)
     {
-        SDL_Point p1 = tile_to_pixel(x, y),
+        Point p1 = tile_to_pixel(x, y),
             p2 = tile_to_pixel(x + 1, y),
             p3 = tile_to_pixel(x + 1, y + 1),
             p4 = tile_to_pixel(x, y + 1);
@@ -256,7 +280,7 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
     for(int y = 0; y < GRID_SIZE - 1; y++)
     for(int x = 0; x < GRID_SIZE - 1; x++)
     {
-        SDL_Point p1 = tile_to_pixel(x, y),
+        Point p1 = tile_to_pixel(x, y),
             p2 = tile_to_pixel(x + 1, y),
             p3 = tile_to_pixel(x + 1, y + 1),
             p4 = tile_to_pixel(x, y + 1);
@@ -299,68 +323,22 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
     glBufferData(GL_ARRAY_BUFFER, size_vertices + size_colors, all, GL_STATIC_DRAW);
     free(all);
 
-    int status = 1;
-    render_grid();
-    while(status)
+    render_grid(window);
+    while(1)
     {
-        status = event_loop();
-        int render = 0;
-        SCROLL(SDL_SCANCODE_A, 0,    100,  -1.0f,  0.0f)
-        SCROLL(SDL_SCANCODE_D, 1279, 100,  1.0f,  0.0f)
-        SCROLL(SDL_SCANCODE_W, 0,    100,  0.0f, 0.5f)
-        SCROLL(SDL_SCANCODE_S, 719,  100,  0.0f, -0.5f)
-        if(render) update_view();
-        SDL_Delay(16);
+        glfwPollEvents();
+        if(key_status[GLFW_KEY_ESCAPE]) break;
+        float speed = scroll_speed * scale;
+        int r = 0;
+        if(key_status[GLFW_KEY_A]) { pan(window, &dx, &dy, -1.0f,  0.0f, speed); r = 1; }
+        if(key_status[GLFW_KEY_D]) { pan(window, &dx, &dy,  1.0f,  0.0f, speed); r = 1; }
+        if(key_status[GLFW_KEY_W]) { pan(window, &dx, &dy,  0.0f,  0.5f, speed); r = 1; }
+        if(key_status[GLFW_KEY_S]) { pan(window, &dx, &dy,  0.0f, -0.5f, speed); r = 1; }
+        if(r) update_view(window);
+        //SDL_Delay(16);
     }
 
     /* Free any allocated memory. */
     glDeleteBuffers(1, &vbo_id);
-    SDL_GL_DeleteContext(con);
-    return SWITCHTO_MAINMENU;
-}
-
-static int event_loop()
-{
-    SDL_Event event;
-    while(SDL_PollEvent(&event))
-    {
-        if(SDL_KEYUP == event.type || SDL_KEYDOWN == event.type)
-        {
-            key_status[event.key.keysym.scancode] = event.type == SDL_KEYUP ? 0 : 1;
-            if(key_status[41]) return 0;
-            if(SDL_SCANCODE_RETURN == event.key.keysym.scancode
-                && SDL_KEYDOWN == event.key.type && 0 == event.key.repeat)
-            {
-                glPolygonMode(GL_FRONT_AND_BACK, render_modes[++render_mode % 4]);
-                render_grid();
-            }
-        }
-        else if(SDL_MOUSEWHEEL == event.type)
-        {
-            /* Zoom in is 1, zoom out is -1 */
-            if(event.wheel.y)
-            {
-                int mouse_x, mouse_y;
-                int zoomout = event.wheel.y < 0, zoomin = !zoomout;
-                SDL_GetMouseState(&mouse_x, &mouse_y);
-                GLfloat gscale = zoomin ? 0.5 : 2.0f;
-                float oldscale = scale;
-                scale *= gscale;
-
-                if(zoomin)
-                {
-                    dx += mouse_x * scale;
-                    dy += (DESIGN_HEIGHT - mouse_y) * scale;
-                }
-                else
-                {
-                    dx -= mouse_x * oldscale;
-                    dy -= (DESIGN_HEIGHT - mouse_y) * oldscale;
-                }
-
-                update_view();
-            }
-        }
-    }
-    return 1;
+    return 0;
 }

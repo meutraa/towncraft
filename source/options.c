@@ -6,8 +6,6 @@ int fullscreen = 0;
 
 int scroll_speed = 30;
 
-char render_scale_quality[] = "nearest";
-
 int resolution_width = DESIGN_WIDTH;
 
 int resolution_height = DESIGN_HEIGHT;

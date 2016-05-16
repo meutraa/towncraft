@@ -20,15 +20,6 @@ extern int vsync;
 extern int fullscreen;
 
 /*!
-    \brief Defines the render scale quality
-
-    "nearest" nearest pixel sampling.
-    "linear" linear filtering (supported by OpenGL and Direct3D).
-    "best" anisotropic filtering (supported by Direct3D).
-*/
-extern char render_scale_quality[];
-
-/*!
     \brief Defines the zoom mode.
 
     0 always zoom on the center of the screen.

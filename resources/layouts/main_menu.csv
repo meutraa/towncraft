@@ -1,7 +1,0 @@
-1	image   "background" 	resources/images/wot-world.tga								(0,0)		(0,0)
-1	color	"button_new"	 (222,45)									(0,0,0,168)		(505,416)	(505,416)
-1	text	"new game"		resources/fonts/fleftex_mono_8.ttf:32:1		(255,255,255,0)	(520,420)	(520,420)
-1	color	"button_options" (194,45)									(0,0,0,168)		(285,595)	(285,595)
-1	text	"options"		resources/fonts/fleftex_mono_8.ttf:32:1		(255,255,255,0)	(300,600) 	(300,600)
-1	color	"button_quit"	 (126,45)									(0,0,0,168)		(785,595)	(785,595)
-1	text	"quit"			resources/fonts/fleftex_mono_8.ttf:32:1		(255,255,255,0)	(800,600) 	(800,600)
