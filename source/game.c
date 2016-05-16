@@ -21,6 +21,29 @@
 
 static int event_loop();
 
+typedef struct Color {
+    GLubyte r, g, b, a;
+} Color;
+
+#define DARK 0.56f
+#define LIGHT 1.23f
+
+#define GRASS_R 51
+#define GRASS_G 185
+#define GRASS_B 51
+static const Color grass_base  = { GRASS_R, GRASS_G, GRASS_B, 0 };
+static const Color grass_light = { (int)(GRASS_R * LIGHT), (int)(GRASS_G * LIGHT), (int)(GRASS_B * LIGHT), 0 };
+static const Color grass_dark  = { (int)(GRASS_R * DARK), (int)(GRASS_G * DARK), (int)(GRASS_B * DARK), 0 };
+
+#define SAND_R 204
+#define SAND_G 171
+#define SAND_B 101
+static const Color sand_base  = { SAND_R, SAND_G, SAND_B, 0 };
+static const Color sand_light = {(int)(SAND_R * LIGHT),(int)(SAND_G * LIGHT),(int)(SAND_B * LIGHT), 0 };
+static const Color sand_dark  = { (int)(SAND_R * DARK), (int)(SAND_G * DARK), (int)(SAND_B * DARK), 0 };
+
+static const Color water      = { 100, 173, 199, 192 };
+
 const char* layout = "resources/layouts/game_ui.csv";
 
 static const int maskmap[32] = {
@@ -60,11 +83,27 @@ static GLuint vbo_id;
 #define NUM_TRIANGLES TILES * 2
 static unsigned long tri_count;
 
-#define NUM_VERTEX 6
-#define NUM_COLOR 12
 static GLfloat scale;
 float dx;
 float dy;
+
+#define NUM_COLOR 12
+static GLubyte* app_tri_colors(GLubyte *ar, Color c)
+{
+    *(ar++) = c.r; *(ar++) = c.g; *(ar++) = c.b; *(ar++) = c.a;
+    *(ar++) = c.r; *(ar++) = c.g; *(ar++) = c.b; *(ar++) = c.a;
+    *(ar++) = c.r; *(ar++) = c.g; *(ar++) = c.b; *(ar++) = c.a;
+    return ar;
+}
+
+#define NUM_VERTEX 6
+static GLint* app_tri_vertices(GLint *ar, SDL_Point p1, SDL_Point p2, SDL_Point p3)
+{
+    *(ar++) = p1.x; *(ar++) = p1.y;
+    *(ar++) = p2.x; *(ar++) = p2.y;
+    *(ar++) = p3.x; *(ar++) = p3.y;
+    return ar;
+}
 
 static void render_grid()
 {
@@ -118,7 +157,8 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
     /* Create the map. */
     fill_heightmap(heightmap, GRID_SIZE - 1, ROUGHNESS);
 
-    forXY(0, GRID_SIZE - 1)
+    for(int y = 0; y < GRID_SIZE - 1; y++)
+    for(int x = 0; x < GRID_SIZE - 1; x++)
     {
         SDL_Point pixel = tile_to_pixel(x , y);
 
@@ -141,23 +181,25 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
     }
 
     glClearColor(0, 0, 0, 1);
-    //glShadeModel(GL_FLAT);
-    //glDisable(GL_LIGHTING);
-    //glDisable(GL_DEPTH_TEST);
+    glShadeModel(GL_FLAT);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    //glDisable(GL_DITHER);
-    //glDisable(GL_TEXTURE_2D);
+    glDisable(GL_DITHER);
+    glDisable(GL_TEXTURE_2D);
 
     /* Create vertex array. */
     /* *2 because we assume every tile has an extra water tile. */
     unsigned long size_vertices = sizeof(GLint) * NUM_VERTEX * NUM_TRIANGLES * 2;
     unsigned long size_colors   = sizeof(GLubyte) * NUM_COLOR * NUM_TRIANGLES * 2;
-    GLint *v = malloc(size_vertices);
+    GLint   *v = malloc(size_vertices);
     GLubyte *c = malloc(size_colors);
-    int i = 0, j = 0;
+    GLint   *vp = v;
+    GLubyte *cp = c;
     tri_count = 0;
-    forXY(0, GRID_SIZE - 1)
+    for(int y = 0; y < GRID_SIZE - 1; y++)
+    for(int x = 0; x < GRID_SIZE - 1; x++)
     {
         SDL_Point p1 = tile_to_pixel(x, y),
             p2 = tile_to_pixel(x + 1, y),
@@ -172,53 +214,47 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
         /* where will the tile's color be split? */
         if(p2.y != p4.y)
         {
-            add_triangle(p3, p4, p1)
-            add_triangle(p1, p2, p3)
+            vp = app_tri_vertices(vp, p3, p4, p1);
+            vp = app_tri_vertices(vp, p1, p2, p3);
         }
         else /* vertical split, or if not, the colors will be the same anyway. */
         {
-            add_triangle(p4, p2, p3)
-            add_triangle(p1, p2, p4)
+            vp = app_tri_vertices(vp, p4, p2, p3);
+            vp = app_tri_vertices(vp, p1, p2, p4);
         }
         tri_count += 2;
 
-        int id = tiles[x][y].tile_id;
         int sand = hxy <= 1;
 
         /* First and second triangle. Top/left then bottom/right. */
-        switch(id)
+        switch(tiles[x][y].tile_id)
         {
             case 0: case 5: case 6: case 12: case 15:
-                if   (sand) { rgb(204, 171, 101, 0) }
-                else { rgb(51, 185, 51, 0) }
+                cp = app_tri_colors(cp, sand ?  sand_base : grass_base);
                 break;
             case 4: case 8: case 9: case 13: case 16: case 17: case 21:
-                if   (sand) { rgb(246, 209, 129, 0) }
-                else { rgb(63, 221, 63, 0) }
+                cp = app_tri_colors(cp, sand ? sand_light : grass_light);
                 break;
             case 7: case 10: case 11: case 14: case 18: case 19: case 20:
-                if   (sand) { rgb(150, 128, 80, 0) }
-                else { rgb(35, 135, 35, 0) }
+                cp = app_tri_colors(cp, sand ?  sand_dark : grass_dark);
                 break;
         }
-        switch(id)
+        switch(tiles[x][y].tile_id)
         {
             case 0: case 4: case 7: case 13: case 14:
-                if   (sand) { rgb(204, 171, 101, 0) }
-                else { rgb(51, 185, 51, 0) }
+                cp = app_tri_colors(cp, sand ?  sand_base : grass_base);
                 break;
             case 5: case 8: case 9: case 12: case 16: case 17: case 20:
-                if   (sand) { rgb(246, 209, 129, 0) }
-                else { rgb(63, 221, 63, 0) }
+                cp = app_tri_colors(cp, sand ? sand_light : grass_light);
                 break;
             case 6: case 10: case 11: case 15: case 18: case 19: case 21:
-                if   (sand) { rgb(150, 128, 80, 0) }
-                else { rgb(35, 135, 35, 0) }
+                cp = app_tri_colors(cp, sand ?  sand_dark : grass_dark);
                 break;
         }
     }
     /* Add the water stuff. */
-    forXY(0, GRID_SIZE - 1)
+    for(int y = 0; y < GRID_SIZE - 1; y++)
+    for(int x = 0; x < GRID_SIZE - 1; x++)
     {
         SDL_Point p1 = tile_to_pixel(x, y),
             p2 = tile_to_pixel(x + 1, y),
@@ -232,27 +268,24 @@ Status game_loop(SDL_Window* window, SDL_Renderer* renderer)
             p2.y += TILE_DEPTH;
             p3.y += TILE_DEPTH;
             p4.y += TILE_DEPTH;
-            int id = tiles[x][y].tile_id;
-                 if(12 == id && hx1y >= 0) { add_triangle(p1, p2, p3) }
-            else if(13 == id && hxy  >  0) { add_triangle(p2, p3, p4) }
-            else if(14 == id && hxy1 >= 0) { add_triangle(p1, p4, p3) }
-            else if(15 == id && h1xy >  0) { add_triangle(p2, p1, p4) }
+                 if(12 == tiles[x][y].tile_id && hx1y >= 0) vp = app_tri_vertices(vp, p1, p2, p3);
+            else if(13 == tiles[x][y].tile_id && hxy  >  0) vp = app_tri_vertices(vp, p2, p3, p4);
+            else if(14 == tiles[x][y].tile_id && hxy1 >= 0) vp = app_tri_vertices(vp, p1, p4, p3);
+            else if(15 == tiles[x][y].tile_id && h1xy >  0) vp = app_tri_vertices(vp, p2, p1, p4);
             else
             {
-                add_triangle(p3, p4, p1)
-                add_triangle(p1, p2, p3)
-                rgb(100, 173, 199, 192)
+                vp = app_tri_vertices(vp, p3, p4, p1);
+                vp = app_tri_vertices(vp, p1, p2, p3);
+                cp = app_tri_colors(cp, water);
                 tri_count++;
             }
-            rgb(100, 173, 199, 192)
+            cp = app_tri_colors(cp, water);
             tri_count++;
         }
     }
 
     size_vertices = sizeof(GLint) * NUM_VERTEX * tri_count;
     size_colors   = sizeof(GLubyte) * NUM_COLOR * tri_count;
-    printf("%ld, %d\n", tri_count * NUM_VERTEX, i);
-    printf("%ld, %d\n", tri_count * NUM_COLOR, j);
 
     glGenBuffers(1, &vbo_id);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_id);

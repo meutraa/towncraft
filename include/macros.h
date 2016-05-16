@@ -6,13 +6,6 @@
 #define MACROS_H
 
 #define SETEQ(a, b, c, d) if(!strcmp(a, b)) c = d;
-#define forXY(a, b) for(int y = a; y < b; y++) for(int x = a; x < b; x++)
-#define add_triangle(a, b, c) v[i++] = a.x; v[i++] = a.y; \
-                                 v[i++] = b.x; v[i++] = b.y; \
-                                 v[i++] = c.x; v[i++] = c.y;
-#define rgb(a, b, g, k) c[j++] = a; c[j++] = b; c[j++] = g; c[j++] = k; \
-                     c[j++] = a; c[j++] = b; c[j++] = g; c[j++] = k; \
-                     c[j++] = a; c[j++] = b; c[j++] = g; c[j++] = k;
 #define SCROLL(a, b, c, d, e) if(key_status[a] || (fullscreen && b == c)) \
         { \
             dx += scroll_speed * scale * d; \
