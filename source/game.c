@@ -10,42 +10,17 @@
 #include <time.h>
 
 #include "options.h"
+#include "color.h"
 #include "constants.h"
 #include "diamond.h"
-
-typedef struct Color {
-    GLubyte r, g, b, a;
-} Color;
 
 typedef struct Point {
     GLint x, y;
 } Point;
 
-#define DARK 0.56f
-#define LIGHT 1.23f
-
-#define GRASS_R 51
-#define GRASS_G 185
-#define GRASS_B 51
-static const Color grass_base  = { GRASS_R, GRASS_G, GRASS_B, 0 };
-static const Color grass_light = { (int)(GRASS_R * LIGHT), (int)(GRASS_G * LIGHT), (int)(GRASS_B * LIGHT), 0 };
-static const Color grass_dark  = { (int)(GRASS_R * DARK), (int)(GRASS_G * DARK), (int)(GRASS_B * DARK), 0 };
-
-#define SAND_R 204
-#define SAND_G 171
-#define SAND_B 101
-static const Color sand_base  = { SAND_R, SAND_G, SAND_B, 0 };
-static const Color sand_light = {(int)(SAND_R * LIGHT),(int)(SAND_G * LIGHT),(int)(SAND_B * LIGHT), 0 };
-static const Color sand_dark  = { (int)(SAND_R * DARK), (int)(SAND_G * DARK), (int)(SAND_B * DARK), 0 };
-
-static const Color water      = { 100, 173, 199, 192 };
-
 static const int maskmap[32] = {
     0, 4, 5, 9, 6, 21, 10, 13, 7, 8, 20, 12, 11, 15, 14, [23] = 16, [27] = 17, [29] = 18, [30] = 19
 };
-
-/* Free up some space in the stack. */
-int key_status[283];
 
 static GLenum render_modes[] = { GL_FILL, GL_FILL, GL_LINE, GL_POINT };
 static int render_mode = 0;
@@ -132,7 +107,6 @@ static void update_view(GLFWwindow* window)
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    key_status[key] = GLFW_RELEASE == action ? 0 : 1;
     if(GLFW_KEY_ENTER == key && action == GLFW_PRESS)
     {
         glPolygonMode(GL_FRONT_AND_BACK, render_modes[++render_mode % 4]);
@@ -157,7 +131,6 @@ int game_loop(GLFWwindow* window)
     glfwSetKeyCallback(window, key_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    memset(&key_status, 0, 348);
     scale = 1.0f;
     dx = 0.0f, dy = 0.0f;
 
@@ -298,16 +271,16 @@ int game_loop(GLFWwindow* window)
 
     glMatrixMode(GL_PROJECTION);
     update_view(window);
-    while(1)
+    while(GLFW_PRESS != glfwGetKey(window, GLFW_KEY_ESCAPE) && !glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-        if(key_status[GLFW_KEY_ESCAPE]) break;
+
         float speed = scroll_speed * scale;
         int r = 0;
-        if(key_status[GLFW_KEY_A]) { dx -= speed; r = 1; }
-        if(key_status[GLFW_KEY_D]) { dx += speed; r = 1; }
-        if(key_status[GLFW_KEY_W]) { dy += speed / 2; r = 1; }
-        if(key_status[GLFW_KEY_S]) { dy -= speed / 2; r = 1; }
+        if(GLFW_PRESS == glfwGetKey(window, GLFW_KEY_A)) { dx -= speed; r = 1; }
+        if(GLFW_PRESS == glfwGetKey(window, GLFW_KEY_D)) { dx += speed; r = 1; }
+        if(GLFW_PRESS == glfwGetKey(window, GLFW_KEY_W)) { dy += speed / 2; r = 1; }
+        if(GLFW_PRESS == glfwGetKey(window, GLFW_KEY_S)) { dy -= speed / 2; r = 1; }
         if(r) update_view(window);
     }
 
