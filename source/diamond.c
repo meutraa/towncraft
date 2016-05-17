@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define HEIGHT 12
-#define LOWER_HEIGHT 4
-const float ROUGHNESS = 0.075f;
+#define HEIGHT 18
+#define LOWER_HEIGHT 9
+const float ROUGHNESS = 0.033f;
 
 static int add(int x, int y, int height[GRID_SIZE][GRID_SIZE], int* c)
 {

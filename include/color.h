@@ -5,8 +5,8 @@ typedef struct Color {
     GLubyte r, g, b, a;
 } Color;
 
-#define DARK 0.56f
-#define LIGHT 1.23f
+#define DARK 0.7f
+#define LIGHT 1.2f
 
 #define GRASS_R 51
 #define GRASS_G 185
