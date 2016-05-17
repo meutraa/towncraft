@@ -27,8 +27,9 @@ static void diamond_square(int height[GRID_SIZE][GRID_SIZE], int size, const flo
 
     for(y = half; y < GRID_SIZE - 1; y += size)
     {
-        for(x = half; x < GRID_SIZE - 1; x += size, c = 0)
+        for(x = half; x < GRID_SIZE - 1; x += size)
         {
+            c = 0;
             total = add(x - half, y - half, height, &c)
                   + add(x + half, y - half, height, &c)
                   + add(x + half, y + half, height, &c)
@@ -38,8 +39,9 @@ static void diamond_square(int height[GRID_SIZE][GRID_SIZE], int size, const flo
     }
     for(y = 0; y < GRID_SIZE; y += half)
     {
-        for(x = (y + half) % size; x < GRID_SIZE; x += size, c = 0)
+        for(x = (y + half) % size; x < GRID_SIZE; x += size)
         {
+            c = 0;
             total = add(x, y - half, height, &c)
                   + add(x + half, y, height, &c)
                   + add(x, y + half, height, &c)

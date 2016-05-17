@@ -79,7 +79,7 @@ static void render_grid(GLFWwindow* window)
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glVertexPointer(2, GL_INT, 0, 0);
-    glColorPointer(4, GL_UNSIGNED_BYTE, 0, tri_count * NUM_VERTEX * sizeof(GLint));
+    glColorPointer(4, GL_UNSIGNED_BYTE, 0, (void*) (tri_count * NUM_VERTEX * sizeof(GLint)));
 
     glDrawArrays(GL_TRIANGLES, 0, tri_count * 3);
 

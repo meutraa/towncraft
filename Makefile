@@ -11,4 +11,4 @@ CFLAGS  := -ggdb3 $(WARNINGS) -O0 -std=c99 $(shell pkg-config --cflags glfw3 gl 
 
 all:
 	@$(RM) -r towncraft
-	$(CC) $(CFLAGS) -o towncraft source/* $(LDFLAGS) -Iinclude
+	@$(CC) $(CFLAGS) -o towncraft source/* $(LDFLAGS) -Iinclude
