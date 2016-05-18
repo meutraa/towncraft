@@ -13,7 +13,7 @@ static int render_mode = 0;
 static GLuint vbo_id;
 static unsigned long triangle_count;
 
-static GLfloat scale, dx, dy;
+static GLfloat scale = 1.0f, dx, dy;
 
 static void render_grid(GLFWwindow* window)
 {
@@ -45,7 +45,7 @@ static void render_grid(GLFWwindow* window)
 static void update_view(GLFWwindow* window)
 {
     glLoadIdentity();
-    glOrtho(dx, (DESIGN_WIDTH * scale) + dx, dy, (DESIGN_HEIGHT * scale) + dy, -1, 1);
+    glOrtho(dx, (resolution_width * scale) + dx, dy, (resolution_height * scale) + dy, -1, 1);
     render_grid(window);
 }
 
@@ -71,7 +71,7 @@ static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     float oldscale = scale;
     scale *= zoomin ? 0.5 : 2.0f;
     dx += mouse_x * (zoomin ? scale : -oldscale);
-    dy += (DESIGN_HEIGHT - mouse_y) * (zoomin ? scale : -oldscale);
+    dy += (resolution_height - mouse_y) * (zoomin ? scale : -oldscale);
     update_view(window);
 }
 
@@ -79,9 +79,6 @@ int game_loop(GLFWwindow* window)
 {
     glfwSetKeyCallback(window, key_callback);
     glfwSetScrollCallback(window, scroll_callback);
-
-    scale = 1.0f;
-    dx = 0.0f, dy = 0.0f;
 
     triangle_count = create_map(&vbo_id);
 

@@ -6,6 +6,6 @@ int fullscreen = 0;
 
 int scroll_speed = 30;
 
-int resolution_width = DESIGN_WIDTH;
+int resolution_width = 1280;
 
-int resolution_height = DESIGN_HEIGHT;
+int resolution_height = 720;
