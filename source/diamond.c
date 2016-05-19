@@ -2,8 +2,8 @@
 
 #include <stdlib.h>
 
-static const int HEIGHT = 18;
-static const int LOWER_HEIGHT = 9;
+static const int HEIGHT = 36;
+static const int LOWER_HEIGHT = 18;
 const float ROUGHNESS = 0.1f;
 #define ROUND(x) ((x) >= 0 ? (int)((x) + 0.5f) : (int)((x) - 0.5f))
 

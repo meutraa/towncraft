@@ -12,6 +12,8 @@
 #define TILES ((GRID_SIZE - 1) * (GRID_SIZE - 1))
 #define NUM_TRIANGLES TILES * 2
 
+int WATER_LEVEL = 0;
+
 static const int maskmap[32] = {
     0, 4, 5, 9, 6, 21, 10, 13, 7, 8, 20, 12, 11, 15, 14, [23] = 16, [27] = 17, [29] = 18, [30] = 19
 };
@@ -54,17 +56,21 @@ static GLint* app_tri_vertices(GLint *ar, Point p1, Point p2, Point p3)
 
 GLuint create_map(GLuint* map_vbo_id)
 {
+    fill_heightmap(heightmap, GRID_SIZE - 1, ROUGHNESS);
+    return recreate_map(map_vbo_id);
+}
+
+GLuint recreate_map(GLuint* map_vbo_id)
+{
     if(*map_vbo_id)
     {
         glDeleteBuffers(1, map_vbo_id);
     }
-    /* Create the map. */
-    fill_heightmap(heightmap, GRID_SIZE - 1, ROUGHNESS);
 
     /* Create vertex array. */
     /* *2 because we assume every tile has an extra water tile. */
     unsigned long size_vertices = sizeof(GLint)   * NUM_VERTEX * NUM_TRIANGLES * 2;
-    unsigned long size_colors   = sizeof(GLubyte) * NUM_COLOR  *  NUM_TRIANGLES * 2;
+    unsigned long size_colors   = sizeof(GLubyte) * NUM_COLOR  * NUM_TRIANGLES * 2;
     GLint   *v = malloc(size_vertices);
     GLubyte *c = malloc(size_colors);
     GLint   *vp = v;
@@ -84,7 +90,7 @@ GLuint create_map(GLuint* map_vbo_id)
         int steep = abs(h1xy - hxy) >= 2 || abs(hxy1 - hx1y) >= 2;
         int mask = (hxy1 > low) | ((hxy > low) << 1) | ((hx1y > low) << 2) | ((h1xy > low) << 3) | (steep << 4);
 
-        tiles[x][y].water = h1xy <= 0 || hxy1 <= 0 || hx1y <= 0 || hxy <= 0;
+        tiles[x][y].water = h1xy <= WATER_LEVEL || hxy1 <= WATER_LEVEL || hx1y <= WATER_LEVEL || hxy <= WATER_LEVEL;
         tiles[x][y].tile_id = maskmap[mask];
 
         /* where will the tile's color be split? */
@@ -100,7 +106,7 @@ GLuint create_map(GLuint* map_vbo_id)
         }
         triangle_count += 2;
 
-        int sand = hxy <= 1;
+        int sand = hxy <= WATER_LEVEL + 1;
 
         /* First and second triangle. Top/left then bottom/right. */
         switch(tiles[x][y].tile_id)
@@ -129,6 +135,7 @@ GLuint create_map(GLuint* map_vbo_id)
         }
     }
     /* Add the water stuff. */
+    int woffset = TILE_DEPTH * (WATER_LEVEL + 1);
     for(int y = 0; y < GRID_SIZE - 1; y++)
     for(int x = 0; x < GRID_SIZE - 1; x++)
     {
@@ -137,24 +144,30 @@ GLuint create_map(GLuint* map_vbo_id)
         /* Add color vertices. */
         if(tiles[x][y].water)
         {
-            Point pb = tile_to_pixel(x,     y,     TILE_DEPTH);
-            Point pl = tile_to_pixel(x + 1, y,     TILE_DEPTH);
-            Point pt = tile_to_pixel(x + 1, y + 1, TILE_DEPTH);
-            Point pr = tile_to_pixel(x,     y + 1, TILE_DEPTH);
+            Point pb = tile_to_pixel(x,     y,     woffset);
+            Point pl = tile_to_pixel(x + 1, y,     woffset);
+            Point pt = tile_to_pixel(x + 1, y + 1, woffset);
+            Point pr = tile_to_pixel(x,     y + 1, woffset);
+
+            Color water_shade = water;
+            water_shade.r += 2*hxy;
+            water_shade.g += 2*hxy;
+            water_shade.b += 2*hxy;
+            water_shade.a = 212;
 
             /* Only render triangles with land underneath them. */
-                 if(12 == tp->tile_id && hx1y >= 0) vp = app_tri_vertices(vp, pb, pl, pt);
-            else if(13 == tp->tile_id && hxy  >  0) vp = app_tri_vertices(vp, pl, pt, pr);
-            else if(14 == tp->tile_id && hxy1 >= 0) vp = app_tri_vertices(vp, pb, pr, pt);
-            else if(15 == tp->tile_id && h1xy >  0) vp = app_tri_vertices(vp, pl, pb, pr);
+                 if(12 == tp->tile_id && hx1y >= WATER_LEVEL) vp = app_tri_vertices(vp, pb, pl, pt);
+            else if(13 == tp->tile_id && hxy  >  WATER_LEVEL) vp = app_tri_vertices(vp, pl, pt, pr);
+            else if(14 == tp->tile_id && hxy1 >= WATER_LEVEL) vp = app_tri_vertices(vp, pb, pr, pt);
+            else if(15 == tp->tile_id && h1xy >  WATER_LEVEL) vp = app_tri_vertices(vp, pl, pb, pr);
             else
             {
                 vp = app_tri_vertices(vp, pt, pr, pb);
                 vp = app_tri_vertices(vp, pb, pl, pt);
-                cp = app_tri_colors(cp, water);
+                cp = app_tri_colors(cp, water_shade);
                 triangle_count++;
             }
-            cp = app_tri_colors(cp, water);
+            cp = app_tri_colors(cp, water_shade);
             triangle_count++;
         }
     }

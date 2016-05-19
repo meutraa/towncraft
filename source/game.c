@@ -54,13 +54,23 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     if(GLFW_KEY_ENTER == key && action == GLFW_PRESS)
     {
         glPolygonMode(GL_FRONT_AND_BACK, render_modes[++render_mode % 4]);
-        render_grid(window);
     }
-    if(GLFW_KEY_N == key && action == GLFW_PRESS)
+    else if(GLFW_KEY_N == key && action == GLFW_PRESS)
     {
         triangle_count = create_map(&vbo_id);
-        render_grid(window);
     }
+    else if(GLFW_KEY_UP == key && action == GLFW_PRESS)
+    {
+        WATER_LEVEL++;
+        triangle_count = recreate_map(&vbo_id);
+    }
+    else if(GLFW_KEY_DOWN == key && action == GLFW_PRESS)
+    {
+        WATER_LEVEL--;
+        triangle_count = recreate_map(&vbo_id);
+    }
+    else return;
+    render_grid(window);
 }
 
 static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

@@ -14,7 +14,9 @@ typedef struct Tile {
     Point t, b, l, r;
 } Tile;
 
+extern int WATER_LEVEL;
 /* Returns count of triangles. */
 GLuint create_map(GLuint* map_vbo_id);
+GLuint recreate_map(GLuint* map_vbo_id);
 
 #endif
